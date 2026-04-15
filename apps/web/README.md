@@ -1,36 +1,35 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Lumina Resort - Hotel PMS (B2B SaaS)
 
-## Getting Started
+Lumina Resort es una plataforma de **Gestión de Propiedades Hoteleras (PMS)** construida con tecnologías web modernas. Ofrece una interfaz sumamente limpia enfocada en el diseño **Dark Theme Premium**.
 
-First, run the development server:
+## 🚀 Características Principales
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- **Autenticación Premium:** Pantalla de Login con diseño Glassmorphism integrando degradados elegantes.
+- **Recepción y Dashboard (Tiempo Real):** Vista de cuadrícula con **Tarjetas de Habitaciones Dinámicas**. Detecta rápidamente (mediante iconografía y código de colores semántico) si una habitación es "Sencilla", "Doble" o "Suite", y si su estado es _Disponible, Ocupada o Requiere Limpieza_.
+- **Gestión de Reservas:** Tabla de datos inteligente con buscador rápido para auditar el histórico de clientes, así como un **Modal de Nueva Reserva** para asegurar nuevas estadías.
+- **Housekeeping (Servicio de Limpieza):** Un panel dedicado para el staff de operaciones que filtra únicamente las habitaciones en estado `limpieza` y permite marcarlas como listas para el siguiente huésped.
+- **Arquitectura Oscura por Defecto:** Utiliza variables semánticas en CSS (`bg-card`, `text-foreground`, `color-scheme: dark`) para asegurar legibilidad excepcional en pantallas B2B/Enterprise.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🛠 Tech Stack
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- **Framework:** [Next.js](https://nextjs.org/) (App Router).
+- **Estilos:** [Tailwind CSS v4](https://tailwindcss.com/) & [Shadcn UI](https://ui.shadcn.com/) (Componentes).
+- **Iconografía:** [Lucide React](https://lucide.dev/).
+- **Simulación Lógica:** Hooks nativos de React (`useState`) alimentados con un "mock" central (`src/lib/mocks.ts`).
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 💾 Guía de Instalación Rápida
 
-## Learn More
+1. Instalar las dependencias instaladas en el directorio del entorno (`apps/web`):
 
-To learn more about Next.js, take a look at the following resources:
+   ```bash
+   npm install
+   ```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+2. Arrancar el Servidor de Desarrollo:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+   ```bash
+   npm run dev
+   ```
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+3. Visita [http://localhost:3000](http://localhost:3000) en tu navegador.
+   _(Nota: Puedes escribir cualquier credencial en el login para probar)_.
