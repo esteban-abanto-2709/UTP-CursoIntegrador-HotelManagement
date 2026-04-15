@@ -124,65 +124,75 @@ export default function ReservasPage() {
               className="flex flex-col gap-4 mt-2"
             >
               <div className="flex flex-col gap-1.5">
-                <label className="text-sm font-semibold text-zinc-700">
+                <label className="text-sm font-semibold text-muted-foreground">
                   Nombre del Huésped Completo
                 </label>
                 <input
                   name="guestName"
                   required
-                  className="h-10 px-3 py-2 rounded-lg border border-zinc-200 focus:ring-2 focus:border-transparent focus:ring-primary/20 outline-none transition-all bg-zinc-50 focus:bg-white"
+                  className="h-10 px-3 py-2 rounded-lg border border-border/50 bg-background text-foreground focus:ring-2 focus:border-primary focus:ring-primary/20 outline-none transition-all placeholder:text-muted-foreground"
                   placeholder="Ej. Juan Pérez"
                 />
               </div>
               <div className="flex flex-col gap-1.5">
-                <label className="text-sm font-semibold text-zinc-700">
+                <label className="text-sm font-semibold text-muted-foreground">
                   DNI / Documento Identidad
                 </label>
                 <input
                   name="dni"
                   required
-                  className="h-10 px-3 py-2 rounded-lg border border-zinc-200 focus:ring-2 focus:border-transparent focus:ring-primary/20 outline-none transition-all bg-zinc-50 focus:bg-white"
+                  className="h-10 px-3 py-2 rounded-lg border border-border/50 bg-background text-foreground focus:ring-2 focus:border-primary focus:ring-primary/20 outline-none transition-all placeholder:text-muted-foreground"
                   placeholder="Ej. 12345678"
                 />
               </div>
               <div className="flex gap-4">
                 <div className="flex flex-col gap-1.5 w-full">
-                  <label className="text-sm font-semibold text-zinc-700">
+                  <label className="text-sm font-semibold text-muted-foreground">
                     Fecha de Entrada
                   </label>
                   <input
                     name="checkIn"
                     type="date"
                     required
-                    className="h-10 px-3 py-2 rounded-lg border border-zinc-200 focus:ring-2 focus:border-transparent focus:ring-primary/20 outline-none transition-all bg-zinc-50 focus:bg-white"
+                    className="h-10 px-3 py-2 rounded-lg border border-border/50 bg-background text-foreground focus:ring-2 focus:border-primary focus:ring-primary/20 outline-none transition-all"
                   />
                 </div>
                 <div className="flex flex-col gap-1.5 w-full">
-                  <label className="text-sm font-semibold text-zinc-700">
+                  <label className="text-sm font-semibold text-muted-foreground">
                     Fecha de Salida
                   </label>
                   <input
                     name="checkOut"
                     type="date"
                     required
-                    className="h-10 px-3 py-2 rounded-lg border border-zinc-200 focus:ring-2 focus:border-transparent focus:ring-primary/20 outline-none transition-all bg-zinc-50 focus:bg-white"
+                    className="h-10 px-3 py-2 rounded-lg border border-border/50 bg-background text-foreground focus:ring-2 focus:border-primary focus:ring-primary/20 outline-none transition-all"
                   />
                 </div>
               </div>
               <div className="flex flex-col gap-1.5 mb-4">
-                <label className="text-sm font-semibold text-zinc-700">
+                <label className="text-sm font-semibold text-muted-foreground">
                   Asignar Habitación
                 </label>
                 <select
                   name="roomId"
                   required
-                  className="h-10 px-3 py-2 rounded-lg border border-zinc-200 focus:ring-2 focus:border-transparent focus:ring-primary/20 outline-none transition-all bg-zinc-50 focus:bg-white cursor-pointer"
+                  className="h-10 px-3 py-2 rounded-lg border border-border/50 bg-background text-foreground focus:ring-2 focus:border-primary focus:ring-primary/20 outline-none transition-all cursor-pointer"
                 >
-                  <option value="">Seleccione un cuarto disponible...</option>
-                  <option value="101">Cuarto 101 - Sencilla</option>
-                  <option value="104">Cuarto 104 - Sencilla</option>
-                  <option value="201">Cuarto 201 - Doble</option>
-                  <option value="204">Cuarto 204 - Doble</option>
+                  <option value="" className="text-muted-foreground">
+                    Seleccione un cuarto disponible...
+                  </option>
+                  <option value="101" className="text-foreground">
+                    Cuarto 101 - Sencilla
+                  </option>
+                  <option value="104" className="text-foreground">
+                    Cuarto 104 - Sencilla
+                  </option>
+                  <option value="201" className="text-foreground">
+                    Cuarto 201 - Doble
+                  </option>
+                  <option value="204" className="text-foreground">
+                    Cuarto 204 - Doble
+                  </option>
                 </select>
               </div>
               <button
@@ -215,22 +225,22 @@ export default function ReservasPage() {
         <Table>
           <TableHeader>
             <TableRow className="bg-muted/30 hover:bg-muted/30">
-              <TableHead className="font-semibold text-zinc-500 py-4 w-[110px]">
+              <TableHead className="font-semibold text-muted-foreground py-4 w-[110px]">
                 ID Reserva
               </TableHead>
-              <TableHead className="font-semibold text-zinc-500">
+              <TableHead className="font-semibold text-muted-foreground">
                 Huésped
               </TableHead>
-              <TableHead className="font-semibold text-zinc-500">
+              <TableHead className="font-semibold text-muted-foreground">
                 Documento
               </TableHead>
-              <TableHead className="font-semibold text-zinc-500">
+              <TableHead className="font-semibold text-muted-foreground">
                 Alojamiento
               </TableHead>
-              <TableHead className="font-semibold text-zinc-500">
+              <TableHead className="font-semibold text-muted-foreground">
                 Fechas (In - Out)
               </TableHead>
-              <TableHead className="font-semibold text-zinc-500 text-right">
+              <TableHead className="font-semibold text-muted-foreground text-right">
                 Estado
               </TableHead>
             </TableRow>
@@ -240,10 +250,10 @@ export default function ReservasPage() {
               <TableRow>
                 <TableCell
                   colSpan={6}
-                  className="h-32 text-center text-zinc-500"
+                  className="h-32 text-center text-muted-foreground"
                 >
                   No se encontraron reservaciones que coincidan con{" "}
-                  <b>&quot;{searchTerm}&quot;</b>.
+                  <b className="text-foreground">&quot;{searchTerm}&quot;</b>.
                 </TableCell>
               </TableRow>
             ) : (
@@ -258,13 +268,15 @@ export default function ReservasPage() {
                   <TableCell className="font-medium text-foreground group-hover:text-primary transition-colors">
                     {res.guestName}
                   </TableCell>
-                  <TableCell className="text-muted-foreground">{res.dni}</TableCell>
+                  <TableCell className="text-muted-foreground">
+                    {res.dni}
+                  </TableCell>
                   <TableCell>
                     <span className="bg-muted text-muted-foreground px-2.5 py-1 rounded-md text-xs font-bold border border-border/50">
                       Cto. {res.roomId}
                     </span>
                   </TableCell>
-                  <TableCell className="text-zinc-500">
+                  <TableCell className="text-muted-foreground">
                     {res.checkIn} <span className="opacity-50">→</span>{" "}
                     {res.checkOut}
                   </TableCell>

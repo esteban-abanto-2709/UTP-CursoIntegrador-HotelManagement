@@ -35,7 +35,7 @@ export function AppSidebar() {
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupLabel className="h-20 flex items-center gap-3 p-4 mb-4">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-cyan-300 via-blue-500 to-indigo-600 shadow-md shadow-primary/20 shrink-0"></div>
+            <div className="w-10 h-10 rounded-full bg-linear-to-tr from-cyan-300 via-blue-500 to-indigo-600 shadow-md shadow-primary/20 shrink-0"></div>
             <div className="flex flex-col leading-tight">
               <span className="text-sm font-bold text-foreground">
                 Lumina Resort

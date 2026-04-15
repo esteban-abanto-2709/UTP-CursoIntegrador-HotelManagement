@@ -38,7 +38,9 @@ export default function ServicioHabitacionPage() {
           <div className="w-16 h-16 bg-status-available-icon-bg rounded-full flex items-center justify-center mb-4">
             <Sparkles className="w-8 h-8 text-status-available-icon-text" />
           </div>
-          <h3 className="text-xl font-bold text-foreground">¡Todo impecable!</h3>
+          <h3 className="text-xl font-bold text-foreground">
+            ¡Todo impecable!
+          </h3>
           <p className="text-muted-foreground mt-1">
             No hay habitaciones pendientes de limpieza en este momento.
           </p>
@@ -46,7 +48,7 @@ export default function ServicioHabitacionPage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {habitacionesSucias.map((room) => (
-              <div
+            <div
               key={room.id}
               className="relative overflow-hidden rounded-2xl border border-border/50 bg-card shadow-sm hover:shadow-md transition-all"
             >

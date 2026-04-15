@@ -83,7 +83,9 @@ export default function DashboardPage() {
             </div>
           </div>
           <div className="mt-4 flex items-baseline gap-2">
-            <span className="text-4xl font-bold text-foreground">{ocupadas}</span>
+            <span className="text-4xl font-bold text-foreground">
+              {ocupadas}
+            </span>
             <span className="text-sm font-medium text-status-occupied-icon-text bg-status-occupied-bg px-2 py-0.5 rounded-full border border-status-occupied-border">
               Huéspedes activos
             </span>
@@ -101,7 +103,9 @@ export default function DashboardPage() {
             </div>
           </div>
           <div className="mt-4 flex items-baseline gap-2">
-            <span className="text-4xl font-bold text-foreground">{limpieza}</span>
+            <span className="text-4xl font-bold text-foreground">
+              {limpieza}
+            </span>
             <span className="text-sm font-medium text-status-cleaning-icon-text bg-status-cleaning-bg px-2 py-0.5 rounded-full border border-status-cleaning-border">
               Requieren atención
             </span>
@@ -219,13 +223,21 @@ function RoomCard({
   const getTypeIcon = () => {
     switch (room.type.toLowerCase()) {
       case "sencilla":
-        return <User className="w-8 h-8 text-muted-foreground group-hover:text-foreground transition-colors" />;
+        return (
+          <User className="w-8 h-8 text-muted-foreground group-hover:text-foreground transition-colors" />
+        );
       case "doble":
-        return <Users className="w-8 h-8 text-muted-foreground group-hover:text-foreground transition-colors" />;
+        return (
+          <Users className="w-8 h-8 text-muted-foreground group-hover:text-foreground transition-colors" />
+        );
       case "suite":
-        return <Crown className="w-8 h-8 text-primary group-hover:text-primary transition-colors" />;
+        return (
+          <Crown className="w-8 h-8 text-primary group-hover:text-primary transition-colors" />
+        );
       default:
-        return <BedDouble className="w-8 h-8 text-muted-foreground group-hover:text-foreground transition-colors" />;
+        return (
+          <BedDouble className="w-8 h-8 text-muted-foreground group-hover:text-foreground transition-colors" />
+        );
     }
   };
 
@@ -249,7 +261,7 @@ function RoomCard({
         <div className="mb-4 transition-transform duration-300 group-hover:scale-110">
           {getTypeIcon()}
         </div>
-        
+
         <span className="text-3xl font-bold tracking-tighter text-foreground mb-1">
           {room.number}
         </span>
