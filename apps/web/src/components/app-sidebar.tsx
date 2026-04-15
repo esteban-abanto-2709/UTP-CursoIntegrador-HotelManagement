@@ -23,8 +23,8 @@ const items = [
     icon: Calendar,
   },
   {
-    title: "Limpieza",
-    url: "/limpieza",
+    title: "Servicio a la Habitación",
+    url: "/servicio",
     icon: BedDouble,
   },
 ];

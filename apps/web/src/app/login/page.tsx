@@ -17,12 +17,13 @@ export default function LoginPage() {
       <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-500/20 rounded-full blur-3xl opacity-50"></div>
 
       <div className="relative w-full max-w-md bg-white/80 backdrop-blur-2xl border shadow-2xl rounded-3xl p-8 py-10 animate-in zoom-in-95 duration-500">
-        
         <div className="flex flex-col items-center mb-8">
           <div className="bg-primary/10 p-3 rounded-2xl mb-4">
             <LockKeyhole className="w-8 h-8 text-primary" />
           </div>
-          <h1 className="text-2xl font-bold text-zinc-900 tracking-tight">Acceso PMS</h1>
+          <h1 className="text-2xl font-bold text-zinc-900 tracking-tight">
+            Acceso PMS
+          </h1>
           <p className="text-zinc-500 text-sm mt-1 text-center">
             Ingresa tus credenciales para acceder al panel operativo
           </p>
@@ -30,12 +31,14 @@ export default function LoginPage() {
 
         <form onSubmit={handleLogin} className="flex flex-col gap-5">
           <div className="flex flex-col gap-2">
-            <label className="text-sm font-semibold text-zinc-700 ml-1">Usuario / DNI</label>
+            <label className="text-sm font-semibold text-zinc-700 ml-1">
+              Usuario / DNI
+            </label>
             <div className="relative">
               <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-400" />
-              <input 
+              <input
                 required
-                type="text" 
+                type="text"
                 placeholder="ej: recepcion"
                 className="w-full h-12 pl-10 pr-4 rounded-xl border border-zinc-200 bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
               />
@@ -43,19 +46,21 @@ export default function LoginPage() {
           </div>
 
           <div className="flex flex-col gap-2">
-            <label className="text-sm font-semibold text-zinc-700 ml-1">Contraseña</label>
+            <label className="text-sm font-semibold text-zinc-700 ml-1">
+              Contraseña
+            </label>
             <div className="relative">
               <LockKeyhole className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-400" />
-              <input 
+              <input
                 required
-                type="password" 
+                type="password"
                 placeholder="••••••••"
                 className="w-full h-12 pl-10 pr-4 rounded-xl border border-zinc-200 bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
               />
             </div>
           </div>
 
-          <button 
+          <button
             type="submit"
             className="w-full h-12 mt-4 bg-primary text-primary-foreground font-semibold rounded-xl hover:bg-primary/90 transition-all active:scale-[0.98] shadow-md shadow-primary/20"
           >
@@ -66,7 +71,8 @@ export default function LoginPage() {
         <div className="mt-6 p-4 bg-blue-50/50 border border-blue-100 rounded-xl flex gap-3 items-start">
           <AlertCircle className="w-5 h-5 text-blue-500 shrink-0 mt-0.5" />
           <p className="text-xs text-blue-800 font-medium">
-            Entorno de demostración. Escribe "admin" o "recepcion" en el usuario para probar los distintos roles.
+            Entorno de demostración. Escribe &quot;admin&quot; o
+            &quot;recepcion&quot; en el usuario para probar los distintos roles.
           </p>
         </div>
       </div>
