@@ -39,12 +39,12 @@ export function AppSidebar() {
             <SidebarMenu>
               {items.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
-                    <a href={item.url}>
-                      <item.icon className="w-5 h-5"/>
-                      <span className="text-base">{item.title}</span>
-                    </a>
-                  </SidebarMenuButton>
+                  <a href={item.url} className="w-full">
+                    <SidebarMenuButton className="transition-all hover:bg-primary/5 hover:text-primary active:scale-95">
+                      <item.icon className="w-5 h-5 mr-3"/>
+                      <span className="text-base font-medium">{item.title}</span>
+                    </SidebarMenuButton>
+                  </a>
                 </SidebarMenuItem>
               ))}
             </SidebarMenu>
