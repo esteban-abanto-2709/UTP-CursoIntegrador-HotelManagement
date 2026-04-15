@@ -56,7 +56,7 @@ export default function DashboardPage() {
             <h3 className="font-semibold tracking-tight text-zinc-600">
               Disponibles
             </h3>
-            <div className="h-10 w-10 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-600">
+            <div className="h-10 w-10 bg-status-available-icon-bg rounded-full flex items-center justify-center text-status-available-icon-text">
               <CheckCircle2 className="w-5 h-5" />
             </div>
           </div>
@@ -64,7 +64,7 @@ export default function DashboardPage() {
             <span className="text-4xl font-bold text-zinc-900">
               {disponibles}
             </span>
-            <span className="text-sm font-medium text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100">
+            <span className="text-sm font-medium text-status-available-icon-text bg-status-available-bg px-2 py-0.5 rounded-full border border-status-available-border">
               Listas para Check-in
             </span>
           </div>
@@ -76,13 +76,13 @@ export default function DashboardPage() {
             <h3 className="font-semibold tracking-tight text-zinc-600">
               Ocupadas
             </h3>
-            <div className="h-10 w-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600">
+            <div className="h-10 w-10 bg-status-occupied-icon-bg rounded-full flex items-center justify-center text-status-occupied-icon-text">
               <BedDouble className="w-5 h-5" />
             </div>
           </div>
           <div className="mt-4 flex items-baseline gap-2">
             <span className="text-4xl font-bold text-zinc-900">{ocupadas}</span>
-            <span className="text-sm font-medium text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-100">
+            <span className="text-sm font-medium text-status-occupied-icon-text bg-status-occupied-bg px-2 py-0.5 rounded-full border border-status-occupied-border">
               Huéspedes activos
             </span>
           </div>
@@ -94,13 +94,13 @@ export default function DashboardPage() {
             <h3 className="font-semibold tracking-tight text-zinc-600">
               Limpieza Pendiente
             </h3>
-            <div className="h-10 w-10 bg-amber-100 rounded-full flex items-center justify-center text-amber-600">
+            <div className="h-10 w-10 bg-status-cleaning-icon-bg rounded-full flex items-center justify-center text-status-cleaning-icon-text">
               <AlertCircle className="w-5 h-5" />
             </div>
           </div>
           <div className="mt-4 flex items-baseline gap-2">
             <span className="text-4xl font-bold text-zinc-900">{limpieza}</span>
-            <span className="text-sm font-medium text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-100">
+            <span className="text-sm font-medium text-status-cleaning-icon-text bg-status-cleaning-bg px-2 py-0.5 rounded-full border border-status-cleaning-border">
               Requieren atención
             </span>
           </div>
@@ -115,17 +115,19 @@ export default function DashboardPage() {
           </h3>
           <div className="flex gap-3 text-sm font-medium">
             <span className="flex items-center gap-1.5">
-              <div className="w-3 h-3 rounded-full bg-emerald-400"></div>
+              <div className="w-3 h-3 rounded-full bg-status-available-icon-text"></div>
               Disponible
             </span>
             <span className="flex items-center gap-1.5">
-              <div className="w-3 h-3 rounded-full bg-blue-400"></div>Ocupada
+              <div className="w-3 h-3 rounded-full bg-status-occupied-icon-text"></div>
+              Ocupada
             </span>
             <span className="flex items-center gap-1.5">
-              <div className="w-3 h-3 rounded-full bg-amber-400"></div>Limpieza
+              <div className="w-3 h-3 rounded-full bg-status-cleaning-icon-text"></div>
+              Limpieza
             </span>
             <span className="flex items-center gap-1.5">
-              <div className="w-3 h-3 rounded-full bg-zinc-300"></div>
+              <div className="w-3 h-3 rounded-full bg-status-maintenance-icon-text"></div>
               Mantenimiento
             </span>
           </div>
@@ -160,41 +162,45 @@ function RoomCard({
     switch (room.status) {
       case "disponible":
         return {
-          bg: "bg-emerald-50",
-          border: "border-emerald-200 hover:border-emerald-300",
-          text: "text-emerald-700",
-          iconBg: "bg-emerald-100",
-          iconText: "text-emerald-600",
+          bg: "bg-status-available-bg",
+          border:
+            "border-status-available-border hover:border-status-available-border-hover",
+          text: "text-status-available-text",
+          iconBg: "bg-status-available-icon-bg",
+          iconText: "text-status-available-icon-text",
           icon: <DoorOpen className="w-4 h-4" />,
           label: "Disponible",
         };
       case "ocupada":
         return {
-          bg: "bg-blue-50",
-          border: "border-blue-200 hover:border-blue-300 shadow-blue-100",
-          text: "text-blue-700",
-          iconBg: "bg-blue-100",
-          iconText: "text-blue-600",
+          bg: "bg-status-occupied-bg",
+          border:
+            "border-status-occupied-border hover:border-status-occupied-border-hover",
+          text: "text-status-occupied-text",
+          iconBg: "bg-status-occupied-icon-bg",
+          iconText: "text-status-occupied-icon-text",
           icon: <User className="w-4 h-4" />,
           label: "Ocupada",
         };
       case "limpieza":
         return {
-          bg: "bg-amber-50",
-          border: "border-amber-200 hover:border-amber-300",
-          text: "text-amber-700",
-          iconBg: "bg-amber-100",
-          iconText: "text-amber-600",
+          bg: "bg-status-cleaning-bg",
+          border:
+            "border-status-cleaning-border hover:border-status-cleaning-border-hover",
+          text: "text-status-cleaning-text",
+          iconBg: "bg-status-cleaning-icon-bg",
+          iconText: "text-status-cleaning-icon-text",
           icon: <Sparkles className="w-4 h-4" />,
           label: "Limpieza",
         };
       case "mantenimiento":
         return {
-          bg: "bg-zinc-100",
-          border: "border-zinc-200 hover:border-zinc-300",
-          text: "text-zinc-600",
-          iconBg: "bg-zinc-200",
-          iconText: "text-zinc-500",
+          bg: "bg-status-maintenance-bg",
+          border:
+            "border-status-maintenance-border hover:border-status-maintenance-border-hover",
+          text: "text-status-maintenance-text",
+          iconBg: "bg-status-maintenance-icon-bg",
+          iconText: "text-status-maintenance-icon-text",
           icon: <Wrench className="w-4 h-4" />,
           label: "Inactiva",
         };
@@ -257,7 +263,7 @@ function RoomCard({
             {room.status === "disponible" && (
               <button
                 onClick={() => handleAction("ocupada")}
-                className="w-full flex items-center justify-between p-4 rounded-xl border border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 transition-colors font-semibold"
+                className="w-full flex items-center justify-between p-4 rounded-xl border border-status-occupied-border bg-status-occupied-bg text-status-occupied-text hover:bg-status-occupied-icon-bg transition-colors font-semibold"
               >
                 <div className="flex items-center gap-3">
                   <User className="w-5 h-5" /> Efectuar Check-In
@@ -269,7 +275,7 @@ function RoomCard({
             {room.status === "ocupada" && (
               <button
                 onClick={() => handleAction("limpieza")}
-                className="w-full flex items-center justify-between p-4 rounded-xl border border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100 transition-colors font-semibold"
+                className="w-full flex items-center justify-between p-4 rounded-xl border border-status-cleaning-border bg-status-cleaning-bg text-status-cleaning-text hover:bg-status-cleaning-icon-bg transition-colors font-semibold"
               >
                 <div className="flex items-center gap-3">
                   <DoorOpen className="w-5 h-5" /> Efectuar Check-Out
@@ -281,7 +287,7 @@ function RoomCard({
             {room.status === "limpieza" && (
               <button
                 onClick={() => handleAction("disponible")}
-                className="w-full flex items-center justify-between p-4 rounded-xl border border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition-colors font-semibold"
+                className="w-full flex items-center justify-between p-4 rounded-xl border border-status-available-border bg-status-available-bg text-status-available-text hover:bg-status-available-icon-bg transition-colors font-semibold"
               >
                 <div className="flex items-center gap-3">
                   <CheckCircle2 className="w-5 h-5" /> Finalizar Servicio a la
@@ -294,7 +300,7 @@ function RoomCard({
             {room.status === "mantenimiento" && (
               <button
                 onClick={() => handleAction("disponible")}
-                className="w-full flex items-center justify-between p-4 rounded-xl border border-zinc-200 bg-zinc-100 text-zinc-700 hover:bg-zinc-200 transition-colors font-semibold"
+                className="w-full flex items-center justify-between p-4 rounded-xl border border-status-available-border bg-status-available-bg text-status-available-text hover:bg-status-available-icon-bg transition-colors font-semibold"
               >
                 <div className="flex items-center gap-3">
                   <CheckCircle2 className="w-5 h-5" /> Habilitar Habitación

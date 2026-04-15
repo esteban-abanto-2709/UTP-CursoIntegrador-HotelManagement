@@ -34,9 +34,9 @@ export default function ServicioHabitacionPage() {
       </div>
 
       {habitacionesSucias.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-20 bg-emerald-50/50 rounded-3xl border border-emerald-100 border-dashed">
-          <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mb-4">
-            <Sparkles className="w-8 h-8 text-emerald-600" />
+        <div className="flex flex-col items-center justify-center py-20 bg-status-available-bg/50 rounded-3xl border border-status-available-border border-dashed">
+          <div className="w-16 h-16 bg-status-available-icon-bg rounded-full flex items-center justify-center mb-4">
+            <Sparkles className="w-8 h-8 text-status-available-icon-text" />
           </div>
           <h3 className="text-xl font-bold text-zinc-900">¡Todo impecable!</h3>
           <p className="text-zinc-500 mt-1">
@@ -53,14 +53,14 @@ export default function ServicioHabitacionPage() {
               <div className="p-6">
                 <div className="flex justify-between items-start mb-4">
                   <div className="flex items-center gap-3">
-                    <div className="p-3 bg-amber-100 rounded-xl">
-                      <Droplets className="w-6 h-6 text-amber-600" />
+                    <div className="p-3 bg-status-cleaning-icon-bg rounded-xl">
+                      <Droplets className="w-6 h-6 text-status-cleaning-icon-text" />
                     </div>
                     <div>
                       <h3 className="text-2xl font-bold tracking-tight text-zinc-900">
                         Habitación {room.number}
                       </h3>
-                      <p className="text-sm font-medium text-amber-600">
+                      <p className="text-sm font-medium text-status-cleaning-text">
                         {room.type}
                       </p>
                     </div>
@@ -72,8 +72,8 @@ export default function ServicioHabitacionPage() {
                     Estado actual:
                   </span>
                   <div className="flex items-center gap-2 text-zinc-800 font-medium text-sm">
-                    <AlertCircle className="w-4 h-4 text-amber-500" /> Requiere
-                    Intervención del Staff
+                    <AlertCircle className="w-4 h-4 text-status-cleaning-text" />{" "}
+                    Requiere Intervención del Staff
                   </div>
                 </div>
 

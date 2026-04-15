@@ -46,6 +46,35 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
+
+  /* STATUS COLORS (Semánticos) */
+  --color-status-available-bg: var(--color-emerald-50);
+  --color-status-available-border: var(--color-emerald-200);
+  --color-status-available-border-hover: var(--color-emerald-300);
+  --color-status-available-text: var(--color-emerald-700);
+  --color-status-available-icon-bg: var(--color-emerald-100);
+  --color-status-available-icon-text: var(--color-emerald-600);
+
+  --color-status-occupied-bg: var(--color-blue-50);
+  --color-status-occupied-border: var(--color-blue-200);
+  --color-status-occupied-border-hover: var(--color-blue-300);
+  --color-status-occupied-text: var(--color-blue-700);
+  --color-status-occupied-icon-bg: var(--color-blue-100);
+  --color-status-occupied-icon-text: var(--color-blue-600);
+
+  --color-status-cleaning-bg: var(--color-amber-50);
+  --color-status-cleaning-border: var(--color-amber-200);
+  --color-status-cleaning-border-hover: var(--color-amber-300);
+  --color-status-cleaning-text: var(--color-amber-700);
+  --color-status-cleaning-icon-bg: var(--color-amber-100);
+  --color-status-cleaning-icon-text: var(--color-amber-600);
+
+  --color-status-maintenance-bg: var(--color-zinc-100);
+  --color-status-maintenance-border: var(--color-zinc-200);
+  --color-status-maintenance-border-hover: var(--color-zinc-300);
+  --color-status-maintenance-text: var(--color-zinc-600);
+  --color-status-maintenance-icon-bg: var(--color-zinc-200);
+  --color-status-maintenance-icon-text: var(--color-zinc-500);
 }
 
 :root {

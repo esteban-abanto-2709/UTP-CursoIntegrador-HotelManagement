@@ -55,25 +55,25 @@ export default function ReservasPage() {
     switch (status) {
       case "activa":
         return (
-          <span className="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-700 font-semibold border border-blue-200">
+          <span className="px-2 py-1 text-xs rounded-full bg-status-occupied-bg text-status-occupied-text font-semibold border border-status-occupied-border">
             En Hotel (Activa)
           </span>
         );
       case "pendiente":
         return (
-          <span className="px-2 py-1 text-xs rounded-full bg-amber-100 text-amber-700 font-semibold border border-amber-200">
+          <span className="px-2 py-1 text-xs rounded-full bg-status-cleaning-bg text-status-cleaning-text font-semibold border border-status-cleaning-border">
             Próximos a llegar
           </span>
         );
       case "completada":
         return (
-          <span className="px-2 py-1 text-xs rounded-full bg-emerald-100 text-emerald-700 font-semibold border border-emerald-200">
+          <span className="px-2 py-1 text-xs rounded-full bg-status-available-bg text-status-available-text font-semibold border border-status-available-border">
             Finalizada
           </span>
         );
       case "cancelada":
         return (
-          <span className="px-2 py-1 text-xs rounded-full bg-zinc-100 text-zinc-700 font-semibold border border-zinc-200">
+          <span className="px-2 py-1 text-xs rounded-full bg-status-maintenance-bg text-status-maintenance-text font-semibold border border-status-maintenance-border">
             Cancelada
           </span>
         );
