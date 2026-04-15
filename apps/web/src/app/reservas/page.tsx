@@ -91,10 +91,10 @@ export default function ReservasPage() {
       {/* Cabecera Principal */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b pb-6">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight text-zinc-900">
+          <h2 className="text-3xl font-bold tracking-tight text-foreground">
             Gestión de Reservas
           </h2>
-          <p className="text-zinc-500 mt-2 text-base">
+          <p className="text-muted-foreground mt-2 text-base">
             Administra el historial y controla los próximos ingresos para evitar
             overbooking al 100%.
           </p>
@@ -197,24 +197,24 @@ export default function ReservasPage() {
       </div>
 
       {/* Cuadro de Búsqueda Falsa */}
-      <div className="bg-white p-4 rounded-2xl border shadow-sm flex flex-col md:flex-row gap-4 justify-between">
+      <div className="bg-card p-4 rounded-2xl border border-border/50 shadow-sm flex flex-col md:flex-row gap-4 justify-between">
         <div className="relative w-full max-w-md">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <input
             type="text"
             placeholder="🔎 Buscar una reserva por Documento o Nombre..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full h-11 pl-10 pr-4 rounded-xl border border-zinc-200 bg-zinc-50 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all font-medium"
+            className="w-full h-11 pl-10 pr-4 rounded-xl border border-border/50 bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 focus:bg-muted transition-all font-medium text-foreground"
           />
         </div>
       </div>
 
       {/* Tabla de Reservas */}
-      <div className="bg-white rounded-2xl border shadow-sm overflow-hidden mb-8">
+      <div className="bg-card rounded-2xl border border-border/50 shadow-sm overflow-hidden mb-8">
         <Table>
           <TableHeader>
-            <TableRow className="bg-zinc-50/50 hover:bg-zinc-50/50">
+            <TableRow className="bg-muted/30 hover:bg-muted/30">
               <TableHead className="font-semibold text-zinc-500 py-4 w-[110px]">
                 ID Reserva
               </TableHead>
@@ -250,17 +250,17 @@ export default function ReservasPage() {
               filteredReservas.map((res) => (
                 <TableRow
                   key={res.id}
-                  className="cursor-pointer transition-colors hover:bg-zinc-50/80 group"
+                  className="cursor-pointer transition-colors hover:bg-muted/50 group"
                 >
-                  <TableCell className="font-bold text-zinc-800">
+                  <TableCell className="font-bold text-foreground">
                     {res.id}
                   </TableCell>
-                  <TableCell className="font-medium text-zinc-900 group-hover:text-primary transition-colors">
+                  <TableCell className="font-medium text-foreground group-hover:text-primary transition-colors">
                     {res.guestName}
                   </TableCell>
-                  <TableCell className="text-zinc-500">{res.dni}</TableCell>
+                  <TableCell className="text-muted-foreground">{res.dni}</TableCell>
                   <TableCell>
-                    <span className="bg-zinc-100 text-zinc-600 px-2.5 py-1 rounded-md text-xs font-bold border">
+                    <span className="bg-muted text-muted-foreground px-2.5 py-1 rounded-md text-xs font-bold border border-border/50">
                       Cto. {res.roomId}
                     </span>
                   </TableCell>

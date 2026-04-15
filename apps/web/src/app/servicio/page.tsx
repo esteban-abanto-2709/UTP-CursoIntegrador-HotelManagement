@@ -23,10 +23,10 @@ export default function ServicioHabitacionPage() {
       {/* Cabecera Principal */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b pb-6">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight text-zinc-900">
+          <h2 className="text-3xl font-bold tracking-tight text-foreground">
             Servicio a la Habitación
           </h2>
-          <p className="text-zinc-500 mt-2 text-base">
+          <p className="text-muted-foreground mt-2 text-base">
             Panel exclusivo para el staff. Atiende las habitaciones liberadas
             tras el Check-Out.
           </p>
@@ -38,17 +38,17 @@ export default function ServicioHabitacionPage() {
           <div className="w-16 h-16 bg-status-available-icon-bg rounded-full flex items-center justify-center mb-4">
             <Sparkles className="w-8 h-8 text-status-available-icon-text" />
           </div>
-          <h3 className="text-xl font-bold text-zinc-900">¡Todo impecable!</h3>
-          <p className="text-zinc-500 mt-1">
+          <h3 className="text-xl font-bold text-foreground">¡Todo impecable!</h3>
+          <p className="text-muted-foreground mt-1">
             No hay habitaciones pendientes de limpieza en este momento.
           </p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {habitacionesSucias.map((room) => (
-            <div
+              <div
               key={room.id}
-              className="relative overflow-hidden rounded-2xl border bg-white shadow-sm hover:shadow-md transition-all"
+              className="relative overflow-hidden rounded-2xl border border-border/50 bg-card shadow-sm hover:shadow-md transition-all"
             >
               <div className="p-6">
                 <div className="flex justify-between items-start mb-4">
@@ -57,7 +57,7 @@ export default function ServicioHabitacionPage() {
                       <Droplets className="w-6 h-6 text-status-cleaning-icon-text" />
                     </div>
                     <div>
-                      <h3 className="text-2xl font-bold tracking-tight text-zinc-900">
+                      <h3 className="text-2xl font-bold tracking-tight text-foreground">
                         Habitación {room.number}
                       </h3>
                       <p className="text-sm font-medium text-status-cleaning-text">
@@ -67,11 +67,11 @@ export default function ServicioHabitacionPage() {
                   </div>
                 </div>
 
-                <div className="bg-zinc-50 rounded-xl p-4 mb-4">
-                  <span className="text-xs font-semibold uppercase tracking-wider text-zinc-500 mb-1 block">
+                <div className="bg-muted rounded-xl p-4 mb-4">
+                  <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1 block">
                     Estado actual:
                   </span>
-                  <div className="flex items-center gap-2 text-zinc-800 font-medium text-sm">
+                  <div className="flex items-center gap-2 text-foreground font-medium text-sm">
                     <AlertCircle className="w-4 h-4 text-status-cleaning-text" />{" "}
                     Requiere Intervención del Staff
                   </div>
@@ -79,7 +79,7 @@ export default function ServicioHabitacionPage() {
 
                 <button
                   onClick={() => handeFinalizarServicio(room.id)}
-                  className="w-full flex items-center justify-center gap-2 bg-zinc-900 hover:bg-emerald-600 text-white font-semibold py-3.5 rounded-xl transition-all active:scale-95 shadow-md hover:shadow-emerald-500/20"
+                  className="w-full flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-3.5 rounded-xl transition-all active:scale-95 shadow-md shadow-primary/20"
                 >
                   <CheckCircle2 className="w-5 h-5" /> Liberar Habitación
                 </button>
