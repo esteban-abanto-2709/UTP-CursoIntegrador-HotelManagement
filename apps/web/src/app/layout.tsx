@@ -33,14 +33,12 @@ export default function RootLayout({
           <AppSidebar />
           <main className="flex-1 w-full flex flex-col overflow-hidden">
             <div className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b bg-white/60 backdrop-blur-xl px-6 shadow-sm">
-              <SidebarTrigger className="text-zinc-500 hover:text-zinc-900 transition-colors"/>
+              <SidebarTrigger className="text-zinc-500 hover:text-zinc-900 transition-colors" />
               <h1 className="font-bold text-xl tracking-tight bg-gradient-to-r from-zinc-900 to-zinc-500 bg-clip-text text-transparent">
                 Centro Operativo | Hotel PMS
               </h1>
             </div>
-            <div className="flex-1 overflow-auto p-6 md:p-8">
-              {children}
-            </div>
+            <div className="flex-1 overflow-auto p-6 md:p-8">{children}</div>
           </main>
         </SidebarProvider>
       </body>
