@@ -225,7 +225,7 @@ export default function ReservasPage() {
         <Table>
           <TableHeader>
             <TableRow className="bg-muted/30 hover:bg-muted/30">
-              <TableHead className="font-semibold text-muted-foreground py-4 w-[110px]">
+              <TableHead className="font-semibold text-muted-foreground py-4 w-[110px] pl-6">
                 ID Reserva
               </TableHead>
               <TableHead className="font-semibold text-muted-foreground">
@@ -240,7 +240,7 @@ export default function ReservasPage() {
               <TableHead className="font-semibold text-muted-foreground">
                 Fechas (In - Out)
               </TableHead>
-              <TableHead className="font-semibold text-muted-foreground text-right">
+              <TableHead className="font-semibold text-muted-foreground text-right pr-6">
                 Estado
               </TableHead>
             </TableRow>
@@ -262,7 +262,7 @@ export default function ReservasPage() {
                   key={res.id}
                   className="cursor-pointer transition-colors hover:bg-muted/50 group"
                 >
-                  <TableCell className="font-bold text-foreground">
+                  <TableCell className="font-bold text-foreground pl-6">
                     {res.id}
                   </TableCell>
                   <TableCell className="font-medium text-foreground group-hover:text-primary transition-colors">
@@ -280,7 +280,7 @@ export default function ReservasPage() {
                     {res.checkIn} <span className="opacity-50">→</span>{" "}
                     {res.checkOut}
                   </TableCell>
-                  <TableCell className="text-right">
+                  <TableCell className="text-right pr-6">
                     {getStatusBadge(res.status)}
                   </TableCell>
                 </TableRow>
