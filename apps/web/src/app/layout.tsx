@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { AppSidebar } from "@/components/app-sidebar";
 import "./globals.css";
-
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -27,7 +28,20 @@ export default function RootLayout({
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        <SidebarProvider>
+          <AppSidebar />
+          <main className="flex-1 w-full flex flex-col overflow-hidden">
+            <div className="flex h-14 items-center gap-4 border-b bg-muted/40 px-4 lg:h-[60px] lg:px-6">
+              <SidebarTrigger />
+              <h1 className="font-semibold text-lg">Hotel Admin Panel</h1>
+            </div>
+            <div className="flex-1 overflow-auto p-4 md:p-6">
+              {children}
+            </div>
+          </main>
+        </SidebarProvider>
+      </body>
     </html>
   );
 }
