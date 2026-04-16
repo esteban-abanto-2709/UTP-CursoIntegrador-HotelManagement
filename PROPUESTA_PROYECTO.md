@@ -76,21 +76,38 @@ Se ha creado un MVP conceptual con diseño *Dark Theme Premium ("Lumina Resort")
 3. **Como** Personal operativo (Housekeeping), **quiero** visualizar un módulo que liste única y exclusivamente los cuartos pendientes de limpieza, **para** focalizar mis tareas del día y marcarlos como disponibles sin ayuda de conserjería.
 4. **Como** Gerente del Hotel, **quiero** disponer de un portal de Login para ingresar las credenciales exclusivas del empleado, **para** asegurar al 100% que la data y finanzas de mi propiedad no está expuesta en una computadora pública.
 5. **Como** Recepcionista que atiende al público en ventanilla, **quiero** que el sistema integre un modal (Dialog flotante) al presionar cualquier cuarto, **para** poder tramitar los Check-In o Check-Out y que esto refleje los cambios transversalmente en el sistema.
+6. **Como** Recepcionista Nocturno, **quiero** poder crear una nueva reservación a través de un formulario guiado con validaciones básicas, **para** dejar programados a los próximos clientes con antelación y asegurar su plaza en el PMS.
+7. **Como** Administrador Financiero, **quiero** que el sistema sea capaz de registrar internamente la transacción tras aprobar un Check-Out, **para** evitar fugas de comprobantes y mantener la auditoría diaria saneada.
 
 ---
 
 ## 📑 Requisitos del Sistema (Funcionales y No Funcionales)
 
 ### Requisitos Funcionales (RF)
-1. **RF-01:** El sistema DEBE proveer un punto de acceso (Login) estricto.
-2. **RF-02:** El sistema DEBE exponer un Dashboard ilustrativo donde se cuantifiquen 3 indicadores de operación en pantalla: *Habitaciones Disponibles, Ocupadas y de Limpieza Pendiente*.
-3. **RF-03:** El sistema DEBE permitir interactuar con cada habitación mediante un Modal que proponga acciones dependientes del estado (ej. un cuarto Ocupado sólo habilita el check-out o limpieza).
-4. **RF-04:** El módulo central de reservas DEBE contener una tabla de datos interactiva renderizando listamente la data estructurada del huésped.
-5. **RF-05:** El panel de reservas DEBE incluir un formulario desplegable con validaciones, exigiendo recolectar los atributos básicos: Nombre, Documento, Fechas y Habitación objetivo.
-6. **RF-06:** La arquitectura y enrutamiento del sistema DEBE separar explícitamente las lógicas de Recepción, Reservaciones directas y Housekeeping para aislar los flujos de trabajo.
+1. **RF-01:** El sistema DEBE proveer un portal de Login estricto para proteger la capa técnica (Dashboard).
+2. **RF-02:** El sistema DEBE diferenciar sesiones basándose en roles administrativos (Admin, Recepción, Housekeeping).
+3. **RF-03:** El sistema DEBE exhibir un Dashboard interactivo que pinte la disponibilidad global del hotel.
+4. **RF-04:** El sistema DEBE contar los indicadores (KPIs) en tiempo real (Habitaciones Libres, Ocupadas, Limpieza).
+5. **RF-05:** El sistema DEBE permitir interactuar haciendo clic sobre el contenedor visual de cada habitación.
+6. **RF-06:** El sistema DEBE abrir un Modal de control operativo exclusivo por cada habitación consultada.
+7. **RF-07:** El sistema DEBE permitir modificar el estado de "Disponible" a "Ocupada" para simular un Check-in directo.
+8. **RF-08:** El sistema DEBE permitir modificar el estado de "Ocupada" a "Limpieza" tras culminar la estadía (Check-out).
+9. **RF-09:** El sistema DEBE permitir a las cuentas operativas trasladar el estatus de "Limpieza" a "Disponible".
+10. **RF-10:** El sistema DEBE permitir al Administrador catalogar una falla técnica mandando un cuarto a "Mantenimiento".
+11. **RF-11:** El módulo central de reservas DEBE presentar una estructura en formato tabla de datos robusta.
+12. **RF-12:** El sistema DEBE ofrecer una barra de búsqueda para rastrear un huésped específico en tiempo récord.
+13. **RF-13:** El sistema DEBE contener un botón y un flujo (Dialog UI) para dar de alta una nueva reservación al vuelo.
+14. **RF-14:** El formulario de creación de reserva DEBE exigir variables obligatorias: Nombre del Huésped, DNI y Fechas.
+15. **RF-15:** El sistema DEBE incluir un comprobador visual cruzado que impida que una fecha de Check-Out sea menor al In.
+16. **RF-16:** El sistema DEBE proveer una vista de "Housekeeping" totalmente aislada de la lógica contable y de recepción.
+17. **RF-17:** La vista de Housekeeping DEBE filtrar su inventario global para listar única y exclusivamente los cuartos sucios.
+18. **RF-18:** El sistema DEBE albergar variables dinámicas en el Mock DB para procesar distintios "Tipos de Cuarto" (Sencilla, Doble, Suite).
+19. **RF-19:** El sistema DEBE ser programado simulando lógica CRUD en arreglos JSON/JSX locales previo a su fase Backend.
+20. **RF-20:** El sistema DEBE mostrar Empty States interactivos cuando las búsquedas en las tablas devuelvan datos vacíos.
 
 ### Requisitos No Funcionales (RNF)
-7. **RNF-01 (Interfaz):** Aplicación estructurada nativamente en estética *Modo Oscuro (Dark Theme Premium)*, utilizando de base de renderizado Tailwind CSS para mitigar la fatiga visual de usuarios expuestos a paneles de 8h laborales.
-8. **RNF-02 (Arquitectura UI/UX):** La aplicación debe funcionar de forma asincrónica e interactiva como un "React Single Page Application" (SPA / React Server Components). El estado no requerirá que los clientes de recepción "reloadeen" bruscamente toda la pestaña para ver actualizaciones.
-9. **RNF-03 (Semántica Cognitiva):** Se debe garantizar coherencia universal de iconografía utilizando herramientas de iconos consistentes (`Lucide`), con mapeos visuales (por ejemplo, usar un ícono de "Persona Sola" para cuartos de menor ocupación, y "Corona" para Suites).
-10. **RNF-04 (Mantenibilidad Tecnológica):** El sistema debe empaquetar de forma inteligente modales y botones en componentes de interfaz reutilizables, preferiblemente abstrayendo bibliotecas sólidas de comportamiento (`Shadcn UI`), garantizando así que pueda escalar a miles de usuarios al migrar a una Base de Datos real.
+21. **RNF-01 (Mantenibilidad Visual y Ergonómica):** La interfaz deberá construirse utilizando la variable `Dark Theme` (Modo Oscuro) desde el primer sprint para atenuar la fatiga ocular y favorecer sesiones nocturnas de trabajo del personal del hotel, usando TailwindCSS.
+22. **RNF-02 (Arquitectura Single Page Application):** El motor técnico (Next.js App Router) asegurará que la transición entre Reservas y Dashboard ocurra instantáneamente del lado del cliente, previniendo recargas severas de la página (*flashing*) propias de los PMS clásicos.
+23. **RNF-03 (Semántica Cognitiva de Interfaz):** Se garantizará una retención de aprendizaje rápida para empleados mediante la estandarización universal de íconos (`Lucide React`) atados invariablemente a códigos de estado (Verde: OK, Amarillo: Espera, Índigo/Primary: Ocupado).
+24. **RNF-04 (Escalabilidad de Componentes):** Toda la estructura de UI (`RoomCard`, `Dialogs`, `Tables`) deberá programarse empleando la filosofía de Componentes "Dumb" (que sólo leen variables reactivas), alistando su despegue para ser conectados fácilmente con APIs seguras (PostgreSQL/Node) por otro equipo de desarrollo.
+25. **RNF-05 (Rendimiento del Frontend):** Todo panel visual (`Dashboard / Mapeo de Componentes Mocks`) deberá lograr sus renderizados y proyecciones de cuadrículas reactivas en intervalos menores a los 0.5 segundos durante las interacciones locales.
