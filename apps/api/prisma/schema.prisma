@@ -6,11 +6,17 @@ datasource db {
   provider = "postgresql"
 }
 
-model Auth {
+enum Role {
+  OWNER
+  MANAGER
+  EMPLOYEE
+}
+
+model User {
   id        Int      @id @default(autoincrement())
   username  String   @unique
   password  String
-  role      String   @default("user")
+  role      Role     @default(EMPLOYEE)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
