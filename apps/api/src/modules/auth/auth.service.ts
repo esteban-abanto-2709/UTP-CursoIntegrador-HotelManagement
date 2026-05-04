@@ -13,7 +13,7 @@ export class AuthService {
   // 1. Valida las credenciales comprobando el hash
   async validateUser(username: string, pass: string): Promise<any> {
     const user = await this.usersService.findByUsername(username);
-    
+
     // Comparamos la contraseña en texto plano con el hash de la DB
     if (user && (await bcrypt.compare(pass, user.password))) {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -25,19 +25,19 @@ export class AuthService {
 
   // 2. Genera el JWT con la información esencial del usuario
   async login(user: any) {
-    const payload = { 
-      sub: user.id,       // El 'sub' (subject) es el estandar para el ID en JWT
-      username: user.username, 
-      role: user.role 
+    const payload = {
+      sub: user.id, // El 'sub' (subject) es el estandar para el ID en JWT
+      username: user.username,
+      role: user.role,
     };
-    
+
     return {
       access_token: this.jwtService.sign(payload),
       user: {
         id: user.id,
         username: user.username,
-        role: user.role
-      }
+        role: user.role,
+      },
     };
   }
 }

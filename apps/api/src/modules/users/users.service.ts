@@ -13,7 +13,18 @@ export class UsersService {
     });
   }
 
-  async createUser(data: CreateUserDto) {
+  async createUser(data: CreateUserDto, currentUser: any) {
+    // === LÓGICA DE ROLES ESTRICTA ===
+    if (currentUser.role === 'MANAGER' && data.role !== 'EMPLOYEE') {
+      throw new ConflictException('Los Managers solo pueden crear Empleados');
+    }
+
+    if (currentUser.role === 'OWNER' && data.role === 'OWNER') {
+      throw new ConflictException(
+        'Solo puede existir un Owner o deben crearse por base de datos directamente',
+      );
+    }
+
     // 1. Verificar si el usuario ya existe
     const existingUser = await this.findByUsername(data.username);
     if (existingUser) {
