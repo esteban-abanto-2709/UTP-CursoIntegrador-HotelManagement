@@ -32,8 +32,9 @@ api.interceptors.response.use(
     if (error.response?.status === 401) {
       useAuthStore.getState().logout();
       
-      // Asegurarnos de que estamos en el navegador antes de redireccionar
-      if (typeof window !== 'undefined') {
+      // Solo redirigir si NO estamos ya en la pantalla de login.
+      // Si estamos en el login, dejamos que el componente maneje el error (para no recargar la página).
+      if (typeof window !== 'undefined' && window.location.pathname !== '/login') {
         window.location.href = '/login';
       }
     }

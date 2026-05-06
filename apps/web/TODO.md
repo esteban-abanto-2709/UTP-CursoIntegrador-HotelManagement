@@ -7,12 +7,12 @@ Este documento rastrea el progreso del Sprint 1 (Autenticación y Jerarquía de 
 - [x] Configurar el cliente HTTP (Axios) con un interceptor para inyectar automáticamente el token JWT (Bearer) en cada petición al backend.
 - [x] Crear la lógica para persistir el token de sesión (ej. `localStorage` o `cookies`).
 
-## [ ] Fase 2: Pantalla de Login (`/login`)
-- [ ] Diseñar y maquetar la página de inicio de sesión utilizando componentes de Shadcn UI (`Form`, `Input`, `Button`).
-- [ ] Integrar validaciones en el formulario (ej. Zod + React Hook Form).
-- [ ] Conectar el formulario con el endpoint `POST /auth/login` de nuestra API.
-- [ ] Implementar la lógica de éxito: guardar el token, setear el estado global y redirigir a `/dashboard`.
-- [ ] Manejar los errores de autenticación mostrando un mensaje claro (Toast) al usuario.
+## [x] Fase 2: Pantalla de Login (`/login`)
+- [x] Diseñar y maquetar la página de inicio de sesión utilizando componentes de Shadcn UI (`Form`, `Input`, `Button`).
+- [x] Integrar validaciones en el formulario (ej. Zod + React Hook Form).
+- [x] Conectar el formulario con el endpoint `POST /auth/login` de nuestra API.
+- [x] Implementar la lógica de éxito: guardar el token, setear el estado global y redirigir a `/dashboard`.
+- [x] Manejar los errores de autenticación mostrando un mensaje claro (Toast) al usuario.
 
 ## [ ] Fase 3: Layout Dinámico y Sidebar Inteligente
 - [ ] Proteger el Layout principal (Dashboard). Si alguien intenta entrar sin token, redirigirlo a `/login`.

@@ -1,3 +1,5 @@
+"use client";
+
 import {
   Sidebar,
   SidebarContent,
@@ -8,7 +10,10 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { Calendar, Home, BedDouble } from "lucide-react";
+import { Calendar, Home, BedDouble, LogOut } from "lucide-react";
+import { useAuthStore } from "@/store/authStore";
+import { useRouter } from "next/navigation";
+import { routes } from "@/lib/routes";
 
 // Menu items.
 const items = [
@@ -30,6 +35,14 @@ const items = [
 ];
 
 export function AppSidebar() {
+  const logout = useAuthStore((state) => state.logout);
+  const router = useRouter();
+
+  const handleLogout = () => {
+    logout();
+    router.push(routes.login());
+  };
+
   return (
     <Sidebar>
       <SidebarContent>
@@ -62,6 +75,24 @@ export function AppSidebar() {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+
+        {/* Botón de Cerrar Sesión para pruebas */}
+        <SidebarGroup className="mt-auto">
+          <SidebarGroupContent>
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton 
+                  onClick={handleLogout}
+                  className="w-full transition-all text-red-500 hover:bg-red-500/10 hover:text-red-600 active:scale-95 py-6"
+                >
+                  <LogOut className="w-5 h-5 mr-3" />
+                  <span className="text-base font-medium">Cerrar Sesión</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
       </SidebarContent>
     </Sidebar>
   );
