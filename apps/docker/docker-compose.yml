@@ -1,0 +1,15 @@
+name: hotel-management
+
+services:
+  api:
+    container_name: hotel-management-api
+    restart: unless-stopped
+    build:
+      context: ../api
+      dockerfile: Dockerfile
+    ports:
+      - "${PORT:-4000}:${PORT:-4000}"
+    env_file:
+      - .env
+    environment:
+      - NODE_ENV=production
