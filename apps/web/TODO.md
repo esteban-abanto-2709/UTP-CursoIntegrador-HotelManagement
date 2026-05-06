@@ -2,10 +2,10 @@
 
 Este documento rastrea el progreso del Sprint 1 (Autenticación y Jerarquía de Roles) en el lado del cliente (Frontend).
 
-## [ ] Fase 1: Motor de Autenticación y Estado Global
-- [ ] Elegir e instalar un gestor de estado (Zustand recomendado) para almacenar el perfil del `user` y conocer su rol en tiempo real.
-- [ ] Configurar el cliente HTTP (Axios) con un interceptor para inyectar automáticamente el token JWT (Bearer) en cada petición al backend.
-- [ ] Crear la lógica para persistir el token de sesión (ej. `localStorage` o `cookies`).
+## [x] Fase 1: Motor de Autenticación y Estado Global
+- [x] Elegir e instalar un gestor de estado (Zustand recomendado) para almacenar el perfil del `user` y conocer su rol en tiempo real.
+- [x] Configurar el cliente HTTP (Axios) con un interceptor para inyectar automáticamente el token JWT (Bearer) en cada petición al backend.
+- [x] Crear la lógica para persistir el token de sesión (ej. `localStorage` o `cookies`).
 
 ## [ ] Fase 2: Pantalla de Login (`/login`)
 - [ ] Diseñar y maquetar la página de inicio de sesión utilizando componentes de Shadcn UI (`Form`, `Input`, `Button`).
