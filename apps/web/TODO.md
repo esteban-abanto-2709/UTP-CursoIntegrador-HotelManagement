@@ -14,10 +14,10 @@ Este documento rastrea el progreso del Sprint 1 (Autenticación y Jerarquía de 
 - [x] Implementar la lógica de éxito: guardar el token, setear el estado global y redirigir a `/dashboard`.
 - [x] Manejar los errores de autenticación mostrando un mensaje claro (Toast) al usuario.
 
-## [ ] Fase 3: Layout Dinámico y Sidebar Inteligente
-- [ ] Proteger el Layout principal (Dashboard). Si alguien intenta entrar sin token, redirigirlo a `/login`.
-- [ ] Modificar el componente `Sidebar` para que lea el rol del usuario desde el estado global.
-- [ ] Implementar lógica de renderizado condicional en la navegación:
+## [x] Fase 3: Layout Dinámico y Sidebar Inteligente
+- [x] Proteger el Layout principal (Dashboard). Si alguien intenta entrar sin token, redirigirlo a `/login`.
+- [x] Modificar el componente `Sidebar` para que lea el rol del usuario desde el estado global.
+- [x] Implementar lógica de renderizado condicional en la navegación:
   - `OWNER` / `MANAGER`: Pueden ver los menús administrativos y el nuevo menú **"Gestión de Personal"**.
   - `EMPLOYEE`: Menú restringido únicamente a sus áreas operativas (ej. Limpieza).
 
