@@ -48,4 +48,27 @@ export class UsersService {
     const { password, ...result } = user;
     return result;
   }
+
+  async findAll(currentUser: any) {
+    // Definimos las condiciones de búsqueda basadas en el rol
+    const whereCondition = currentUser.role === 'MANAGER' 
+      ? { role: { not: 'OWNER' } as const } // Los managers no pueden ver a los owners
+      : {}; // Los owners pueden ver a todos
+
+    const users = await this.prisma.user.findMany({
+      where: whereCondition,
+      select: {
+        id: true,
+        username: true,
+        role: true,
+        createdAt: true,
+        // No seleccionamos la contraseña
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+
+    return users;
+  }
 }

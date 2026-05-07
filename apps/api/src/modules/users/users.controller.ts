@@ -1,4 +1,4 @@
-import { Controller, Post, Body, UseGuards } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, Get } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { JwtAuthGuard } from '@/common/guards/jwt-auth.guard';
@@ -20,5 +20,14 @@ export class UsersController {
     @CurrentUser() currentUser: any, // Inyectamos quién está haciendo la petición
   ) {
     return this.usersService.createUser(createUserDto, currentUser);
+  }
+
+  // Lectura de usuarios
+  // Protegido: Solo OWNER y MANAGER pueden entrar aquí
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('OWNER', 'MANAGER')
+  @Get()
+  async findAll(@CurrentUser() currentUser: any) {
+    return this.usersService.findAll(currentUser);
   }
 }
