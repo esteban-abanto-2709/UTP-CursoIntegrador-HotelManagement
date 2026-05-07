@@ -52,11 +52,13 @@ export default function LoginPage() {
       toast.success("¡Bienvenido a Lumina Resort!");
       router.push(routes.dashboard.home());
     } catch (error: any) {
-      // Extraemos el mensaje de la API, asegurándonos de que sea un string 
+      // Extraemos el mensaje de la API, asegurándonos de que sea un string
       // (a veces NestJS devuelve un array de errores de validación)
       const rawMessage = error.response?.data?.message;
-      const message = Array.isArray(rawMessage) ? rawMessage[0] : (rawMessage || "Credenciales inválidas. Intenta nuevamente.");
-      
+      const message = Array.isArray(rawMessage)
+        ? rawMessage[0]
+        : rawMessage || "Credenciales inválidas. Intenta nuevamente.";
+
       setErrorMsg(message);
       toast.error(message);
 
@@ -138,13 +140,15 @@ export default function LoginPage() {
         </Form>
 
         <div className="mt-4">
-          {(form.formState.errors.username?.message || form.formState.errors.password?.message || errorMsg) && (
+          {(form.formState.errors.username?.message ||
+            form.formState.errors.password?.message ||
+            errorMsg) && (
             <div className="flex items-start gap-3 rounded-xl border border-red-500/20 bg-red-500/10 p-4 text-red-400">
               <AlertCircle className="mt-0.5 h-5 w-5 shrink-0" />
               <p className="text-sm font-medium">
-                {form.formState.errors.username?.message as string || 
-                 form.formState.errors.password?.message as string || 
-                 errorMsg}
+                {(form.formState.errors.username?.message as string) ||
+                  (form.formState.errors.password?.message as string) ||
+                  errorMsg}
               </p>
             </div>
           )}

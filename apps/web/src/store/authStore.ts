@@ -1,10 +1,10 @@
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
 
 export interface User {
   id: number;
   username: string;
-  role: 'OWNER' | 'MANAGER' | 'EMPLOYEE';
+  role: "OWNER" | "MANAGER" | "EMPLOYEE";
 }
 
 interface AuthState {
@@ -26,7 +26,7 @@ export const useAuthStore = create<AuthState>()(
       },
     }),
     {
-      name: 'lumina-auth-storage', // Nombre bajo el cual se guarda en LocalStorage
-    }
-  )
+      name: "lumina-auth-storage", // Nombre bajo el cual se guarda en LocalStorage
+    },
+  ),
 );

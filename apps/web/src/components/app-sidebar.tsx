@@ -31,13 +31,13 @@ const items = [
   },
   {
     title: "Reservas y Huéspedes",
-    url: "/reservas",
+    url: "/dashboard/reservas",
     icon: Calendar,
     allowedRoles: ["OWNER", "MANAGER", "EMPLOYEE"],
   },
   {
     title: "Servicio a la Habitación",
-    url: "/servicio",
+    url: "/dashboard/servicio",
     icon: BedDouble,
     allowedRoles: ["OWNER", "MANAGER", "EMPLOYEE"], // Podríamos restringirlo si hay rol CLEANING, etc.
   },
@@ -97,7 +97,7 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem>
-                <SidebarMenuButton 
+                <SidebarMenuButton
                   onClick={handleLogout}
                   className="w-full transition-all text-red-500 hover:bg-red-500/10 hover:text-red-600 active:scale-95 py-6"
                 >
@@ -108,7 +108,6 @@ export function AppSidebar() {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
-
       </SidebarContent>
     </Sidebar>
   );

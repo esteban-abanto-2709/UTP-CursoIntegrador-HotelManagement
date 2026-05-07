@@ -24,7 +24,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased dark`}>
+    <html
+      lang="es"
+      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased dark`}
+    >
       <body className="min-h-full flex flex-col bg-background text-foreground">
         {children}
         {/* El Toaster DEBE ir aquí para que las notificaciones de login también funcionen */}
