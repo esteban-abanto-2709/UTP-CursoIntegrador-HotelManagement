@@ -13,6 +13,7 @@ import {
 import { Calendar, Home, BedDouble, LogOut, Users } from "lucide-react";
 import { useAuthStore } from "@/store/authStore";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { routes } from "@/lib/routes";
 
 // Menu items.
@@ -78,14 +79,14 @@ export function AppSidebar() {
             <SidebarMenu>
               {filteredItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <a href={item.url} className="w-full">
+                  <Link href={item.url} className="w-full">
                     <SidebarMenuButton className="transition-all text-muted-foreground hover:bg-muted hover:text-foreground active:scale-95 py-6">
                       <item.icon className="w-5 h-5 mr-3" />
                       <span className="text-base font-medium">
                         {item.title}
                       </span>
                     </SidebarMenuButton>
-                  </a>
+                  </Link>
                 </SidebarMenuItem>
               ))}
             </SidebarMenu>
