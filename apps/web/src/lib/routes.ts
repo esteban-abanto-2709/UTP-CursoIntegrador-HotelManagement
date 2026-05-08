@@ -7,9 +7,8 @@ export const routes = {
   dashboard: {
     home: () => "/dashboard",
     staff: () => "/dashboard/staff",
-    // Agregaremos más en el futuro:
-    // reception: () => "/dashboard/reception",
-    // housekeeping: () => "/dashboard/housekeeping",
+    reservas: () => "/dashboard/reservas",
+    servicio: () => "/dashboard/servicio",
   },
 
   // Rutas de la API (NestJS)

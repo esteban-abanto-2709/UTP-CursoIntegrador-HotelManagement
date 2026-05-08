@@ -24,12 +24,12 @@ Este documento rastrea el progreso del Sprint 1 (Autenticación y Jerarquía de 
   - `OWNER` / `MANAGER`: Pueden ver los menús administrativos y el nuevo menú **"Gestión de Personal"**.
   - `EMPLOYEE`: Menú restringido únicamente a sus áreas operativas (ej. Limpieza).
 
-## [ ] Fase 4: Módulo de Gestión de Personal (`/dashboard/staff`)
+## [x] Fase 4: Módulo de Gestión de Personal (`/dashboard/staff`)
 
-- [ ] Crear la página `/dashboard/staff` con una tabla que (en el futuro) liste al equipo.
-- [ ] Implementar la UX de creación mediante un panel lateral (`Sheet` de Shadcn UI) o `Dialog` para no sacar al usuario de la página.
-- [ ] Construir el formulario de creación de usuario dentro de este panel.
-- [ ] Aplicar la lógica dinámica al desplegable de "Rol":
+- [x] Crear la página `/dashboard/staff` con una tabla que (en el futuro) liste al equipo.
+- [x] Implementar la UX de creación mediante un panel lateral (`Sheet` de Shadcn UI) o `Dialog` para no sacar al usuario de la página.
+- [x] Construir el formulario de creación de usuario dentro de este panel.
+- [x] Aplicar la lógica dinámica al desplegable de "Rol":
   - Si el creador es `OWNER` -> Muestra `MANAGER` y `EMPLOYEE`.
   - Si el creador es `MANAGER` -> Bloquea la opción y solo permite crear `EMPLOYEE`.
-- [ ] Conectar el panel con el endpoint `POST /users` (asegurándose que Axios ya inyecta el token de los pasos anteriores).
+- [x] Conectar el panel con el endpoint `POST /users` (asegurándose que Axios ya inyecta el token de los pasos anteriores).

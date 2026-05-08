@@ -20,25 +20,25 @@ import { routes } from "@/lib/routes";
 const items = [
   {
     title: "Recepción (Dashboard)",
-    url: "/dashboard",
+    url: routes.dashboard.home(),
     icon: Home,
     allowedRoles: ["OWNER", "MANAGER", "EMPLOYEE"],
   },
   {
     title: "Gestión de Personal",
-    url: "/dashboard/staff",
+    url: routes.dashboard.staff(),
     icon: Users,
     allowedRoles: ["OWNER", "MANAGER"],
   },
   {
     title: "Reservas y Huéspedes",
-    url: "/dashboard/reservas",
+    url: routes.dashboard.reservas(),
     icon: Calendar,
     allowedRoles: ["OWNER", "MANAGER", "EMPLOYEE"],
   },
   {
     title: "Servicio a la Habitación",
-    url: "/dashboard/servicio",
+    url: routes.dashboard.servicio(),
     icon: BedDouble,
     allowedRoles: ["OWNER", "MANAGER", "EMPLOYEE"], // Podríamos restringirlo si hay rol CLEANING, etc.
   },
