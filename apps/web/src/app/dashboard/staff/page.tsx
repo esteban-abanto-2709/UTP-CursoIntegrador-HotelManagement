@@ -74,6 +74,7 @@ export default function StaffPage() {
       const response = await api.get(routes.api.users.list());
       setUsers(response.data);
     } catch (error) {
+      console.error(error);
       toast.error("Error al cargar la lista de personal.");
     } finally {
       setIsLoadingUsers(false);
@@ -108,7 +109,7 @@ export default function StaffPage() {
       password: "",
       role:
         availableRoles.length === 1
-          ? (availableRoles[0].value as any)
+          ? (availableRoles[0].value as "MANAGER" | "EMPLOYEE")
           : undefined,
     },
   });
@@ -124,8 +125,11 @@ export default function StaffPage() {
 
       // Refrescar la tabla para mostrar el nuevo usuario instantáneamente
       fetchUsers();
-    } catch (error: any) {
-      const rawMessage = error.response?.data?.message;
+    } catch (error: unknown) {
+      const err = error as {
+        response?: { data?: { message?: string | string[] } };
+      };
+      const rawMessage = err.response?.data?.message;
       const message = Array.isArray(rawMessage)
         ? rawMessage[0]
         : rawMessage || "Error al crear usuario.";

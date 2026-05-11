@@ -9,7 +9,7 @@ import { toast } from "sonner";
 import api from "@/lib/axios";
 import { useAuthStore } from "@/store/authStore";
 import { routes } from "@/lib/routes";
-import { Lock, User, Info, AlertCircle } from "lucide-react";
+import { Lock, User, AlertCircle } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -18,7 +18,6 @@ import {
   FormField,
   FormItem,
   FormLabel,
-  FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 
@@ -51,10 +50,13 @@ export default function LoginPage() {
       setAuth(user, access_token);
       toast.success("¡Bienvenido a Lumina Resort!");
       router.push(routes.dashboard.home());
-    } catch (error: any) {
+    } catch (error: unknown) {
       // Extraemos el mensaje de la API, asegurándonos de que sea un string
       // (a veces NestJS devuelve un array de errores de validación)
-      const rawMessage = error.response?.data?.message;
+      const err = error as {
+        response?: { data?: { message?: string | string[] } };
+      };
+      const rawMessage = err.response?.data?.message;
       const message = Array.isArray(rawMessage)
         ? rawMessage[0]
         : rawMessage || "Credenciales inválidas. Intenta nuevamente.";
