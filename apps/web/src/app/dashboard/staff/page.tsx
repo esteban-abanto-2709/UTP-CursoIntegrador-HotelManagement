@@ -56,7 +56,7 @@ const formSchema = z.object({
   username: z.string().min(3, "El usuario debe tener al menos 3 caracteres"),
   password: z.string().min(6, "La contraseña debe tener al menos 6 caracteres"),
   role: z.enum(["MANAGER", "EMPLOYEE"], {
-    required_error: "Debes seleccionar un rol válido",
+    message: "Debes seleccionar un rol válido",
   }),
 });
 
@@ -106,7 +106,10 @@ export default function StaffPage() {
     defaultValues: {
       username: "",
       password: "",
-      role: availableRoles.length === 1 ? (availableRoles[0].value as any) : undefined,
+      role:
+        availableRoles.length === 1
+          ? (availableRoles[0].value as any)
+          : undefined,
     },
   });
 
@@ -114,16 +117,18 @@ export default function StaffPage() {
     try {
       setIsSubmitting(true);
       await api.post(routes.api.users.create(), values);
-      
+
       toast.success("Usuario creado exitosamente");
       form.reset();
       setIsOpen(false);
-      
+
       // Refrescar la tabla para mostrar el nuevo usuario instantáneamente
       fetchUsers();
     } catch (error: any) {
       const rawMessage = error.response?.data?.message;
-      const message = Array.isArray(rawMessage) ? rawMessage[0] : (rawMessage || "Error al crear usuario.");
+      const message = Array.isArray(rawMessage)
+        ? rawMessage[0]
+        : rawMessage || "Error al crear usuario.";
       toast.error(message);
     } finally {
       setIsSubmitting(false);
@@ -182,7 +187,9 @@ export default function StaffPage() {
           </DialogTrigger>
           <DialogContent className="bg-[#12151C] border border-white/10 sm:max-w-md shadow-2xl">
             <DialogHeader className="mb-4">
-              <DialogTitle className="text-2xl text-white">Registrar Personal</DialogTitle>
+              <DialogTitle className="text-2xl text-white">
+                Registrar Personal
+              </DialogTitle>
               <DialogDescription className="text-zinc-400">
                 Crea un nuevo usuario para el sistema. El rol determinará a qué
                 módulos podrá acceder.
@@ -190,13 +197,18 @@ export default function StaffPage() {
             </DialogHeader>
 
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              <form
+                onSubmit={form.handleSubmit(onSubmit)}
+                className="space-y-6"
+              >
                 <FormField
                   control={form.control}
                   name="username"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-zinc-300">Usuario / DNI</FormLabel>
+                      <FormLabel className="text-zinc-300">
+                        Usuario / DNI
+                      </FormLabel>
                       <FormControl>
                         <Input
                           placeholder="ej: juanperez o 74839210"
@@ -215,7 +227,9 @@ export default function StaffPage() {
                   name="password"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-zinc-300">Contraseña Temporal</FormLabel>
+                      <FormLabel className="text-zinc-300">
+                        Contraseña Temporal
+                      </FormLabel>
                       <FormControl>
                         <Input
                           type="password"
@@ -235,7 +249,9 @@ export default function StaffPage() {
                   name="role"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-zinc-300">Nivel de Acceso (Rol)</FormLabel>
+                      <FormLabel className="text-zinc-300">
+                        Nivel de Acceso (Rol)
+                      </FormLabel>
                       <Select
                         onValueChange={field.onChange}
                         defaultValue={field.value}
@@ -248,7 +264,11 @@ export default function StaffPage() {
                         </FormControl>
                         <SelectContent className="bg-[#1a1f2b] border-white/10 text-white">
                           {availableRoles.map((role) => (
-                            <SelectItem key={role.value} value={role.value} className="focus:bg-sky-500/20 focus:text-white cursor-pointer">
+                            <SelectItem
+                              key={role.value}
+                              value={role.value}
+                              className="focus:bg-sky-500/20 focus:text-white cursor-pointer"
+                            >
                               {role.label}
                             </SelectItem>
                           ))}
@@ -286,16 +306,25 @@ export default function StaffPage() {
         <Table>
           <TableHeader className="bg-zinc-900/50">
             <TableRow className="border-white/5 hover:bg-transparent">
-              <TableHead className="text-zinc-400 font-semibold">Usuario</TableHead>
+              <TableHead className="text-zinc-400 font-semibold">
+                Usuario
+              </TableHead>
               <TableHead className="text-zinc-400 font-semibold">Rol</TableHead>
-              <TableHead className="text-zinc-400 font-semibold">Fecha de Creación</TableHead>
-              <TableHead className="text-zinc-400 font-semibold text-right">Acciones</TableHead>
+              <TableHead className="text-zinc-400 font-semibold">
+                Fecha de Creación
+              </TableHead>
+              <TableHead className="text-zinc-400 font-semibold text-right">
+                Acciones
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {isLoadingUsers ? (
               <TableRow className="border-white/5 hover:bg-transparent">
-                <TableCell colSpan={4} className="h-32 text-center text-zinc-500">
+                <TableCell
+                  colSpan={4}
+                  className="h-32 text-center text-zinc-500"
+                >
                   <div className="flex flex-col items-center justify-center gap-2">
                     <Loader2 className="h-6 w-6 animate-spin text-sky-500" />
                     <span>Cargando personal...</span>
@@ -304,14 +333,22 @@ export default function StaffPage() {
               </TableRow>
             ) : users.length === 0 ? (
               <TableRow className="border-white/5 hover:bg-transparent">
-                <TableCell colSpan={4} className="h-32 text-center text-zinc-500 font-medium">
+                <TableCell
+                  colSpan={4}
+                  className="h-32 text-center text-zinc-500 font-medium"
+                >
                   No se encontraron usuarios en el sistema.
                 </TableCell>
               </TableRow>
             ) : (
               users.map((u) => (
-                <TableRow key={u.id} className="border-white/5 hover:bg-white/5 transition-colors">
-                  <TableCell className="font-medium text-white">{u.username}</TableCell>
+                <TableRow
+                  key={u.id}
+                  className="border-white/5 hover:bg-white/5 transition-colors"
+                >
+                  <TableCell className="font-medium text-white">
+                    {u.username}
+                  </TableCell>
                   <TableCell>{getRoleBadge(u.role)}</TableCell>
                   <TableCell className="text-zinc-400">
                     {new Date(u.createdAt).toLocaleDateString("es-ES", {
@@ -321,7 +358,12 @@ export default function StaffPage() {
                     })}
                   </TableCell>
                   <TableCell className="text-right text-muted-foreground">
-                    <Button variant="ghost" size="sm" className="h-8 hover:bg-white/10 hover:text-white" disabled>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 hover:bg-white/10 hover:text-white"
+                      disabled
+                    >
                       Editar
                     </Button>
                   </TableCell>
