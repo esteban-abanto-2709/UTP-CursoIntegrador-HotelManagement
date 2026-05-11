@@ -38,3 +38,20 @@
   - `OWNER` puede crear `MANAGER` o `EMPLOYEE`.
   - `MANAGER` solo puede crear `EMPLOYEE`.
 - *Revisión Final: Prueba de jerarquía.*
+
+---
+
+# 🛏️ Hoja de Ruta de Implementación (Sprint 2: Setup e Inventario de Habitaciones)
+
+## [ ] Paso 1: Modelo de Habitación (Base de Datos)
+- Actualizar el `schema.prisma` agregando el modelo `Room` (Habitación).
+- Definir campos clave: `number` (String, único), `type` (Enum: SINGLE, DOUBLE, SUITE, etc.), `status` (Enum: AVAILABLE, OCCUPIED, CLEANING, MAINTENANCE), y `floor` (Int).
+
+## [ ] Paso 2: Endpoint de Creación (Setup)
+- Generar el módulo y controlador `RoomsModule` y `RoomsController`.
+- Añadir el endpoint `POST /rooms` para registrar nuevas habitaciones.
+- Aplicar Guards (`JwtAuthGuard` y `@Roles('OWNER', 'MANAGER')`) para restringir la creación de cuartos.
+
+## [ ] Paso 3: Listado y Visualización
+- Implementar endpoint `GET /rooms` para devolver el inventario actual de habitaciones.
+- *Revisión: Validar creación desde Postman con un usuario Owner/Manager y restringir acceso a Employees.*

@@ -33,3 +33,19 @@ Este documento rastrea el progreso del Sprint 1 (Autenticación y Jerarquía de 
   - Si el creador es `OWNER` -> Muestra `MANAGER` y `EMPLOYEE`.
   - Si el creador es `MANAGER` -> Bloquea la opción y solo permite crear `EMPLOYEE`.
 - [x] Conectar el panel con el endpoint `POST /users` (asegurándose que Axios ya inyecta el token de los pasos anteriores).
+
+---
+
+# 🛏️ Sprint 2: Setup e Inventario de Habitaciones
+
+## [ ] Fase 1: Formulario de Creación de Habitaciones (Setup Inicial)
+- [ ] Crear la página o panel `/dashboard/rooms/setup` (o dentro de una pestaña en `rooms`), accesible únicamente por `OWNER` y `MANAGER`.
+- [ ] Diseñar el formulario de registro usando React Hook Form, Zod y componentes Shadcn UI (Número de Cuarto, Tipo de Habitación, Piso).
+- [ ] Integrar la petición Axios conectándola al nuevo endpoint `POST /rooms` de la API.
+- [ ] Mostrar alertas de éxito o error con `sonner` al registrar.
+
+## [ ] Fase 2: Vista Principal del Inventario (Dashboard)
+- [ ] Crear la página de visualización general de cuartos (`/dashboard/rooms`).
+- [ ] Realizar petición `GET /rooms` con estado de carga (Loaders/Spinners).
+- [ ] Pintar visualmente las habitaciones en un layout tipo cuadrícula (Grid).
+- [ ] Aplicar colores dinámicos con Tailwind según el estado de la habitación (Ej. Verde = Disponible, Rojo = Ocupado).

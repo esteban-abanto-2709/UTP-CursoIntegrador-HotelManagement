@@ -10,23 +10,23 @@
 ## 🔐 Sprint 1: Sistema de Autenticación y Usuarios (Semanas 7 y 8)
 *Objetivo: Sentar las bases de seguridad, crear jerarquías de usuarios y proteger el acceso al sistema de forma dinámica.*
 
-- [ ] **Base de Datos (Prisma):** Crear el modelo `Usuario` y definir el Enum de Roles (`OWNER`, `MANAGER`, `EMPLEADO`).
-- [ ] **Backend (NestJS Auth):** Implementar inicio de sesión usando JWT (Json Web Tokens) y configurar guardias (`RolesGuard`).
-- [ ] **Backend (Lógica de Roles):** Endpoint para crear nuevos usuarios con reglas estrictas:
+- [x] **Base de Datos (Prisma):** Crear el modelo `Usuario` y definir el Enum de Roles (`OWNER`, `MANAGER`, `EMPLEADO`).
+- [x] **Backend (NestJS Auth):** Implementar inicio de sesión usando JWT (Json Web Tokens) y configurar guardias (`RolesGuard`).
+- [x] **Backend (Lógica de Roles):** Endpoint para crear nuevos usuarios con reglas estrictas:
   - El `OWNER` puede crear usuarios tipo `MANAGER` y `EMPLEADO`.
   - El `MANAGER` puede crear usuarios tipo `EMPLEADO`.
-- [ ] **Frontend (Login):** Crear la pantalla de `/login`, conectarla con el backend y almacenar el token de forma segura.
-- [ ] **Frontend (Enrutamiento y Tabs):** Implementar la lógica para reconocer el rol del usuario que ingresó y renderizar el *Layout* o *Tabs* correspondientes (ej: si es OWNER/MANAGER ve el Dashboard de Finanzas/Recepción, si es EMPLEADO ve solo la sección de Limpieza u Operaciones).
+- [x] **Frontend (Login):** Crear la pantalla de `/login`, conectarla con el backend y almacenar el token de forma segura.
+- [x] **Frontend (Enrutamiento y Tabs):** Implementar la lógica para reconocer el rol del usuario que ingresó y renderizar el *Layout* o *Tabs* correspondientes (ej: si es OWNER/MANAGER ve el Dashboard de Finanzas/Recepción, si es EMPLEADO ve solo la sección de Limpieza u Operaciones).
 
 ---
 
 ## 🛏️ Sprint 2: Sistema de Inventario y Dashboard Base (Semanas 9 y 10)
-*Objetivo: Visualizar y manejar las habitaciones físicas del hotel en tiempo real.*
+*Objetivo: Registrar el inventario físico del hotel (setup inicial) y visualizar las habitaciones en tiempo real.*
 
-- [ ] **Base de Datos:** Crear modelo `Habitacion` (Número, Tipo, Estado).
-- [ ] **Backend:** CRUD de Habitaciones. Crear un "Seed" para generar rápidamente 20 habitaciones de prueba en la DB.
-- [ ] **Frontend (UI Base):** Configurar Tailwind Dark Theme y Shadcn UI.
-- [ ] **Frontend (Dashboard):** Construir la cuadrícula visual de los cuartos, que cambien de color según su estado (Verde, Azul, Amarillo).
+- [ ] **Base de Datos:** Crear modelo `Habitacion` (Número, Tipo, Piso, Estado).
+- [ ] **Backend:** Endpoints (CRUD) para Habitaciones. Proteger la creación de habitaciones exclusivamente para `OWNER` y `MANAGER`.
+- [ ] **Frontend (Setup de Habitaciones):** Interfaz administrativa para registrar las habitaciones físicas del hotel al sistema.
+- [ ] **Frontend (Dashboard de Estados):** Construir la cuadrícula visual de los cuartos, que cambien de color según su estado (Disponible, Ocupado, Limpieza).
 
 ---
 
