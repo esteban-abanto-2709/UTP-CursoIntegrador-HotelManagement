@@ -70,9 +70,9 @@ export default function RoomsPage() {
   const [rooms, setRooms] = useState<RoomData[]>([]);
   const [isLoadingRooms, setIsLoadingRooms] = useState(true);
 
-  // Permitir solo a OWNER o MANAGER crear cuartos
+  // Permitir solo a ADMIN, OWNER o MANAGER crear cuartos
   const canCreateRooms =
-    currentUser?.role === "OWNER" || currentUser?.role === "MANAGER";
+    currentUser?.role === "ADMIN" || currentUser?.role === "OWNER" || currentUser?.role === "MANAGER";
 
   const fetchRooms = useCallback(async () => {
     try {
@@ -169,23 +169,21 @@ export default function RoomsPage() {
         <div>
           <h2 className="text-3xl font-bold tracking-tight text-white flex items-center gap-2">
             <Bed className="h-8 w-8 text-sky-500" />
-            Inventario de Habitaciones
+            Configuración de Habitaciones
           </h2>
           <p className="text-muted-foreground mt-1">
-            Administra los cuartos y verifica su estado físico actual.
+            Gestión administrativa del inventario físico (Altas y Bajas).
           </p>
         </div>
 
         {/* Botón de Creación (Protegido) */}
         {canCreateRooms && (
           <Dialog open={isOpen} onOpenChange={setIsOpen}>
-            <DialogTrigger
-              render={
-                <Button className="bg-sky-500 hover:bg-sky-400 text-white font-semibold shadow-[0_0_15px_rgba(14,165,233,0.3)] transition-all hover:shadow-[0_0_25px_rgba(14,165,233,0.5)]" />
-              }
-            >
-              <Plus className="mr-2 h-4 w-4" />
-              Nueva Habitación
+            <DialogTrigger asChild>
+              <Button className="bg-sky-500 hover:bg-sky-400 text-white font-semibold shadow-[0_0_15px_rgba(14,165,233,0.3)] transition-all hover:shadow-[0_0_25px_rgba(14,165,233,0.5)]">
+                <Plus className="mr-2 h-4 w-4" />
+                Nueva Habitación
+              </Button>
             </DialogTrigger>
             <DialogContent className="bg-[#12151C] border border-white/10 sm:max-w-md shadow-2xl">
               <DialogHeader className="mb-4">
@@ -291,7 +289,7 @@ export default function RoomsPage() {
         )}
       </div>
 
-      {/* Tabla Base (Vista Preliminar antes del Grid) */}
+      {/* Tabla Base */}
       <div className="rounded-xl border border-white/5 bg-[#12151C] overflow-hidden shadow-xl">
         <Table>
           <TableHeader className="bg-zinc-900/50">
@@ -299,9 +297,7 @@ export default function RoomsPage() {
               <TableHead className="text-zinc-400 font-semibold w-[100px]">
                 N°
               </TableHead>
-              <TableHead className="text-zinc-400 font-semibold">
-                Tipo
-              </TableHead>
+              <TableHead className="text-zinc-400 font-semibold">Tipo</TableHead>
               <TableHead className="text-zinc-400 font-semibold">
                 Estado Físico
               </TableHead>
@@ -326,8 +322,8 @@ export default function RoomsPage() {
                   colSpan={3}
                   className="h-32 text-center text-zinc-500 font-medium"
                 >
-                  No hay habitaciones registradas. Haz clic en &quot;Nueva
-                  Habitación&quot; para empezar el setup.
+                  No hay habitaciones registradas. Haz clic en "Nueva Habitación"
+                  para empezar el setup.
                 </TableCell>
               </TableRow>
             ) : (

@@ -19,16 +19,16 @@ import { routes } from "@/lib/routes";
 // Menu items.
 const items = [
   {
-    title: "Recepción (Dashboard)",
+    title: "Recepción",
     url: routes.dashboard.home(),
     icon: Home,
     allowedRoles: ["OWNER", "MANAGER", "EMPLOYEE"],
   },
   {
-    title: "Inventario de Habitaciones",
+    title: "Gestión de Habitaciones",
     url: routes.dashboard.rooms(),
     icon: Bed,
-    allowedRoles: ["OWNER", "MANAGER", "EMPLOYEE"],
+    allowedRoles: ["OWNER", "MANAGER"],
   },
   {
     title: "Gestión de Personal",

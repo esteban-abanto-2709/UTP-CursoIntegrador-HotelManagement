@@ -1,7 +1,9 @@
 "use client";
 
-import { useState } from "react";
-import { mockRooms, Room, RoomStatus } from "@/lib/mocks";
+import { useState, useEffect } from "react";
+import api from "@/lib/axios";
+import { routes } from "@/lib/routes";
+import { toast } from "sonner";
 import {
   BedDouble,
   CheckCircle2,
@@ -13,6 +15,7 @@ import {
   Crown,
   DoorOpen,
   ArrowRight,
+  Loader2,
 } from "lucide-react";
 import {
   Dialog,
@@ -22,17 +25,47 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
+export type RoomStatus = "AVAILABLE" | "OCCUPIED" | "CLEANING" | "MAINTENANCE";
+
+export interface Room {
+  id: number;
+  number: string;
+  type: string;
+  status: RoomStatus;
+}
+
+export type FilterStatus = "ALL" | RoomStatus;
+
 export default function DashboardPage() {
-  const [rooms, setRooms] = useState<Room[]>(mockRooms);
+  const [rooms, setRooms] = useState<Room[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [filter, setFilter] = useState<FilterStatus>("ALL");
 
-  const disponibles = rooms.filter((r) => r.status === "disponible").length;
-  const ocupadas = rooms.filter((r) => r.status === "ocupada").length;
-  const limpieza = rooms.filter((r) => r.status === "limpieza").length;
+  useEffect(() => {
+    const fetchRooms = async () => {
+      try {
+        const response = await api.get(routes.api.rooms.list());
+        setRooms(response.data);
+      } catch (error) {
+        console.error("Error fetching rooms", error);
+        toast.error("Error al cargar las habitaciones");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchRooms();
+  }, []);
 
-  const handleChangeStatus = (roomId: string, newStatus: RoomStatus) => {
+  const disponibles = rooms.filter((r) => r.status === "AVAILABLE").length;
+  const ocupadas = rooms.filter((r) => r.status === "OCCUPIED").length;
+  const limpieza = rooms.filter((r) => r.status === "CLEANING").length;
+
+  const handleChangeStatus = (roomId: number, newStatus: RoomStatus) => {
+    // Mock local mutation for presentation
     setRooms(
       rooms.map((r) => (r.id === roomId ? { ...r, status: newStatus } : r)),
     );
+    toast.success("Estado actualizado (Simulación local)");
   };
 
   return (
@@ -113,43 +146,89 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Grid de Habitaciones */}
-      <div className="mt-4">
-        <div className="flex items-center justify-between mb-6">
-          <h3 className="text-xl font-bold tracking-tight text-foreground">
-            Estado de Habitaciones
-          </h3>
-          <div className="flex gap-3 text-sm font-medium">
-            <span className="flex items-center gap-1.5">
-              <div className="w-3 h-3 rounded-full bg-status-available-icon-text"></div>
-              Disponible
-            </span>
-            <span className="flex items-center gap-1.5">
-              <div className="w-3 h-3 rounded-full bg-status-occupied-icon-text"></div>
-              Ocupada
-            </span>
-            <span className="flex items-center gap-1.5">
-              <div className="w-3 h-3 rounded-full bg-status-cleaning-icon-text"></div>
-              Limpieza
-            </span>
-            <span className="flex items-center gap-1.5">
-              <div className="w-3 h-3 rounded-full bg-status-maintenance-icon-text"></div>
-              Mantenimiento
-            </span>
-          </div>
+      <div className="flex items-center justify-between mb-6">
+        <h3 className="text-xl font-bold tracking-tight text-foreground">
+          Estado de Habitaciones
+        </h3>
+        <div className="flex gap-3 text-sm font-medium">
+          <span className="flex items-center gap-1.5">
+            <div className="w-3 h-3 rounded-full bg-status-available-icon-text"></div>
+            Disponible
+          </span>
+          <span className="flex items-center gap-1.5">
+            <div className="w-3 h-3 rounded-full bg-status-occupied-icon-text"></div>
+            Ocupada
+          </span>
+          <span className="flex items-center gap-1.5">
+            <div className="w-3 h-3 rounded-full bg-status-cleaning-icon-text"></div>
+            Limpieza
+          </span>
+          <span className="flex items-center gap-1.5">
+            <div className="w-3 h-3 rounded-full bg-status-maintenance-icon-text"></div>
+            Mantenimiento
+          </span>
         </div>
+      </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-5">
-          {rooms.map((room) => (
-            <RoomCard
-              key={room.id}
-              room={room}
-              onStatusChange={(newStatus) =>
-                handleChangeStatus(room.id, newStatus)
-              }
-            />
-          ))}
-        </div>
+      {/* Filtros */}
+      <div className="flex flex-wrap gap-2 mb-2">
+        {(
+          ["ALL", "AVAILABLE", "OCCUPIED", "CLEANING", "MAINTENANCE"] as const
+        ).map((f) => (
+          <button
+            key={f}
+            onClick={() => setFilter(f)}
+            className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+              filter === f
+                ? "bg-sky-500 text-white shadow-md shadow-sky-500/20"
+                : "bg-card border border-border/50 text-muted-foreground hover:text-foreground hover:bg-muted"
+            }`}
+          >
+            {f === "ALL"
+              ? "Todas"
+              : f === "AVAILABLE"
+                ? "Disponibles"
+                : f === "OCCUPIED"
+                  ? "Ocupadas"
+                  : f === "CLEANING"
+                    ? "En Limpieza"
+                    : "Mantenimiento"}
+          </button>
+        ))}
+      </div>
+
+      {/* Grid de Habitaciones */}
+      <div className="mt-2">
+        {isLoading ? (
+          <div className="h-64 flex flex-col items-center justify-center gap-4 text-zinc-500">
+            <Loader2 className="h-8 w-8 animate-spin text-sky-500" />
+            <p>Cargando inventario...</p>
+          </div>
+        ) : rooms.length === 0 ? (
+          <div className="h-64 flex flex-col items-center justify-center gap-2 border border-dashed border-white/10 rounded-2xl bg-white/5">
+            <BedDouble className="h-10 w-10 text-zinc-600 mb-2" />
+            <p className="text-zinc-400 font-medium text-lg">
+              No hay habitaciones registradas.
+            </p>
+            <p className="text-zinc-500 text-sm">
+              El Manager debe registrarlas primero en Configuración.
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-5">
+            {rooms
+              .filter((room) => filter === "ALL" || room.status === filter)
+              .map((room) => (
+                <RoomCard
+                  key={room.id}
+                  room={room}
+                  onStatusChange={(newStatus) =>
+                    handleChangeStatus(room.id, newStatus)
+                  }
+                />
+              ))}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -166,7 +245,7 @@ function RoomCard({
   const [isOpen, setIsOpen] = useState(false);
   const getStatusConfig = () => {
     switch (room.status) {
-      case "disponible":
+      case "AVAILABLE":
         return {
           bg: "bg-status-available-bg",
           border:
@@ -177,7 +256,7 @@ function RoomCard({
           icon: <DoorOpen className="w-4 h-4" />,
           label: "Disponible",
         };
-      case "ocupada":
+      case "OCCUPIED":
         return {
           bg: "bg-status-occupied-bg",
           border:
@@ -188,7 +267,7 @@ function RoomCard({
           icon: <User className="w-4 h-4" />,
           label: "Ocupada",
         };
-      case "limpieza":
+      case "CLEANING":
         return {
           bg: "bg-status-cleaning-bg",
           border:
@@ -199,7 +278,7 @@ function RoomCard({
           icon: <Sparkles className="w-4 h-4" />,
           label: "Limpieza",
         };
-      case "mantenimiento":
+      case "MAINTENANCE":
         return {
           bg: "bg-status-maintenance-bg",
           border:
@@ -221,16 +300,16 @@ function RoomCard({
   };
 
   const getTypeIcon = () => {
-    switch (room.type.toLowerCase()) {
-      case "sencilla":
+    switch (room.type) {
+      case "SINGLE":
         return (
           <User className="w-8 h-8 text-muted-foreground group-hover:text-foreground transition-colors" />
         );
-      case "doble":
+      case "DOUBLE":
         return (
           <Users className="w-8 h-8 text-muted-foreground group-hover:text-foreground transition-colors" />
         );
-      case "suite":
+      case "SUITE":
         return (
           <Crown className="w-8 h-8 text-primary group-hover:text-primary transition-colors" />
         );
@@ -238,6 +317,19 @@ function RoomCard({
         return (
           <BedDouble className="w-8 h-8 text-muted-foreground group-hover:text-foreground transition-colors" />
         );
+    }
+  };
+
+  const getTypeLabel = (type: string) => {
+    switch (type) {
+      case "SINGLE":
+        return "Sencilla";
+      case "DOUBLE":
+        return "Doble";
+      case "SUITE":
+        return "Suite";
+      default:
+        return type;
     }
   };
 
@@ -266,7 +358,7 @@ function RoomCard({
           {room.number}
         </span>
         <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-background border border-border/50 text-muted-foreground mt-1">
-          {room.type}
+          {getTypeLabel(room.type)}
         </span>
       </button>
 
@@ -291,13 +383,15 @@ function RoomCard({
           <div className="flex flex-col gap-3 py-4">
             <div className="p-4 bg-muted border border-border/50 rounded-xl flex justify-between items-center mb-2">
               <div className="text-sm text-muted-foreground">Categoría</div>
-              <div className="font-semibold text-foreground">{room.type}</div>
+              <div className="font-semibold text-foreground">
+                {getTypeLabel(room.type)}
+              </div>
             </div>
 
             {/* Opciones condicionales según el estado */}
-            {room.status === "disponible" && (
+            {room.status === "AVAILABLE" && (
               <button
-                onClick={() => handleAction("ocupada")}
+                onClick={() => handleAction("OCCUPIED")}
                 className="w-full flex items-center justify-between p-4 rounded-xl border border-status-occupied-border bg-status-occupied-bg text-status-occupied-text hover:bg-status-occupied-icon-bg transition-colors font-semibold"
               >
                 <div className="flex items-center gap-3">
@@ -307,9 +401,9 @@ function RoomCard({
               </button>
             )}
 
-            {room.status === "ocupada" && (
+            {room.status === "OCCUPIED" && (
               <button
-                onClick={() => handleAction("limpieza")}
+                onClick={() => handleAction("CLEANING")}
                 className="w-full flex items-center justify-between p-4 rounded-xl border border-status-cleaning-border bg-status-cleaning-bg text-status-cleaning-text hover:bg-status-cleaning-icon-bg transition-colors font-semibold"
               >
                 <div className="flex items-center gap-3">
@@ -319,22 +413,21 @@ function RoomCard({
               </button>
             )}
 
-            {room.status === "limpieza" && (
+            {room.status === "CLEANING" && (
               <button
-                onClick={() => handleAction("disponible")}
+                onClick={() => handleAction("AVAILABLE")}
                 className="w-full flex items-center justify-between p-4 rounded-xl border border-status-available-border bg-status-available-bg text-status-available-text hover:bg-status-available-icon-bg transition-colors font-semibold"
               >
                 <div className="flex items-center gap-3">
-                  <CheckCircle2 className="w-5 h-5" /> Finalizar Servicio a la
-                  Habitación
+                  <CheckCircle2 className="w-5 h-5" /> Finalizar Limpieza
                 </div>
                 <ArrowRight className="w-5 h-5" />
               </button>
             )}
 
-            {room.status === "mantenimiento" && (
+            {room.status === "MAINTENANCE" && (
               <button
-                onClick={() => handleAction("disponible")}
+                onClick={() => handleAction("AVAILABLE")}
                 className="w-full flex items-center justify-between p-4 rounded-xl border border-status-available-border bg-status-available-bg text-status-available-text hover:bg-status-available-icon-bg transition-colors font-semibold"
               >
                 <div className="flex items-center gap-3">
