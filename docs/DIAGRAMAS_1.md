@@ -90,9 +90,9 @@ Muestra la experiencia de cada actor durante su jornada operativa en el sistema.
 journey
     title Jornada Operativa en Lumina Resort PMS
     section Inicio de Turno
-      Inicia sesión en el sistema: 5: Recepcionista, Admin
+      Inicia sesión en el sistema: 5: Recepcionista, Owner
       Revisa el Dashboard de habitaciones: 5: Recepcionista
-      Audita reportes del turno anterior: 4: Admin
+      Audita reportes del turno anterior: 4: Owner
     section Gestión de Llegadas
       Busca la reserva del huésped por DNI: 5: Recepcionista
       Asigna habitación y hace Check-in: 5: Recepcionista
@@ -106,8 +106,8 @@ journey
       El cuarto vuelve al grid en verde: 5: Housekeeping
     section Cierre de Turno
       Crea reservas para días siguientes: 4: Recepcionista
-      Revisa estado global de habitaciones: 5: Admin
-      Cierra sesión de forma segura: 5: Recepcionista, Admin, Housekeeping
+      Revisa estado global de habitaciones: 5: Owner
+      Cierra sesión de forma segura: 5: Recepcionista, Owner, Housekeeping
 ```
 
 ---
@@ -226,7 +226,7 @@ timeline
     title Ciclo de Vida del Proyecto Lumina Resort PMS
     section Fase 1 Análisis
         Semana 1 : Levantamiento de requisitos con el hotel
-                 : Identificación de roles (Admin, Recepción, HK)
+                 : Identificación de roles (Owner, Recepción, HK)
         Semana 2 : Redacción de Historias de Usuario
                  : Creación de diagramas UML
     section Fase 2 Diseño

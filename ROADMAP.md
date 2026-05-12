@@ -10,13 +10,13 @@
 ## 🔐 Sprint 1: Sistema de Autenticación y Usuarios (Semanas 7 y 8)
 *Objetivo: Sentar las bases de seguridad, crear jerarquías de usuarios y proteger el acceso al sistema de forma dinámica.*
 
-- [x] **Base de Datos (Prisma):** Crear el modelo `Usuario` y definir el Enum de Roles (`ADMIN`, `MANAGER`, `EMPLOYEE`).
+- [x] **Base de Datos (Prisma):** Crear el modelo `Usuario` y definir el Enum de Roles (`OWNER`, `MANAGER`, `EMPLOYEE`).
 - [x] **Backend (NestJS Auth):** Implementar inicio de sesión usando JWT (Json Web Tokens) y configurar guardias (`RolesGuard`).
 - [x] **Backend (Lógica de Roles):** Endpoint para crear nuevos usuarios con reglas estrictas:
-  - El `ADMIN` puede crear usuarios tipo `MANAGER` y `EMPLOYEE`.
+  - El `OWNER` puede crear usuarios tipo `MANAGER` y `EMPLOYEE`.
   - El `MANAGER` puede crear usuarios tipo `EMPLOYEE`.
 - [x] **Frontend (Login):** Crear la pantalla de `/login`, conectarla con el backend y almacenar el token de forma segura.
-- [x] **Frontend (Enrutamiento y Tabs):** Implementar la lógica para reconocer el rol del usuario que ingresó y renderizar el *Layout* o *Tabs* correspondientes (ej: si es ADMIN/MANAGER ve el Dashboard de Finanzas/Recepción, si es EMPLOYEE ve solo la sección de Limpieza u Operaciones).
+- [x] **Frontend (Enrutamiento y Tabs):** Implementar la lógica para reconocer el rol del usuario que ingresó y renderizar el *Layout* o *Tabs* correspondientes (ej: si es OWNER/MANAGER ve el Dashboard de Finanzas/Recepción, si es EMPLOYEE ve solo la sección de Limpieza u Operaciones).
 
 ---
 
@@ -24,7 +24,7 @@
 *Objetivo: Registrar el inventario físico del hotel (setup inicial) y visualizar las habitaciones en tiempo real.*
 
 - [x] **Base de Datos:** Crear modelo `Habitacion` (Número, Tipo, Estado).
-- [x] **Backend:** Endpoints (CRUD) para Habitaciones. Proteger la creación de habitaciones exclusivamente para `ADMIN` y `MANAGER`.
+- [x] **Backend:** Endpoints (CRUD) para Habitaciones. Proteger la creación de habitaciones exclusivamente para `OWNER` y `MANAGER`.
 - [x] **Frontend (Setup de Habitaciones):** Interfaz administrativa para registrar las habitaciones físicas del hotel al sistema.
 - [ ] **Frontend (Dashboard de Estados):** Construir la cuadrícula visual de los cuartos, que cambien de color según su estado (Disponible, Ocupado, Limpieza).
 
@@ -52,7 +52,7 @@
 ## 🚀 Sprint 5: Testing Local y Despliegue (Semanas 15 y 16)
 *Objetivo: Desplegar a producción para la evaluación del profesor.*
 
-- [ ] **Pruebas de Flujo Completo:** Entrar como ADMIN -> Crear un Empleado -> Entrar como Recepcionista -> Hacer Check-In -> Entrar como Empleado -> Limpiar.
+- [ ] **Pruebas de Flujo Completo:** Entrar como OWNER -> Crear un Empleado -> Entrar como Recepcionista -> Hacer Check-In -> Entrar como Empleado -> Limpiar.
 - [ ] **Despliegue Backend:** Subir la API de NestJS a Render.com o Railway.app.
 - [ ] **Despliegue Frontend:** Subir Next.js a Vercel.
-- [ ] **Entrega Final:** Redactar el documento final para el profesor incluyendo los enlaces públicos, y cuentas de prueba para que evalúe como `ADMIN` o `MANAGER`.
+- [ ] **Entrega Final:** Redactar el documento final para el profesor incluyendo los enlaces públicos, y cuentas de prueba para que evalúe como `OWNER` o `MANAGER`.

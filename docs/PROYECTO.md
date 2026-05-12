@@ -15,7 +15,7 @@ El núcleo de la solución será un panel administrativo centrado en:
 
 *   **Gestión de Inventario:** Control total de tipos de habitaciones (Sencilla, Doble, Suite) y sus estados (Limpia, Ocupada, Limpieza pendiente, Mantenimiento).
 *   **Módulo de Reservas y Recepción:** Registro ágil de entradas (Check-in), salidas (Check-out) y calendario general de disponibilidad.
-*   **Seguridad y Auditoría:** Control de accesos seguro por roles (Administrador/Recepcionista/Housekeeping) para proteger datos sensibles de los clientes y acotar funciones por área técnica.
+*   **Seguridad y Auditoría:** Control de accesos seguro por roles (Propietario/Recepcionista/Housekeeping) para proteger datos sensibles de los clientes y acotar funciones por área técnica.
 
 ---
 
@@ -72,12 +72,12 @@ Se ha creado un MVP conceptual con diseño *Dark Theme Premium ("Lumina Resort")
 ## 👤 Historias de Usuario (Fase Inicial del Proyecto)
 
 1. **Como** Recepcionista del turno mañana, **quiero** ver la disponibilidad total de habitaciones en tiempo real representadas por colores y número en el Dashboard principal, **para** asignar cuartos instantáneamente sin riesgo de cometer un error.
-2. **Como** Administrador / Gerente, **quiero** buscar y consultar el historial de mis huéspedes filtrando su nombre o DNI en el panel de Reservas, **para** identificar clientes regulares y auditar que nadie se registre de forma duplicada.
+2. **Como** Propietario / Gerente, **quiero** buscar y consultar el historial de mis huéspedes filtrando su nombre o DNI en el panel de Reservas, **para** identificar clientes regulares y auditar que nadie se registre de forma duplicada.
 3. **Como** Personal operativo (Housekeeping), **quiero** visualizar un módulo que liste única y exclusivamente los cuartos pendientes de limpieza, **para** focalizar mis tareas del día y marcarlos como disponibles sin ayuda de conserjería.
 4. **Como** Gerente del Hotel, **quiero** disponer de un portal de Login para ingresar las credenciales exclusivas del empleado, **para** asegurar al 100% que la data y finanzas de mi propiedad no está expuesta en una computadora pública.
 5. **Como** Recepcionista que atiende al público en ventanilla, **quiero** que el sistema integre un modal (Dialog flotante) al presionar cualquier cuarto, **para** poder tramitar los Check-In o Check-Out y que esto refleje los cambios transversalmente en el sistema.
 6. **Como** Recepcionista Nocturno, **quiero** poder crear una nueva reservación a través de un formulario guiado con validaciones básicas, **para** dejar programados a los próximos clientes con antelación y asegurar su plaza en el PMS.
-7. **Como** Administrador Financiero, **quiero** que el sistema sea capaz de registrar internamente la transacción tras aprobar un Check-Out, **para** evitar fugas de comprobantes y mantener la auditoría diaria saneada.
+7. **Como** Propietario Financiero, **quiero** que el sistema sea capaz de registrar internamente la transacción tras aprobar un Check-Out, **para** evitar fugas de comprobantes y mantener la auditoría diaria saneada.
 
 ---
 
@@ -85,7 +85,7 @@ Se ha creado un MVP conceptual con diseño *Dark Theme Premium ("Lumina Resort")
 
 ### Requisitos Funcionales (RF)
 1. **RF-01:** El sistema DEBE proveer un portal de Login estricto para proteger la capa técnica (Dashboard).
-2. **RF-02:** El sistema DEBE diferenciar sesiones basándose en roles administrativos (Admin, Recepción, Housekeeping).
+2. **RF-02:** El sistema DEBE diferenciar sesiones basándose en roles administrativos (Owner, Recepción, Housekeeping).
 3. **RF-03:** El sistema DEBE exhibir un Dashboard interactivo que pinte la disponibilidad global del hotel.
 4. **RF-04:** El sistema DEBE contar los indicadores (KPIs) en tiempo real (Habitaciones Libres, Ocupadas, Limpieza).
 5. **RF-05:** El sistema DEBE permitir interactuar haciendo clic sobre el contenedor visual de cada habitación.
@@ -93,7 +93,7 @@ Se ha creado un MVP conceptual con diseño *Dark Theme Premium ("Lumina Resort")
 7. **RF-07:** El sistema DEBE permitir modificar el estado de "Disponible" a "Ocupada" para simular un Check-in directo.
 8. **RF-08:** El sistema DEBE permitir modificar el estado de "Ocupada" a "Limpieza" tras culminar la estadía (Check-out).
 9. **RF-09:** El sistema DEBE permitir a las cuentas operativas trasladar el estatus de "Limpieza" a "Disponible".
-10. **RF-10:** El sistema DEBE permitir al Administrador catalogar una falla técnica mandando un cuarto a "Mantenimiento".
+10. **RF-10:** El sistema DEBE permitir al Propietario catalogar una falla técnica mandando un cuarto a "Mantenimiento".
 11. **RF-11:** El módulo central de reservas DEBE presentar una estructura en formato tabla de datos robusta.
 12. **RF-12:** El sistema DEBE ofrecer una barra de búsqueda para rastrear un huésped específico en tiempo récord.
 13. **RF-13:** El sistema DEBE contener un botón y un flujo (Dialog UI) para dar de alta una nueva reservación al vuelo.

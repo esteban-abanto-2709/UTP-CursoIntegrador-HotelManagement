@@ -70,9 +70,9 @@ export default function RoomsPage() {
   const [rooms, setRooms] = useState<RoomData[]>([]);
   const [isLoadingRooms, setIsLoadingRooms] = useState(true);
 
-  // Permitir solo a ADMIN, OWNER o MANAGER crear cuartos
+  // Permitir solo a OWNER o MANAGER crear cuartos
   const canCreateRooms =
-    currentUser?.role === "ADMIN" || currentUser?.role === "OWNER" || currentUser?.role === "MANAGER";
+    currentUser?.role === "OWNER" || currentUser?.role === "MANAGER";
 
   const fetchRooms = useCallback(async () => {
     try {
@@ -297,7 +297,9 @@ export default function RoomsPage() {
               <TableHead className="text-zinc-400 font-semibold w-[100px]">
                 N°
               </TableHead>
-              <TableHead className="text-zinc-400 font-semibold">Tipo</TableHead>
+              <TableHead className="text-zinc-400 font-semibold">
+                Tipo
+              </TableHead>
               <TableHead className="text-zinc-400 font-semibold">
                 Estado Físico
               </TableHead>
@@ -322,8 +324,8 @@ export default function RoomsPage() {
                   colSpan={3}
                   className="h-32 text-center text-zinc-500 font-medium"
                 >
-                  No hay habitaciones registradas. Haz clic en "Nueva Habitación"
-                  para empezar el setup.
+                  No hay habitaciones registradas. Haz clic en "Nueva
+                  Habitación" para empezar el setup.
                 </TableCell>
               </TableRow>
             ) : (

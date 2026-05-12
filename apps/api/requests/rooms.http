@@ -3,16 +3,16 @@
 
 @baseUrl = http://localhost:4000
 # Instrucciones: Reemplaza estos valores con los tokens generados en el endpoint de login.
-@adminToken = <PEGAR_AQUI_TOKEN_ADMIN>
+@ownerToken = <PEGAR_AQUI_TOKEN_OWNER>
 @managerToken = <PEGAR_AQUI_TOKEN_MANAGER>
 
 ### -------------------------------------------------------------
-### 1. CREACIÓN DE HABITACIONES (Solo ADMIN o MANAGER)
+### 1. CREACIÓN DE HABITACIONES (Solo OWNER o MANAGER)
 ### -------------------------------------------------------------
 
-### 1A. ADMIN crea una habitación SINGLE (Debe funcionar 201)
+### 1A. OWNER crea una habitación SINGLE (Debe funcionar 201)
 POST {{baseUrl}}/rooms
-Authorization: Bearer {{adminToken}}
+Authorization: Bearer {{ownerToken}}
 Content-Type: application/json
 
 {
@@ -32,7 +32,7 @@ Content-Type: application/json
 
 ### 1C. Intentar crear una habitación con tipo inválido (Debe fallar 400 - Validación Zod/Class-validator)
 POST {{baseUrl}}/rooms
-Authorization: Bearer {{adminToken}}
+Authorization: Bearer {{ownerToken}}
 Content-Type: application/json
 
 {
@@ -42,7 +42,7 @@ Content-Type: application/json
 
 ### 1D. Intentar crear una habitación duplicada (Debe fallar 409 - Conflicto)
 POST {{baseUrl}}/rooms
-Authorization: Bearer {{adminToken}}
+Authorization: Bearer {{ownerToken}}
 Content-Type: application/json
 
 {
@@ -56,4 +56,4 @@ Content-Type: application/json
 
 ### 2A. Obtener todas las habitaciones (Debe retornar array de cuartos con status AVAILABLE)
 GET {{baseUrl}}/rooms
-Authorization: Bearer {{adminToken}}
+Authorization: Bearer {{ownerToken}}

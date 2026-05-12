@@ -3,19 +3,19 @@
 
 @baseUrl = http://localhost:4000
 # Instrucciones: Reemplaza estos valores con los tokens generados al iniciar sesión (Endpoint 1A y 1B).
-@adminToken = <PEGAR_AQUI_TOKEN_ADMIN>
+@ownerToken = <PEGAR_AQUI_TOKEN_OWNER>
 @managerToken = <PEGAR_AQUI_TOKEN_MANAGER>
 
 ### -------------------------------------------------------------
 ### 1. LOGIN (OBTENCIÓN DE TOKENS)
 ### -------------------------------------------------------------
 
-### 1A. Iniciar sesión como ADMIN (Copia el token y ponlo en @adminToken arriba)
+### 1A. Iniciar sesión como OWNER (Copia el token y ponlo en @ownerToken arriba)
 POST {{baseUrl}}/auth/login
 Content-Type: application/json
 
 {
-  "username": "admin123",
+  "username": "owner123",
   "password": "supersecretpassword"
 }
 
@@ -23,9 +23,9 @@ Content-Type: application/json
 ### 2. CREACIÓN DE USUARIOS (REGLAS DE JERARQUÍA)
 ### -------------------------------------------------------------
 
-### 2A. ADMIN crea a un MANAGER (Debe funcionar)
+### 2A. OWNER crea a un MANAGER (Debe funcionar)
 POST {{baseUrl}}/users
-Authorization: Bearer {{adminToken}}
+Authorization: Bearer {{ownerToken}}
 Content-Type: application/json
 
 {
@@ -34,13 +34,13 @@ Content-Type: application/json
   "role": "MANAGER"
 }
 
-### 2B. ADMIN intenta crear a otro ADMIN (Debe fallar)
+### 2B. OWNER intenta crear a otro OWNER (Debe fallar)
 POST {{baseUrl}}/users
-Authorization: Bearer {{adminToken}}
+Authorization: Bearer {{ownerToken}}
 Content-Type: application/json
 
 {
-  "username": "admin2",
+  "username": "owner2",
   "password": "password123",
   "role": "OWNER"
 }
@@ -84,9 +84,9 @@ Content-Type: application/json
 ### 4. PRUEBAS DE ACCESO / SEGURIDAD (PERFIL)
 ### -------------------------------------------------------------
 
-### 4A. Acceder al perfil con token de ADMIN o MANAGER (Debe funcionar)
+### 4A. Acceder al perfil con token de OWNER o MANAGER (Debe funcionar)
 GET {{baseUrl}}/auth/profile
-Authorization: Bearer {{adminToken}}
+Authorization: Bearer {{ownerToken}}
 
 ### 4B. Acceder al perfil SIN token (Debe fallar - 401 Unauthorized)
 GET {{baseUrl}}/auth/profile
@@ -95,10 +95,10 @@ GET {{baseUrl}}/auth/profile
 ### 5. LECTURA DE USUARIOS (GET /users)
 ### -------------------------------------------------------------
 
-### 5A. Leer usuarios como ADMIN (Debe devolver TODOS los usuarios, incluyendo otros ADMIN)
+### 5A. Leer usuarios como OWNER (Debe devolver TODOS los usuarios, incluyendo otros OWNER)
 GET {{baseUrl}}/users
-Authorization: Bearer {{adminToken}}
+Authorization: Bearer {{ownerToken}}
 
-### 5B. Leer usuarios como MANAGER (Debe devolver Managers y Employees, pero NO ADMIN)
+### 5B. Leer usuarios como MANAGER (Debe devolver Managers y Employees, pero NO OWNER)
 GET {{baseUrl}}/users
 Authorization: Bearer {{managerToken}}

@@ -7,11 +7,11 @@ A continuación se detallan los flujos de interacción del sistema para las fase
 ## Diagrama 1: Creación de Empleado/Manager (Fase Setup)
 
 > **Guion para Exposición:**  
-> *"Este diagrama representa el primer paso para inicializar la seguridad del PMS. Mostramos cómo el Admin y el Nuevo Empleado interactúan presencialmente frente a la pantalla. El Admin ingresa los datos básicos, pero es el empleado quien digita su propia contraseña por seguridad. Luego, el Frontend valida que los campos estén completos usando Zod antes de enviar la petición. El Backend (NestJS) juega un rol crítico aquí: verifica en la base de datos que no exista otro empleado con el mismo DNI o Email para evitar duplicados. Finalmente, NestJS encripta la contraseña usando bcrypt antes de guardarla, asegurando que ni siquiera los administradores puedan ver las claves reales de su personal."*
+> *"Este diagrama representa el primer paso para inicializar la seguridad del PMS. Mostramos cómo el Owner y el Nuevo Empleado interactúan presencialmente frente a la pantalla. El Owner ingresa los datos básicos, pero es el empleado quien digita su propia contraseña por seguridad. Luego, el Frontend valida que los campos estén completos usando Zod antes de enviar la petición. El Backend (NestJS) juega un rol crítico aquí: verifica en la base de datos que no exista otro empleado con el mismo DNI o Email para evitar duplicados. Finalmente, NestJS encripta la contraseña usando bcrypt antes de guardarla, asegurando que ni siquiera los administradores puedan ver las claves reales de su personal."*
 
 ```mermaid
 sequenceDiagram
-    actor A as Admin
+    actor A as Owner
     actor NE as Nuevo Empleado
     participant FE as Frontend (Next.js)
     participant API as Backend (NestJS)
@@ -45,11 +45,11 @@ sequenceDiagram
 ## Diagrama 2: Creación de Habitación (Fase Setup)
 
 > **Guion para Exposición:**  
-> *"Aquí vemos cómo el hotel alimenta su inventario de habitaciones. Al ser un hotel turístico, simplificamos la lógica eliminando el concepto engorroso de 'pisos' y nos centramos en el Número o Nombre de la habitación y su Tipo (Sencilla, Suite, etc.). El administrador llena los datos, el Frontend los valida y envía el POST al servidor. El Backend tiene una regla de negocio clave: verificar que no estemos creando un número de habitación que ya existe. Al confirmar que está libre, la habitación se guarda y nace inmediatamente con el estado de 'Disponible', lista para aparecer en color verde en nuestro Dashboard interactivo."*
+> *"Aquí vemos cómo el hotel alimenta su inventario de habitaciones. Al ser un hotel turístico, simplificamos la lógica eliminando el concepto engorroso de 'pisos' y nos centramos en el Número o Nombre de la habitación y su Tipo (Sencilla, Suite, etc.). El propietario llena los datos, el Frontend los valida y envía el POST al servidor. El Backend tiene una regla de negocio clave: verificar que no estemos creando un número de habitación que ya existe. Al confirmar que está libre, la habitación se guarda y nace inmediatamente con el estado de 'Disponible', lista para aparecer en color verde en nuestro Dashboard interactivo."*
 
 ```mermaid
 sequenceDiagram
-    actor A as Admin / Manager
+    actor A as Owner / Manager
     participant FE as Frontend (Next.js)
     participant API as Backend (NestJS)
     participant DB as Base de Datos (Prisma)

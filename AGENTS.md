@@ -34,11 +34,11 @@ El proyecto está estructurado como un **Monorepo** con dos aplicaciones princip
 
 ### ✅ Sprint 1: Autenticación y Gestión de Usuarios (COMPLETADO)
 El sistema de seguridad base está implementado de extremo a extremo:
-- **Modelos de DB:** Prisma ya cuenta con el modelo de Usuario y un Enum de roles: `ADMIN`, `MANAGER`, `EMPLOYEE` (Empleado).
+- **Modelos de DB:** Prisma ya cuenta con el modelo de Usuario y un Enum de roles: `OWNER`, `MANAGER`, `EMPLOYEE` (Empleado).
 - **Backend:** 
   - Inicio de sesión con JWT (`auth/login`).
   - Endpoint de creación de usuarios (`users/create`) con Guards de roles: 
-    - `ADMIN` puede crear a cualquiera.
+    - `OWNER` puede crear a cualquiera.
     - `MANAGER` solo puede crear `EMPLOYEE`.
 - **Frontend:**
   - `/login` completamente funcional, conectado al store de Zustand.
