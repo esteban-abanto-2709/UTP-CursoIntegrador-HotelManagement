@@ -7,10 +7,10 @@
 @managerToken = <PEGAR_AQUI_TOKEN_MANAGER>
 
 ### -------------------------------------------------------------
-### 1. CREACIÓN DE HABITACIONES (Solo OWNER o MANAGER)
+### 1. CREACIÓN DE HABITACIONES (Solo ADMIN o MANAGER)
 ### -------------------------------------------------------------
 
-### 1A. OWNER crea una habitación SINGLE (Debe funcionar 201)
+### 1A. ADMIN crea una habitación SINGLE (Debe funcionar 201)
 POST {{baseUrl}}/rooms
 Authorization: Bearer {{adminToken}}
 Content-Type: application/json

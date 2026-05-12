@@ -145,7 +145,7 @@ export default function StaffPage() {
       case "OWNER":
         return (
           <span className="inline-flex items-center rounded-full bg-indigo-500/10 px-2 py-1 text-xs font-medium text-indigo-400 ring-1 ring-inset ring-indigo-500/20">
-            DUEÑO (OWNER)
+            ADMINISTRADOR
           </span>
         );
       case "MANAGER":

@@ -7,11 +7,11 @@ A continuación se detallan los flujos de interacción del sistema para las fase
 ## Diagrama 1: Creación de Empleado/Manager (Fase Setup)
 
 > **Guion para Exposición:**  
-> *"Este diagrama representa el primer paso para inicializar la seguridad del PMS. Mostramos cómo el Dueño (Owner) y el Nuevo Empleado interactúan presencialmente frente a la pantalla. El Owner ingresa los datos básicos, pero es el empleado quien digita su propia contraseña por seguridad. Luego, el Frontend valida que los campos estén completos usando Zod antes de enviar la petición. El Backend (NestJS) juega un rol crítico aquí: verifica en la base de datos que no exista otro empleado con el mismo DNI o Email para evitar duplicados. Finalmente, NestJS encripta la contraseña usando bcrypt antes de guardarla, asegurando que ni siquiera los administradores puedan ver las claves reales de su personal."*
+> *"Este diagrama representa el primer paso para inicializar la seguridad del PMS. Mostramos cómo el Admin y el Nuevo Empleado interactúan presencialmente frente a la pantalla. El Admin ingresa los datos básicos, pero es el empleado quien digita su propia contraseña por seguridad. Luego, el Frontend valida que los campos estén completos usando Zod antes de enviar la petición. El Backend (NestJS) juega un rol crítico aquí: verifica en la base de datos que no exista otro empleado con el mismo DNI o Email para evitar duplicados. Finalmente, NestJS encripta la contraseña usando bcrypt antes de guardarla, asegurando que ni siquiera los administradores puedan ver las claves reales de su personal."*
 
 ```mermaid
 sequenceDiagram
-    actor A as Admin (Owner)
+    actor A as Admin
     actor NE as Nuevo Empleado
     participant FE as Frontend (Next.js)
     participant API as Backend (NestJS)

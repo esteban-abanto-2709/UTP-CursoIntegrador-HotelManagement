@@ -35,7 +35,7 @@
 - Implementar el endpoint `POST /users` (crear usuarios).
 - Aplicar `JwtAuthGuard`.
 - Añadir lógica de jerarquía estricta en el servicio:
-  - `OWNER` puede crear `MANAGER` o `EMPLOYEE`.
+  - `ADMIN` puede crear `MANAGER` o `EMPLOYEE`.
   - `MANAGER` solo puede crear `EMPLOYEE`.
 - *Revisión Final: Prueba de jerarquía.*
 
@@ -50,8 +50,8 @@
 ## [ ] Paso 2: Endpoint de Creación (Setup)
 - Generar el módulo y controlador `RoomsModule` y `RoomsController`.
 - Añadir el endpoint `POST /rooms` para registrar nuevas habitaciones.
-- Aplicar Guards (`JwtAuthGuard` y `@Roles('OWNER', 'MANAGER')`) para restringir la creación de cuartos.
+- Aplicar Guards (`JwtAuthGuard` y `@Roles('ADMIN', 'MANAGER')`) para restringir la creación de cuartos.
 
 ## [ ] Paso 3: Listado y Visualización
 - Implementar endpoint `GET /rooms` para devolver el inventario actual de habitaciones.
-- *Revisión: Validar creación desde Postman con un usuario Owner/Manager y restringir acceso a Employees.*
+- *Revisión: Validar creación desde Postman con un usuario ADMIN/MANAGER y restringir acceso a Employees.*

@@ -21,7 +21,7 @@ Este documento rastrea el progreso del Sprint 1 (Autenticación y Jerarquía de 
 - [x] Proteger el Layout principal (Dashboard). Si alguien intenta entrar sin token, redirigirlo a `/login`.
 - [x] Modificar el componente `Sidebar` para que lea el rol del usuario desde el estado global.
 - [x] Implementar lógica de renderizado condicional en la navegación:
-  - `OWNER` / `MANAGER`: Pueden ver los menús administrativos y el nuevo menú **"Gestión de Personal"**.
+  - `ADMIN` / `MANAGER`: Pueden ver los menús administrativos y el nuevo menú **"Gestión de Personal"**.
   - `EMPLOYEE`: Menú restringido únicamente a sus áreas operativas (ej. Limpieza).
 
 ## [x] Fase 4: Módulo de Gestión de Personal (`/dashboard/staff`)
@@ -30,7 +30,7 @@ Este documento rastrea el progreso del Sprint 1 (Autenticación y Jerarquía de 
 - [x] Implementar la UX de creación mediante un panel lateral (`Sheet` de Shadcn UI) o `Dialog` para no sacar al usuario de la página.
 - [x] Construir el formulario de creación de usuario dentro de este panel.
 - [x] Aplicar la lógica dinámica al desplegable de "Rol":
-  - Si el creador es `OWNER` -> Muestra `MANAGER` y `EMPLOYEE`.
+  - Si el creador es `ADMIN` -> Muestra `MANAGER` y `EMPLOYEE`.
   - Si el creador es `MANAGER` -> Bloquea la opción y solo permite crear `EMPLOYEE`.
 - [x] Conectar el panel con el endpoint `POST /users` (asegurándose que Axios ya inyecta el token de los pasos anteriores).
 
@@ -39,7 +39,7 @@ Este documento rastrea el progreso del Sprint 1 (Autenticación y Jerarquía de 
 # 🛏️ Sprint 2: Setup e Inventario de Habitaciones
 
 ## [ ] Fase 1: Formulario de Creación de Habitaciones (Setup Inicial)
-- [ ] Crear la página o panel `/dashboard/rooms/setup` (o dentro de una pestaña en `rooms`), accesible únicamente por `OWNER` y `MANAGER`.
+- [ ] Crear la página o panel `/dashboard/rooms/setup` (o dentro de una pestaña en `rooms`), accesible únicamente por `ADMIN` y `MANAGER`.
 - [ ] Diseñar el formulario de registro usando React Hook Form, Zod y componentes Shadcn UI (Número de Cuarto, Tipo de Habitación, Piso).
 - [ ] Integrar la petición Axios conectándola al nuevo endpoint `POST /rooms` de la API.
 - [ ] Mostrar alertas de éxito o error con `sonner` al registrar.

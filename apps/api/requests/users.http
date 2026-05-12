@@ -10,7 +10,7 @@
 ### 1. LOGIN (OBTENCIÓN DE TOKENS)
 ### -------------------------------------------------------------
 
-### 1A. Iniciar sesión como OWNER (Copia el token y ponlo en @adminToken arriba)
+### 1A. Iniciar sesión como ADMIN (Copia el token y ponlo en @adminToken arriba)
 POST {{baseUrl}}/auth/login
 Content-Type: application/json
 
@@ -23,7 +23,7 @@ Content-Type: application/json
 ### 2. CREACIÓN DE USUARIOS (REGLAS DE JERARQUÍA)
 ### -------------------------------------------------------------
 
-### 2A. OWNER crea a un MANAGER (Debe funcionar)
+### 2A. ADMIN crea a un MANAGER (Debe funcionar)
 POST {{baseUrl}}/users
 Authorization: Bearer {{adminToken}}
 Content-Type: application/json
@@ -34,7 +34,7 @@ Content-Type: application/json
   "role": "MANAGER"
 }
 
-### 2B. OWNER intenta crear a otro OWNER (Debe fallar)
+### 2B. ADMIN intenta crear a otro ADMIN (Debe fallar)
 POST {{baseUrl}}/users
 Authorization: Bearer {{adminToken}}
 Content-Type: application/json
@@ -84,7 +84,7 @@ Content-Type: application/json
 ### 4. PRUEBAS DE ACCESO / SEGURIDAD (PERFIL)
 ### -------------------------------------------------------------
 
-### 4A. Acceder al perfil con token de OWNER o MANAGER (Debe funcionar)
+### 4A. Acceder al perfil con token de ADMIN o MANAGER (Debe funcionar)
 GET {{baseUrl}}/auth/profile
 Authorization: Bearer {{adminToken}}
 
@@ -95,10 +95,10 @@ GET {{baseUrl}}/auth/profile
 ### 5. LECTURA DE USUARIOS (GET /users)
 ### -------------------------------------------------------------
 
-### 5A. Leer usuarios como OWNER (Debe devolver TODOS los usuarios, incluyendo otros Owners)
+### 5A. Leer usuarios como ADMIN (Debe devolver TODOS los usuarios, incluyendo otros ADMIN)
 GET {{baseUrl}}/users
 Authorization: Bearer {{adminToken}}
 
-### 5B. Leer usuarios como MANAGER (Debe devolver Managers y Employees, pero NO Owners)
+### 5B. Leer usuarios como MANAGER (Debe devolver Managers y Employees, pero NO ADMIN)
 GET {{baseUrl}}/users
 Authorization: Bearer {{managerToken}}
