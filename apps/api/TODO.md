@@ -43,15 +43,16 @@
 
 # 🛏️ Hoja de Ruta de Implementación (Sprint 2: Setup e Inventario de Habitaciones)
 
-## [ ] Paso 1: Modelo de Habitación (Base de Datos)
-- Actualizar el `schema.prisma` agregando el modelo `Room` (Habitación).
-- Definir campos clave: `number` (String, único), `type` (Enum: SINGLE, DOUBLE, SUITE, etc.), `status` (Enum: AVAILABLE, OCCUPIED, CLEANING, MAINTENANCE), y `floor` (Int).
+## [x] Paso 1: Configurar la Base de Datos (Prisma)
+- [x] Crear el modelo `Room` en `schema.prisma`.
+- [x] Agregar los Enum `RoomType` (SINGLE, DOUBLE, SUITE) y `RoomStatus` (AVAILABLE, OCCUPIED, CLEANING, MAINTENANCE).
+- [x] Ejecutar la migración `npx prisma migrate dev` para actualizar PostgreSQL.
 
-## [ ] Paso 2: Endpoint de Creación (Setup)
-- Generar el módulo y controlador `RoomsModule` y `RoomsController`.
-- Añadir el endpoint `POST /rooms` para registrar nuevas habitaciones.
-- Aplicar Guards (`JwtAuthGuard` y `@Roles('ADMIN', 'MANAGER')`) para restringir la creación de cuartos.
+## [x] Paso 2: Endpoint de Creación (Setup)
+- [x] Generar el módulo y controlador `RoomsModule` y `RoomsController`.
+- [x] Añadir el endpoint `POST /rooms` para registrar nuevas habitaciones.
+- [x] Aplicar Guards (`JwtAuthGuard` y `@Roles('ADMIN', 'MANAGER')`) para restringir la creación de cuartos.
 
-## [ ] Paso 3: Listado y Visualización
-- Implementar endpoint `GET /rooms` para devolver el inventario actual de habitaciones.
-- *Revisión: Validar creación desde Postman con un usuario ADMIN/MANAGER y restringir acceso a Employees.*
+## [x] Paso 3: Listado y Visualización
+- [x] Implementar endpoint `GET /rooms` para devolver el inventario actual de habitaciones.
+- [x] *Revisión: Validar creación desde Postman con un usuario ADMIN/MANAGER y restringir acceso a Employees.*

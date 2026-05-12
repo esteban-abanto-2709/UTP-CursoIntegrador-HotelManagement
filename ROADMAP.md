@@ -23,9 +23,9 @@
 ## 🛏️ Sprint 2: Sistema de Inventario y Dashboard Base (Semanas 9 y 10)
 *Objetivo: Registrar el inventario físico del hotel (setup inicial) y visualizar las habitaciones en tiempo real.*
 
-- [ ] **Base de Datos:** Crear modelo `Habitacion` (Número, Tipo, Piso, Estado).
-- [ ] **Backend:** Endpoints (CRUD) para Habitaciones. Proteger la creación de habitaciones exclusivamente para `ADMIN` y `MANAGER`.
-- [ ] **Frontend (Setup de Habitaciones):** Interfaz administrativa para registrar las habitaciones físicas del hotel al sistema.
+- [x] **Base de Datos:** Crear modelo `Habitacion` (Número, Tipo, Estado).
+- [x] **Backend:** Endpoints (CRUD) para Habitaciones. Proteger la creación de habitaciones exclusivamente para `ADMIN` y `MANAGER`.
+- [x] **Frontend (Setup de Habitaciones):** Interfaz administrativa para registrar las habitaciones físicas del hotel al sistema.
 - [ ] **Frontend (Dashboard de Estados):** Construir la cuadrícula visual de los cuartos, que cambien de color según su estado (Disponible, Ocupado, Limpieza).
 
 ---

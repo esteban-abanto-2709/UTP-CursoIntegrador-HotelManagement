@@ -38,14 +38,16 @@ Este documento rastrea el progreso del Sprint 1 (Autenticación y Jerarquía de 
 
 # 🛏️ Sprint 2: Setup e Inventario de Habitaciones
 
-## [ ] Fase 1: Formulario de Creación de Habitaciones (Setup Inicial)
-- [ ] Crear la página o panel `/dashboard/rooms/setup` (o dentro de una pestaña en `rooms`), accesible únicamente por `ADMIN` y `MANAGER`.
-- [ ] Diseñar el formulario de registro usando React Hook Form, Zod y componentes Shadcn UI (Número de Cuarto, Tipo de Habitación, Piso).
-- [ ] Integrar la petición Axios conectándola al nuevo endpoint `POST /rooms` de la API.
-- [ ] Mostrar alertas de éxito o error con `sonner` al registrar.
+## [x] Fase 1: Formulario de Creación de Habitaciones (Setup Inicial)
 
-## [ ] Fase 2: Vista Principal del Inventario (Dashboard)
-- [ ] Crear la página de visualización general de cuartos (`/dashboard/rooms`).
-- [ ] Realizar petición `GET /rooms` con estado de carga (Loaders/Spinners).
-- [ ] Pintar visualmente las habitaciones en un layout tipo cuadrícula (Grid).
-- [ ] Aplicar colores dinámicos con Tailwind según el estado de la habitación (Ej. Verde = Disponible, Rojo = Ocupado).
+- [x] Crear la página o panel `/dashboard/rooms/setup` (o dentro de una pestaña en `rooms`), accesible únicamente por `ADMIN` y `MANAGER`.
+- [x] Diseñar el formulario de registro usando React Hook Form, Zod y componentes Shadcn UI (Número de Cuarto, Tipo de Habitación, Piso).
+- [x] Integrar la petición Axios conectándola al nuevo endpoint `POST /rooms` de la API.
+- [x] Mostrar alertas de éxito o error con `sonner` al registrar.
+
+## [x] Fase 2: Vista Principal del Inventario (Dashboard)
+
+- [x] Crear la página de visualización general de cuartos (`/dashboard/rooms`).
+- [x] Realizar petición `GET /rooms` con estado de carga (Loaders/Spinners).
+- [x] Pintar visualmente las habitaciones en un layout tipo cuadrícula (Grid) o tabla.
+- [x] Aplicar colores dinámicos con Tailwind según el estado de la habitación (Ej. Verde = Disponible, Rojo = Ocupado).
