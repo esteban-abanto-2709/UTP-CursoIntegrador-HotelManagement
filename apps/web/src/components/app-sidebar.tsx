@@ -10,7 +10,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { Calendar, Home, BedDouble, LogOut, Users } from "lucide-react";
+import { Calendar, Home, BedDouble, LogOut, Users, Bed } from "lucide-react";
 import { useAuthStore } from "@/store/authStore";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -22,6 +22,12 @@ const items = [
     title: "Recepción (Dashboard)",
     url: routes.dashboard.home(),
     icon: Home,
+    allowedRoles: ["OWNER", "MANAGER", "EMPLOYEE"],
+  },
+  {
+    title: "Inventario de Habitaciones",
+    url: routes.dashboard.rooms(),
+    icon: Bed,
     allowedRoles: ["OWNER", "MANAGER", "EMPLOYEE"],
   },
   {

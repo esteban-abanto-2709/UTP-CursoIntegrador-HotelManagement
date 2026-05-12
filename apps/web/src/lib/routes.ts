@@ -7,6 +7,7 @@ export const routes = {
   dashboard: {
     home: () => "/dashboard",
     staff: () => "/dashboard/staff",
+    rooms: () => "/dashboard/rooms",
     reservas: () => "/dashboard/reservas",
     servicio: () => "/dashboard/servicio",
   },
@@ -19,7 +20,11 @@ export const routes = {
     },
     users: {
       create: () => "/users",
-      list: () => "/users", // Endpoint hipotético para cuando necesitemos listar al personal
+      list: () => "/users",
+    },
+    rooms: {
+      create: () => "/rooms",
+      list: () => "/rooms",
     },
   },
 } as const;
