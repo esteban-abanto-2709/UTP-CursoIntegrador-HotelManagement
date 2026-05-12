@@ -179,11 +179,13 @@ export default function RoomsPage() {
         {/* Botón de Creación (Protegido) */}
         {canCreateRooms && (
           <Dialog open={isOpen} onOpenChange={setIsOpen}>
-            <DialogTrigger asChild>
-              <Button className="bg-sky-500 hover:bg-sky-400 text-white font-semibold shadow-[0_0_15px_rgba(14,165,233,0.3)] transition-all hover:shadow-[0_0_25px_rgba(14,165,233,0.5)]">
-                <Plus className="mr-2 h-4 w-4" />
-                Nueva Habitación
-              </Button>
+            <DialogTrigger
+              render={
+                <Button className="bg-sky-500 hover:bg-sky-400 text-white font-semibold shadow-[0_0_15px_rgba(14,165,233,0.3)] transition-all hover:shadow-[0_0_25px_rgba(14,165,233,0.5)]" />
+              }
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              Nueva Habitación
             </DialogTrigger>
             <DialogContent className="bg-[#12151C] border border-white/10 sm:max-w-md shadow-2xl">
               <DialogHeader className="mb-4">
@@ -324,8 +326,8 @@ export default function RoomsPage() {
                   colSpan={3}
                   className="h-32 text-center text-zinc-500 font-medium"
                 >
-                  No hay habitaciones registradas. Haz clic en "Nueva
-                  Habitación" para empezar el setup.
+                  No hay habitaciones registradas. Haz clic en &quot;Nueva
+                  Habitación&quot; para empezar el setup.
                 </TableCell>
               </TableRow>
             ) : (
