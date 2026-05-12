@@ -1,0 +1,104 @@
+### Archivo de pruebas finales del Sprint 1 (Autenticación y Usuarios)
+### Asegúrate de que el servidor esté corriendo: `npm run start:dev`
+
+@baseUrl = http://localhost:4000
+# Instrucciones: Reemplaza estos valores con los tokens generados al iniciar sesión (Endpoint 1A y 1B).
+@adminToken = <PEGAR_AQUI_TOKEN_ADMIN>
+@managerToken = <PEGAR_AQUI_TOKEN_MANAGER>
+
+### -------------------------------------------------------------
+### 1. LOGIN (OBTENCIÓN DE TOKENS)
+### -------------------------------------------------------------
+
+### 1A. Iniciar sesión como OWNER (Copia el token y ponlo en @adminToken arriba)
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "username": "admin123",
+  "password": "supersecretpassword"
+}
+
+### -------------------------------------------------------------
+### 2. CREACIÓN DE USUARIOS (REGLAS DE JERARQUÍA)
+### -------------------------------------------------------------
+
+### 2A. OWNER crea a un MANAGER (Debe funcionar)
+POST {{baseUrl}}/users
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "username": "manager2",
+  "password": "password123",
+  "role": "MANAGER"
+}
+
+### 2B. OWNER intenta crear a otro OWNER (Debe fallar)
+POST {{baseUrl}}/users
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "username": "admin2",
+  "password": "password123",
+  "role": "OWNER"
+}
+
+### -------------------------------------------------------------
+### 3. PRUEBAS DE MANAGER
+### -------------------------------------------------------------
+
+### 3A. Iniciar sesión como MANAGER (Copia el token y ponlo en @managerToken arriba)
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "username": "manager1",
+  "password": "password123"
+}
+
+### 3B. MANAGER crea a un EMPLOYEE (Debe funcionar)
+POST {{baseUrl}}/users
+Authorization: Bearer {{managerToken}}
+Content-Type: application/json
+
+{
+  "username": "empleado2",
+  "password": "password123",
+  "role": "EMPLOYEE"
+}
+
+### 3C. MANAGER intenta crear a otro MANAGER (Debe fallar por regla de negocio)
+POST {{baseUrl}}/users
+Authorization: Bearer {{managerToken}}
+Content-Type: application/json
+
+{
+  "username": "manager2",
+  "password": "password123",
+  "role": "MANAGER"
+}
+
+### -------------------------------------------------------------
+### 4. PRUEBAS DE ACCESO / SEGURIDAD (PERFIL)
+### -------------------------------------------------------------
+
+### 4A. Acceder al perfil con token de OWNER o MANAGER (Debe funcionar)
+GET {{baseUrl}}/auth/profile
+Authorization: Bearer {{adminToken}}
+
+### 4B. Acceder al perfil SIN token (Debe fallar - 401 Unauthorized)
+GET {{baseUrl}}/auth/profile
+
+### -------------------------------------------------------------
+### 5. LECTURA DE USUARIOS (GET /users)
+### -------------------------------------------------------------
+
+### 5A. Leer usuarios como OWNER (Debe devolver TODOS los usuarios, incluyendo otros Owners)
+GET {{baseUrl}}/users
+Authorization: Bearer {{adminToken}}
+
+### 5B. Leer usuarios como MANAGER (Debe devolver Managers y Employees, pero NO Owners)
+GET {{baseUrl}}/users
+Authorization: Bearer {{managerToken}}

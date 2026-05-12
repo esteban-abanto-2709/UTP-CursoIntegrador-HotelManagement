@@ -1,0 +1,59 @@
+### Archivo de pruebas para el Sprint 2: Habitaciones (Setup)
+### Asegúrate de que el servidor esté corriendo: `npm run start:dev`
+
+@baseUrl = http://localhost:4000
+# Instrucciones: Reemplaza estos valores con los tokens generados en el endpoint de login.
+@adminToken = <PEGAR_AQUI_TOKEN_ADMIN>
+@managerToken = <PEGAR_AQUI_TOKEN_MANAGER>
+
+### -------------------------------------------------------------
+### 1. CREACIÓN DE HABITACIONES (Solo OWNER o MANAGER)
+### -------------------------------------------------------------
+
+### 1A. OWNER crea una habitación SINGLE (Debe funcionar 201)
+POST {{baseUrl}}/rooms
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "number": "101",
+  "type": "SINGLE"
+}
+
+### 1B. MANAGER crea una habitación DOUBLE (Debe funcionar 201)
+POST {{baseUrl}}/rooms
+Authorization: Bearer {{managerToken}}
+Content-Type: application/json
+
+{
+  "number": "102A",
+  "type": "DOUBLE"
+}
+
+### 1C. Intentar crear una habitación con tipo inválido (Debe fallar 400 - Validación Zod/Class-validator)
+POST {{baseUrl}}/rooms
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "number": "103",
+  "type": "PRESIDENTIAL"
+}
+
+### 1D. Intentar crear una habitación duplicada (Debe fallar 409 - Conflicto)
+POST {{baseUrl}}/rooms
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "number": "101",
+  "type": "SUITE"
+}
+
+### -------------------------------------------------------------
+### 2. OBTENER LISTA DE HABITACIONES (Cualquier rol)
+### -------------------------------------------------------------
+
+### 2A. Obtener todas las habitaciones (Debe retornar array de cuartos con status AVAILABLE)
+GET {{baseUrl}}/rooms
+Authorization: Bearer {{adminToken}}
