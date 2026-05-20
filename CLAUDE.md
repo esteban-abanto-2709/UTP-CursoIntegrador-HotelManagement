@@ -29,7 +29,7 @@ npx prisma studio       # Open Prisma Studio UI
 npx prisma generate     # Regenerate Prisma client after schema change
 ```
 
-### Frontend (`apps/web`) — usa pnpm
+### Frontend (`apps/web`) — usa pnpm@10.17.1
 
 ```bash
 pnpm dev        # Dev server (http://localhost:3000)
@@ -38,7 +38,7 @@ pnpm lint       # ESLint validation
 pnpm add <pkg>  # Agregar dependencia
 ```
 
-Vercel detecta pnpm automáticamente por `pnpm-lock.yaml`. No usar `npm` en este directorio.
+Vercel detecta pnpm automáticamente por `pnpm-lock.yaml`. Usar pnpm 10.x — Vercel no soporta pnpm 11.x. No usar `npm` en este directorio.
 
 ## Environment Setup
 
