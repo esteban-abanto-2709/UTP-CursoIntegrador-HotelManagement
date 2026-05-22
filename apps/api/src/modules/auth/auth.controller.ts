@@ -12,7 +12,6 @@ import { JwtAuthGuard } from '@/common/guards/jwt-auth.guard';
 import { RolesGuard } from '@/common/guards/roles.guard';
 import { Roles } from '@/common/decorators/roles.decorator';
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
-import { Role } from '@prisma/client';
 
 @Controller('auth')
 export class AuthController {
@@ -32,8 +31,6 @@ export class AuthController {
     return this.authService.login(user);
   }
 
-  // === RUTA DE PRUEBA (PASO 4) ===
-  // Requiere estar logueado Y tener rol OWNER o MANAGER
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('OWNER', 'MANAGER')
   @Get('profile')
