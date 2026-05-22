@@ -45,7 +45,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-// 1. Zod Schema
 const formSchema = z.object({
   number: z
     .string()
@@ -70,7 +69,6 @@ export default function RoomsPage() {
   const [rooms, setRooms] = useState<RoomData[]>([]);
   const [isLoadingRooms, setIsLoadingRooms] = useState(true);
 
-  // Permitir solo a OWNER o MANAGER crear cuartos
   const canCreateRooms =
     currentUser?.role === "OWNER" || currentUser?.role === "MANAGER";
 
@@ -95,7 +93,7 @@ export default function RoomsPage() {
     resolver: zodResolver(formSchema),
     defaultValues: {
       number: "",
-      type: "SINGLE", // Valor inicial
+      type: "SINGLE",
     },
   });
 
@@ -107,7 +105,7 @@ export default function RoomsPage() {
       toast.success("Habitación creada exitosamente");
       form.reset();
       setIsOpen(false);
-      fetchRooms(); // Refrescar la lista
+      fetchRooms();
     } catch (error: unknown) {
       const err = error as {
         response?: { data?: { message?: string | string[] } };
@@ -126,25 +124,25 @@ export default function RoomsPage() {
     switch (status) {
       case "AVAILABLE":
         return (
-          <span className="inline-flex items-center rounded-full bg-emerald-500/10 px-2 py-1 text-xs font-medium text-emerald-400 ring-1 ring-inset ring-emerald-500/20">
+          <span className="inline-flex items-center rounded-full bg-status-available-bg px-2 py-1 text-xs font-medium text-status-available-text ring-1 ring-inset ring-status-available-border">
             DISPONIBLE
           </span>
         );
       case "OCCUPIED":
         return (
-          <span className="inline-flex items-center rounded-full bg-red-500/10 px-2 py-1 text-xs font-medium text-red-400 ring-1 ring-inset ring-red-500/20">
+          <span className="inline-flex items-center rounded-full bg-status-occupied-bg px-2 py-1 text-xs font-medium text-status-occupied-text ring-1 ring-inset ring-status-occupied-border">
             OCUPADA
           </span>
         );
       case "CLEANING":
         return (
-          <span className="inline-flex items-center rounded-full bg-amber-500/10 px-2 py-1 text-xs font-medium text-amber-400 ring-1 ring-inset ring-amber-500/20">
+          <span className="inline-flex items-center rounded-full bg-status-cleaning-bg px-2 py-1 text-xs font-medium text-status-cleaning-text ring-1 ring-inset ring-status-cleaning-border">
             LIMPIEZA
           </span>
         );
       case "MAINTENANCE":
         return (
-          <span className="inline-flex items-center rounded-full bg-zinc-500/10 px-2 py-1 text-xs font-medium text-zinc-400 ring-1 ring-inset ring-zinc-500/20">
+          <span className="inline-flex items-center rounded-full bg-status-maintenance-bg px-2 py-1 text-xs font-medium text-status-maintenance-text ring-1 ring-inset ring-status-maintenance-border">
             MANTENIMIENTO
           </span>
         );
@@ -167,8 +165,8 @@ export default function RoomsPage() {
       {/* Header Area */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight text-white flex items-center gap-2">
-            <Bed className="h-8 w-8 text-sky-500" />
+          <h2 className="text-3xl font-bold tracking-tight text-foreground flex items-center gap-2">
+            <Bed className="h-8 w-8 text-primary" />
             Configuración de Habitaciones
           </h2>
           <p className="text-muted-foreground mt-1">
@@ -176,23 +174,22 @@ export default function RoomsPage() {
           </p>
         </div>
 
-        {/* Botón de Creación (Protegido) */}
         {canCreateRooms && (
           <Dialog open={isOpen} onOpenChange={setIsOpen}>
             <DialogTrigger
               render={
-                <Button className="bg-sky-500 hover:bg-sky-400 text-white font-semibold shadow-[0_0_15px_rgba(14,165,233,0.3)] transition-all hover:shadow-[0_0_25px_rgba(14,165,233,0.5)]" />
+                <Button className="bg-primary hover:bg-primary/80 text-primary-foreground font-semibold shadow-[0_0_15px_rgba(14,165,233,0.3)] transition-all hover:shadow-[0_0_25px_rgba(14,165,233,0.5)]" />
               }
             >
               <Plus className="mr-2 h-4 w-4" />
               Nueva Habitación
             </DialogTrigger>
-            <DialogContent className="bg-[#12151C] border border-white/10 sm:max-w-md shadow-2xl">
+            <DialogContent className="bg-card border border-border sm:max-w-md shadow-2xl">
               <DialogHeader className="mb-4">
-                <DialogTitle className="text-2xl text-white">
+                <DialogTitle className="text-2xl text-foreground">
                   Registrar Habitación
                 </DialogTitle>
-                <DialogDescription className="text-zinc-400">
+                <DialogDescription className="text-muted-foreground">
                   Añade un nuevo cuarto al inventario del hotel. Su estado será
                   &quot;Disponible&quot; por defecto.
                 </DialogDescription>
@@ -208,18 +205,18 @@ export default function RoomsPage() {
                     name="number"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-zinc-300">
+                        <FormLabel className="text-muted-foreground">
                           Número o Nombre
                         </FormLabel>
                         <FormControl>
                           <Input
                             placeholder="ej: 101, 102A, VIP-1"
-                            className="bg-zinc-950/50 border-white/10 text-white focus-visible:ring-sky-500 uppercase"
+                            className="bg-background border-border text-foreground focus-visible:ring-primary uppercase"
                             disabled={isSubmitting}
                             {...field}
                           />
                         </FormControl>
-                        <FormMessage className="text-red-400 text-xs" />
+                        <FormMessage className="text-destructive text-xs" />
                       </FormItem>
                     )}
                   />
@@ -229,7 +226,7 @@ export default function RoomsPage() {
                     name="type"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-zinc-300">
+                        <FormLabel className="text-muted-foreground">
                           Tipo de Habitación
                         </FormLabel>
                         <Select
@@ -238,32 +235,32 @@ export default function RoomsPage() {
                           disabled={isSubmitting}
                         >
                           <FormControl>
-                            <SelectTrigger className="bg-zinc-950/50 border-white/10 text-white focus-visible:ring-sky-500">
+                            <SelectTrigger className="bg-background border-border text-foreground focus-visible:ring-primary">
                               <SelectValue placeholder="Selecciona un tipo" />
                             </SelectTrigger>
                           </FormControl>
-                          <SelectContent className="bg-[#1a1f2b] border-white/10 text-white">
+                          <SelectContent className="bg-popover border-border text-popover-foreground">
                             <SelectItem
                               value="SINGLE"
-                              className="focus:bg-sky-500/20 focus:text-white cursor-pointer"
+                              className="focus:bg-primary/20 focus:text-foreground cursor-pointer"
                             >
                               Sencilla (Single)
                             </SelectItem>
                             <SelectItem
                               value="DOUBLE"
-                              className="focus:bg-sky-500/20 focus:text-white cursor-pointer"
+                              className="focus:bg-primary/20 focus:text-foreground cursor-pointer"
                             >
                               Doble (Double)
                             </SelectItem>
                             <SelectItem
                               value="SUITE"
-                              className="focus:bg-sky-500/20 focus:text-white cursor-pointer"
+                              className="focus:bg-primary/20 focus:text-foreground cursor-pointer"
                             >
                               Suite
                             </SelectItem>
                           </SelectContent>
                         </Select>
-                        <FormMessage className="text-red-400 text-xs" />
+                        <FormMessage className="text-destructive text-xs" />
                       </FormItem>
                     )}
                   />
@@ -271,7 +268,7 @@ export default function RoomsPage() {
                   <div className="pt-2">
                     <Button
                       type="submit"
-                      className="w-full bg-sky-500 hover:bg-sky-400 text-white font-semibold shadow-[0_0_15px_rgba(14,165,233,0.3)] transition-all"
+                      className="w-full bg-primary hover:bg-primary/80 text-primary-foreground font-semibold shadow-[0_0_15px_rgba(14,165,233,0.3)] transition-all"
                       disabled={isSubmitting}
                     >
                       {isSubmitting ? (
@@ -292,39 +289,39 @@ export default function RoomsPage() {
       </div>
 
       {/* Tabla Base */}
-      <div className="rounded-xl border border-white/5 bg-[#12151C] overflow-hidden shadow-xl">
+      <div className="rounded-xl border border-border bg-card overflow-hidden shadow-xl">
         <Table>
-          <TableHeader className="bg-zinc-900/50">
-            <TableRow className="border-white/5 hover:bg-transparent">
-              <TableHead className="text-zinc-400 font-semibold w-[100px]">
+          <TableHeader className="bg-muted/50">
+            <TableRow className="border-border hover:bg-transparent">
+              <TableHead className="text-muted-foreground font-semibold w-[100px]">
                 N°
               </TableHead>
-              <TableHead className="text-zinc-400 font-semibold">
+              <TableHead className="text-muted-foreground font-semibold">
                 Tipo
               </TableHead>
-              <TableHead className="text-zinc-400 font-semibold">
+              <TableHead className="text-muted-foreground font-semibold">
                 Estado Físico
               </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {isLoadingRooms ? (
-              <TableRow className="border-white/5 hover:bg-transparent">
+              <TableRow className="border-border hover:bg-transparent">
                 <TableCell
                   colSpan={3}
-                  className="h-32 text-center text-zinc-500"
+                  className="h-32 text-center text-muted-foreground"
                 >
                   <div className="flex flex-col items-center justify-center gap-2">
-                    <Loader2 className="h-6 w-6 animate-spin text-sky-500" />
+                    <Loader2 className="h-6 w-6 animate-spin text-primary" />
                     <span>Cargando habitaciones...</span>
                   </div>
                 </TableCell>
               </TableRow>
             ) : rooms.length === 0 ? (
-              <TableRow className="border-white/5 hover:bg-transparent">
+              <TableRow className="border-border hover:bg-transparent">
                 <TableCell
                   colSpan={3}
-                  className="h-32 text-center text-zinc-500 font-medium"
+                  className="h-32 text-center text-muted-foreground font-medium"
                 >
                   No hay habitaciones registradas. Haz clic en &quot;Nueva
                   Habitación&quot; para empezar el setup.
@@ -334,12 +331,12 @@ export default function RoomsPage() {
               rooms.map((room) => (
                 <TableRow
                   key={room.id}
-                  className="border-white/5 hover:bg-white/5 transition-colors"
+                  className="border-border hover:bg-muted/50 transition-colors"
                 >
-                  <TableCell className="font-medium text-white text-lg">
+                  <TableCell className="font-medium text-foreground text-lg">
                     {room.number}
                   </TableCell>
-                  <TableCell className="text-zinc-300">
+                  <TableCell className="text-muted-foreground">
                     {getTypeTranslation(room.type)}
                   </TableCell>
                   <TableCell>{getStatusBadge(room.status)}</TableCell>

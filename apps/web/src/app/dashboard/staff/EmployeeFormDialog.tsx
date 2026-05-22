@@ -255,7 +255,7 @@ export function EmployeeFormDialog({ open, onOpenChange, onSuccess }: Props) {
                     <FormItem>
                       <FormLabel>Fecha de Nacimiento</FormLabel>
                       <FormControl>
-                        <Input type="date" className="[color-scheme:dark]" disabled={isSubmitting} {...field} />
+                        <Input type="date" className="[color-scheme:light]" disabled={isSubmitting} {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -371,7 +371,7 @@ export function EmployeeFormDialog({ open, onOpenChange, onSuccess }: Props) {
                     <FormItem>
                       <FormLabel>Fecha de Inicio</FormLabel>
                       <FormControl>
-                        <Input type="date" className="[color-scheme:dark]" disabled={isSubmitting} {...field} />
+                        <Input type="date" className="[color-scheme:light]" disabled={isSubmitting} {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
