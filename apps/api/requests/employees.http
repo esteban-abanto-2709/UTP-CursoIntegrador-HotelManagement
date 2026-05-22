@@ -1,0 +1,262 @@
+### Pruebas del módulo Employees — POST /employees · GET /employees
+### Prerrequisito: servidor corriendo con `npm run start:dev` y migración aplicada
+
+@baseUrl = http://localhost:4000
+
+# Pega aquí los tokens después de ejecutar los logins de la sección 1
+@ownerToken   = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjEsInVzZXJuYW1lIjoiYWRtaW4xMjMiLCJyb2xlIjoiT1dORVIiLCJpYXQiOjE3Nzk0NjUwNDksImV4cCI6MTc3OTUwODI0OX0.Qpnl5UsJ_z25F4eQ8II3DBlNWbS0PvC6xQRMAj94t9Y
+@managerToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIsInVzZXJuYW1lIjoiY2FybG9zLmdlcmVudGUiLCJyb2xlIjoiTUFOQUdFUiIsImlhdCI6MTc3OTQ2NTI4NCwiZXhwIjoxNzc5NTA4NDg0fQ._f7SE3aZck3MiDnfIJiaMolmK4VgRI4d7Bn-DYwOobE
+
+### =============================================================
+### 1. LOGIN — obtención de tokens
+### =============================================================
+
+### 1A. Login como OWNER → copia el access_token y pégalo en @ownerToken
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "username": "admin123",
+  "password": "supersecretpassword"
+}
+
+### 1B. Login como el Manager creado en 2A → copia el token y pégalo en @managerToken
+###     (ejecutar DESPUÉS del paso 2A)
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "username": "carlos.gerente",
+  "password": "gerente1234"
+}
+
+### =============================================================
+### 2. OWNER crea empleados — casos de éxito
+### =============================================================
+
+### 2A. OWNER crea un MANAGER (cargo "Manager" → role MANAGER automático)
+###     Debe responder 201 con el perfil completo sin password
+POST {{baseUrl}}/employees
+Authorization: Bearer {{ownerToken}}
+Content-Type: application/json
+
+{
+  "username": "carlos.gerente",
+  "password": "gerente1234",
+  "dni": "74839201",
+  "nombres": "Carlos",
+  "apellidoPaterno": "Mendoza",
+  "apellidoMaterno": "Rios",
+  "fechaNacimiento": "1990-03-15",
+  "cargo": "Manager",
+  "turno": "MAÑANA",
+  "fechaInicio": "2026-01-10",
+  "telefono": "987654321",
+  "email": "carlos.mendoza@lumina.pe"
+}
+
+### 2B. OWNER crea un EMPLOYEE con cargo "Recepcionista"
+###     Debe responder 201
+POST {{baseUrl}}/employees
+Authorization: Bearer {{ownerToken}}
+Content-Type: application/json
+
+{
+  "username": "lucia.recepcion",
+  "password": "recep5678",
+  "dni": "76543210",
+  "nombres": "Lucía",
+  "apellidoPaterno": "Torres",
+  "apellidoMaterno": "Vega",
+  "fechaNacimiento": "1998-07-22",
+  "cargo": "Recepcionista",
+  "turno": "TARDE",
+  "fechaInicio": "2026-02-01",
+  "telefono": "912345678",
+  "email": "lucia.torres@lumina.pe"
+}
+
+### 2C. OWNER crea un EMPLOYEE con cargo "Limpieza"
+###     Debe responder 201
+POST {{baseUrl}}/employees
+Authorization: Bearer {{ownerToken}}
+Content-Type: application/json
+
+{
+  "username": "jose.limpieza",
+  "password": "limpieza999",
+  "dni": "68901234",
+  "nombres": "José",
+  "apellidoPaterno": "Quispe",
+  "apellidoMaterno": "Mamani",
+  "fechaNacimiento": "1995-11-08",
+  "cargo": "Limpieza",
+  "turno": "NOCHE",
+  "fechaInicio": "2026-03-05",
+  "telefono": "956789012",
+  "email": "jose.quispe@lumina.pe",
+  "direccion": "Av. Los Pinos 342, Miraflores"
+}
+
+### =============================================================
+### 3. MANAGER crea empleados — jerarquía
+### =============================================================
+
+### 3A. MANAGER crea un EMPLOYEE con cargo "Botones" (Debe funcionar)
+###     Prerrequisito: @managerToken cargado (paso 1B)
+POST {{baseUrl}}/employees
+Authorization: Bearer {{managerToken}}
+Content-Type: application/json
+
+{
+  "username": "pedro.botones",
+  "password": "botones321",
+  "dni": "72345678",
+  "nombres": "Pedro",
+  "apellidoPaterno": "Huanca",
+  "apellidoMaterno": "Lima",
+  "fechaNacimiento": "2000-05-19",
+  "cargo": "Botones",
+  "turno": "MAÑANA",
+  "fechaInicio": "2026-04-01",
+  "telefono": "934567890",
+  "email": "pedro.huanca@lumina.pe"
+}
+
+### 3B. MANAGER intenta crear otro MANAGER (Debe fallar — 409 Conflict)
+###     "Los Managers solo pueden crear Empleados"
+POST {{baseUrl}}/employees
+Authorization: Bearer {{managerToken}}
+Content-Type: application/json
+
+{
+  "username": "ana.gerente",
+  "password": "gerente9999",
+  "dni": "79999999",
+  "nombres": "Ana",
+  "apellidoPaterno": "Flores",
+  "apellidoMaterno": "Cruz",
+  "fechaNacimiento": "1988-02-14",
+  "cargo": "Manager",
+  "turno": "TARDE",
+  "fechaInicio": "2026-04-01",
+  "telefono": "999888777",
+  "email": "ana.flores@lumina.pe"
+}
+
+### =============================================================
+### 4. Conflictos — unicidad de datos
+### =============================================================
+
+### 4A. Username duplicado (Debe fallar — 409 "El nombre de usuario ya está en uso")
+POST {{baseUrl}}/employees
+Authorization: Bearer {{ownerToken}}
+Content-Type: application/json
+
+{
+  "username": "carlos.gerente",
+  "password": "otrapass123",
+  "dni": "11111111",
+  "nombres": "Otro",
+  "apellidoPaterno": "Apellido",
+  "apellidoMaterno": "Dos",
+  "fechaNacimiento": "1991-01-01",
+  "cargo": "Recepcionista",
+  "turno": "MAÑANA",
+  "fechaInicio": "2026-05-01",
+  "telefono": "911111111",
+  "email": "otro.email@lumina.pe"
+}
+
+### 4B. DNI duplicado (Debe fallar — 409 "El DNI ya está registrado")
+POST {{baseUrl}}/employees
+Authorization: Bearer {{ownerToken}}
+Content-Type: application/json
+
+{
+  "username": "nuevo.usuario",
+  "password": "otrapass123",
+  "dni": "74839201",
+  "nombres": "Nuevo",
+  "apellidoPaterno": "Usuario",
+  "apellidoMaterno": "Test",
+  "fechaNacimiento": "1992-06-15",
+  "cargo": "Botones",
+  "turno": "TARDE",
+  "fechaInicio": "2026-05-01",
+  "telefono": "922222222",
+  "email": "nuevo.usuario@lumina.pe"
+}
+
+### 4C. Email duplicado (Debe fallar — 409 "El correo electrónico ya está registrado")
+POST {{baseUrl}}/employees
+Authorization: Bearer {{ownerToken}}
+Content-Type: application/json
+
+{
+  "username": "otro.usuario",
+  "password": "otrapass123",
+  "dni": "22222222",
+  "nombres": "Otro",
+  "apellidoPaterno": "Usuario",
+  "apellidoMaterno": "Bis",
+  "fechaNacimiento": "1993-09-20",
+  "cargo": "Limpieza",
+  "turno": "NOCHE",
+  "fechaInicio": "2026-05-01",
+  "telefono": "933333333",
+  "email": "carlos.mendoza@lumina.pe"
+}
+
+### =============================================================
+### 5. Seguridad / validación
+### =============================================================
+
+### 5A. Sin token (Debe fallar — 401 Unauthorized)
+POST {{baseUrl}}/employees
+Content-Type: application/json
+
+{
+  "username": "intruso",
+  "password": "hack12345",
+  "dni": "99999999",
+  "nombres": "Intruso",
+  "apellidoPaterno": "Test",
+  "apellidoMaterno": "Test",
+  "fechaNacimiento": "1990-01-01",
+  "cargo": "Botones",
+  "turno": "MAÑANA",
+  "fechaInicio": "2026-05-01",
+  "telefono": "900000000",
+  "email": "intruso@hack.com"
+}
+
+### 5B. Payload incompleto — falta dni y email (Debe fallar — 400 Bad Request)
+POST {{baseUrl}}/employees
+Authorization: Bearer {{ownerToken}}
+Content-Type: application/json
+
+{
+  "username": "incompleto",
+  "password": "pass12345",
+  "nombres": "Sin",
+  "apellidoPaterno": "Datos",
+  "apellidoMaterno": "Completos",
+  "fechaNacimiento": "1990-01-01",
+  "cargo": "Botones",
+  "turno": "TARDE",
+  "fechaInicio": "2026-05-01",
+  "telefono": "900000001"
+}
+
+### =============================================================
+### 6. GET /employees — lectura de la lista
+### =============================================================
+
+### 6A. OWNER lista todos (Debe devolver todos los empleados incluyendo el propio OWNER)
+GET {{baseUrl}}/employees
+Authorization: Bearer {{ownerToken}}
+
+### 6B. MANAGER lista empleados (Debe devolver todos EXCEPTO el OWNER)
+GET {{baseUrl}}/employees
+Authorization: Bearer {{managerToken}}

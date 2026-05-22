@@ -1,18 +1,17 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { UsersService } from '@/modules/users/users.service';
+import { EmployeesService } from '@/modules/employees/employees.service';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class AuthService {
   constructor(
-    private usersService: UsersService,
+    private employeesService: EmployeesService,
     private jwtService: JwtService,
   ) {}
 
-  // 1. Valida las credenciales comprobando el hash
   async validateUser(username: string, pass: string): Promise<any> {
-    const user = await this.usersService.findByUsername(username);
+    const user = await this.employeesService.findByUsername(username);
 
     // Comparamos la contraseña en texto plano con el hash de la DB
     if (user && (await bcrypt.compare(pass, user.password))) {
