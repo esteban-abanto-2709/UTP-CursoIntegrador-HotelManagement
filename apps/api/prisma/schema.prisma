@@ -12,13 +12,31 @@ enum Role {
   EMPLOYEE
 }
 
-model User {
-  id        Int      @id @default(autoincrement())
-  username  String   @unique
-  password  String
-  role      Role     @default(EMPLOYEE)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+enum Turno {
+  MAÑANA
+  TARDE
+  NOCHE
+}
+
+model Employee {
+  id              Int       @id @default(autoincrement())
+  username        String    @unique
+  password        String
+  role            Role      @default(EMPLOYEE)
+  // HR profile — nullable so the OWNER seed account doesn't need them
+  dni             String?   @unique
+  nombres         String?
+  apellidoPaterno String?
+  apellidoMaterno String?
+  fechaNacimiento DateTime?
+  cargo           String?
+  turno           Turno?
+  fechaInicio     DateTime?
+  telefono        String?
+  email           String?   @unique
+  direccion       String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 }
 
 enum RoomType {
