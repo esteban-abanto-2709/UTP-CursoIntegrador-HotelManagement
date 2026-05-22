@@ -5,7 +5,11 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { toast } from "sonner";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
+
+import api from "@/lib/axios";
+import { routes } from "@/lib/routes";
+import { useAuthStore } from "@/store/authStore";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -56,7 +60,7 @@ const schema = z
 
 type FormValues = z.infer<typeof schema>;
 
-const CARGOS = ["Manager", "Recepcionista", "Botones", "Limpieza"];
+const ALL_CARGOS = ["Manager", "Recepcionista", "Botones", "Limpieza"] as const;
 
 const TURNOS = [
   { value: "MAÑANA", label: "Mañana (6:00 am – 2:00 pm)" },
@@ -67,11 +71,19 @@ const TURNOS = [
 interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onSuccess?: () => void;
 }
 
-export function EmployeeFormDialog({ open, onOpenChange }: Props) {
+export function EmployeeFormDialog({ open, onOpenChange, onSuccess }: Props) {
+  const currentUser = useAuthStore((state) => state.user);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // MANAGERs no pueden crear otro Manager
+  const cargos = currentUser?.role === "MANAGER"
+    ? ALL_CARGOS.filter((c) => c !== "Manager")
+    : ALL_CARGOS;
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -98,10 +110,24 @@ export function EmployeeFormDialog({ open, onOpenChange }: Props) {
     onOpenChange(next);
   }
 
-  function onSubmit(_values: FormValues) {
-    toast.success("Empleado registrado exitosamente.");
-    form.reset();
-    onOpenChange(false);
+  async function onSubmit(values: FormValues) {
+    try {
+      setIsSubmitting(true);
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { confirmPassword, ...payload } = values;
+      await api.post(routes.api.employees.create(), payload);
+      toast.success("Empleado registrado exitosamente.");
+      form.reset();
+      onOpenChange(false);
+      onSuccess?.();
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { message?: string | string[] } } };
+      const raw = err.response?.data?.message;
+      const message = Array.isArray(raw) ? raw[0] : raw ?? "Error al registrar empleado.";
+      toast.error(message);
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -132,7 +158,7 @@ export function EmployeeFormDialog({ open, onOpenChange }: Props) {
                   <FormItem>
                     <FormLabel>Usuario</FormLabel>
                     <FormControl>
-                      <Input {...field} />
+                      <Input disabled={isSubmitting} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -151,6 +177,7 @@ export function EmployeeFormDialog({ open, onOpenChange }: Props) {
                           <Input
                             type={showPassword ? "text" : "password"}
                             className="pr-10"
+                            disabled={isSubmitting}
                             {...field}
                           />
                           <button
@@ -179,6 +206,7 @@ export function EmployeeFormDialog({ open, onOpenChange }: Props) {
                           <Input
                             type={showConfirm ? "text" : "password"}
                             className="pr-10"
+                            disabled={isSubmitting}
                             {...field}
                           />
                           <button
@@ -214,7 +242,7 @@ export function EmployeeFormDialog({ open, onOpenChange }: Props) {
                     <FormItem>
                       <FormLabel>DNI / Documento</FormLabel>
                       <FormControl>
-                        <Input {...field} />
+                        <Input disabled={isSubmitting} {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -227,7 +255,7 @@ export function EmployeeFormDialog({ open, onOpenChange }: Props) {
                     <FormItem>
                       <FormLabel>Fecha de Nacimiento</FormLabel>
                       <FormControl>
-                        <Input type="date" className="[color-scheme:dark]" {...field} />
+                        <Input type="date" className="[color-scheme:dark]" disabled={isSubmitting} {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -242,7 +270,7 @@ export function EmployeeFormDialog({ open, onOpenChange }: Props) {
                   <FormItem>
                     <FormLabel>Nombres</FormLabel>
                     <FormControl>
-                      <Input {...field} />
+                      <Input disabled={isSubmitting} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -257,7 +285,7 @@ export function EmployeeFormDialog({ open, onOpenChange }: Props) {
                     <FormItem>
                       <FormLabel>Apellido Paterno</FormLabel>
                       <FormControl>
-                        <Input {...field} />
+                        <Input disabled={isSubmitting} {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -270,7 +298,7 @@ export function EmployeeFormDialog({ open, onOpenChange }: Props) {
                     <FormItem>
                       <FormLabel>Apellido Materno</FormLabel>
                       <FormControl>
-                        <Input {...field} />
+                        <Input disabled={isSubmitting} {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -294,14 +322,14 @@ export function EmployeeFormDialog({ open, onOpenChange }: Props) {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Cargo / Puesto</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
+                      <Select onValueChange={field.onChange} value={field.value} disabled={isSubmitting}>
                         <FormControl>
                           <SelectTrigger className="w-full">
                             <SelectValue placeholder="Selecciona un cargo" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {CARGOS.map((c) => (
+                          {cargos.map((c) => (
                             <SelectItem key={c} value={c}>
                               {c}
                             </SelectItem>
@@ -318,7 +346,7 @@ export function EmployeeFormDialog({ open, onOpenChange }: Props) {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Turno</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
+                      <Select onValueChange={field.onChange} value={field.value} disabled={isSubmitting}>
                         <FormControl>
                           <SelectTrigger className="w-full">
                             <SelectValue placeholder="Selecciona un turno" />
@@ -343,7 +371,7 @@ export function EmployeeFormDialog({ open, onOpenChange }: Props) {
                     <FormItem>
                       <FormLabel>Fecha de Inicio</FormLabel>
                       <FormControl>
-                        <Input type="date" className="[color-scheme:dark]" {...field} />
+                        <Input type="date" className="[color-scheme:dark]" disabled={isSubmitting} {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -368,7 +396,7 @@ export function EmployeeFormDialog({ open, onOpenChange }: Props) {
                     <FormItem>
                       <FormLabel>Teléfono</FormLabel>
                       <FormControl>
-                        <Input {...field} />
+                        <Input disabled={isSubmitting} {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -381,7 +409,7 @@ export function EmployeeFormDialog({ open, onOpenChange }: Props) {
                     <FormItem>
                       <FormLabel>Correo Electrónico</FormLabel>
                       <FormControl>
-                        <Input type="email" {...field} />
+                        <Input type="email" disabled={isSubmitting} {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -396,7 +424,7 @@ export function EmployeeFormDialog({ open, onOpenChange }: Props) {
                   <FormItem>
                     <FormLabel>Dirección</FormLabel>
                     <FormControl>
-                      <Input {...field} />
+                      <Input disabled={isSubmitting} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -404,8 +432,15 @@ export function EmployeeFormDialog({ open, onOpenChange }: Props) {
               />
             </section>
 
-            <Button type="submit" className="w-full">
-              Registrar Empleado
+            <Button type="submit" className="w-full" disabled={isSubmitting}>
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Registrando...
+                </>
+              ) : (
+                "Registrar Empleado"
+              )}
             </Button>
           </form>
         </Form>

@@ -18,9 +18,9 @@ export const routes = {
       login: () => "/auth/login",
       profile: () => "/auth/profile",
     },
-    users: {
-      create: () => "/users",
-      list: () => "/users",
+    employees: {
+      create: () => "/employees",
+      list: () => "/employees",
     },
     rooms: {
       create: () => "/rooms",
