@@ -25,6 +25,7 @@ export const routes = {
     rooms: {
       create: () => "/rooms",
       list: () => "/rooms",
+      updateStatus: (id: number) => `/rooms/${id}/status`,
     },
   },
 } as const;

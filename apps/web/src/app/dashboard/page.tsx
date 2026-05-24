@@ -60,12 +60,12 @@ export default function DashboardPage() {
   const ocupadas = rooms.filter((r) => r.status === "OCCUPIED").length;
   const limpieza = rooms.filter((r) => r.status === "CLEANING").length;
 
-  const handleChangeStatus = (roomId: number, newStatus: RoomStatus) => {
-    // Mock local mutation for presentation
-    setRooms(
-      rooms.map((r) => (r.id === roomId ? { ...r, status: newStatus } : r)),
-    );
-    toast.success("Estado actualizado (Simulación local)");
+  const handleChangeStatus = async (roomId: number, newStatus: RoomStatus) => {
+    const response = await api.patch(routes.api.rooms.updateStatus(roomId), {
+      status: newStatus,
+    });
+    setRooms(rooms.map((r) => (r.id === roomId ? response.data.room : r)));
+    toast.success(response.data.message);
   };
 
   return (
@@ -226,6 +226,7 @@ export default function DashboardPage() {
                     handleChangeStatus(room.id, newStatus)
                   }
                 />
+
               ))}
           </div>
         )}
@@ -240,9 +241,10 @@ function RoomCard({
   onStatusChange,
 }: {
   room: Room;
-  onStatusChange: (s: RoomStatus) => void;
+  onStatusChange: (s: RoomStatus) => Promise<void>;
 }) {
   const [isOpen, setIsOpen] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
   const getStatusConfig = () => {
     switch (room.status) {
       case "AVAILABLE":
@@ -294,9 +296,16 @@ function RoomCard({
 
   const config = getStatusConfig();
 
-  const handleAction = (status: RoomStatus) => {
-    onStatusChange(status);
-    setIsOpen(false);
+  const handleAction = async (status: RoomStatus) => {
+    setIsUpdating(true);
+    try {
+      await onStatusChange(status);
+      setIsOpen(false);
+    } catch {
+      toast.error("No se pudo actualizar el estado. Intenta de nuevo.");
+    } finally {
+      setIsUpdating(false);
+    }
   };
 
   const getTypeIcon = () => {
@@ -392,10 +401,12 @@ function RoomCard({
             {room.status === "AVAILABLE" && (
               <button
                 onClick={() => handleAction("OCCUPIED")}
-                className="w-full flex items-center justify-between p-4 rounded-xl border border-status-occupied-border bg-status-occupied-bg text-status-occupied-text hover:bg-status-occupied-icon-bg transition-colors font-semibold"
+                disabled={isUpdating}
+                className="w-full flex items-center justify-between p-4 rounded-xl border border-status-occupied-border bg-status-occupied-bg text-status-occupied-text hover:bg-status-occupied-icon-bg transition-colors font-semibold disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 <div className="flex items-center gap-3">
-                  <User className="w-5 h-5" /> Efectuar Check-In
+                  {isUpdating ? <Loader2 className="w-5 h-5 animate-spin" /> : <User className="w-5 h-5" />}
+                  Efectuar Check-In
                 </div>
                 <ArrowRight className="w-5 h-5" />
               </button>
@@ -404,10 +415,12 @@ function RoomCard({
             {room.status === "OCCUPIED" && (
               <button
                 onClick={() => handleAction("CLEANING")}
-                className="w-full flex items-center justify-between p-4 rounded-xl border border-status-cleaning-border bg-status-cleaning-bg text-status-cleaning-text hover:bg-status-cleaning-icon-bg transition-colors font-semibold"
+                disabled={isUpdating}
+                className="w-full flex items-center justify-between p-4 rounded-xl border border-status-cleaning-border bg-status-cleaning-bg text-status-cleaning-text hover:bg-status-cleaning-icon-bg transition-colors font-semibold disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 <div className="flex items-center gap-3">
-                  <DoorOpen className="w-5 h-5" /> Efectuar Check-Out
+                  {isUpdating ? <Loader2 className="w-5 h-5 animate-spin" /> : <DoorOpen className="w-5 h-5" />}
+                  Efectuar Check-Out
                 </div>
                 <ArrowRight className="w-5 h-5" />
               </button>
@@ -416,10 +429,12 @@ function RoomCard({
             {room.status === "CLEANING" && (
               <button
                 onClick={() => handleAction("AVAILABLE")}
-                className="w-full flex items-center justify-between p-4 rounded-xl border border-status-available-border bg-status-available-bg text-status-available-text hover:bg-status-available-icon-bg transition-colors font-semibold"
+                disabled={isUpdating}
+                className="w-full flex items-center justify-between p-4 rounded-xl border border-status-available-border bg-status-available-bg text-status-available-text hover:bg-status-available-icon-bg transition-colors font-semibold disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 <div className="flex items-center gap-3">
-                  <CheckCircle2 className="w-5 h-5" /> Finalizar Limpieza
+                  {isUpdating ? <Loader2 className="w-5 h-5 animate-spin" /> : <CheckCircle2 className="w-5 h-5" />}
+                  Finalizar Limpieza
                 </div>
                 <ArrowRight className="w-5 h-5" />
               </button>
@@ -428,10 +443,12 @@ function RoomCard({
             {room.status === "MAINTENANCE" && (
               <button
                 onClick={() => handleAction("AVAILABLE")}
-                className="w-full flex items-center justify-between p-4 rounded-xl border border-status-available-border bg-status-available-bg text-status-available-text hover:bg-status-available-icon-bg transition-colors font-semibold"
+                disabled={isUpdating}
+                className="w-full flex items-center justify-between p-4 rounded-xl border border-status-available-border bg-status-available-bg text-status-available-text hover:bg-status-available-icon-bg transition-colors font-semibold disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 <div className="flex items-center gap-3">
-                  <CheckCircle2 className="w-5 h-5" /> Habilitar Habitación
+                  {isUpdating ? <Loader2 className="w-5 h-5 animate-spin" /> : <CheckCircle2 className="w-5 h-5" />}
+                  Habilitar Habitación
                 </div>
                 <ArrowRight className="w-5 h-5" />
               </button>
