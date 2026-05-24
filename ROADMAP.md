@@ -13,8 +13,8 @@
 |---|---|---|---|
 | Autenticación (JWT + Roles) | Completo | Completo | LISTO |
 | Gestión de Empleados (CRUD) | Completo | Completo | LISTO |
-| Inventario de Habitaciones | Completo | Parcial | EN PROGRESO |
-| Dashboard de Estados | — | Parcial (sin backend) | EN PROGRESO |
+| Inventario de Habitaciones | Completo | Completo | LISTO |
+| Dashboard de Estados | Completo | Completo | LISTO |
 | Huéspedes | Pendiente | Pendiente | PENDIENTE |
 | Reservas + Overbooking | Pendiente | Pendiente | PENDIENTE |
 | Check-in / Check-out | Pendiente | Pendiente | PENDIENTE |
@@ -35,17 +35,15 @@
 
 ---
 
-## Sprint 2: Inventario y Dashboard Base — EN PROGRESO
-
-*Objetivo: Habitaciones funcionando de punta a punta — se crean, se visualizan en el grid y se puede cambiar su estado desde el Dashboard.*
+## Sprint 2: Inventario y Dashboard Base — COMPLETADO
 
 - [x] Modelo `Room` con tipo (SINGLE/DOUBLE/SUITE) y estado (AVAILABLE/OCCUPIED/CLEANING/MAINTENANCE)
 - [x] CRUD de habitaciones protegido por rol
 - [x] Página de setup de habitaciones en frontend
 - [x] Grid visual de habitaciones con colores por estado
-- [ ] **Backend:** Endpoint `PATCH /rooms/:id/status` para cambiar el estado de una habitación
-- [ ] **Frontend:** Conectar KPIs del Dashboard a datos reales del backend (no mocks)
-- [ ] **Frontend:** Modal al hacer clic en una habitación con información real y botones operativos
+- [x] **Backend:** Endpoint `PATCH /rooms/:id/status` para cambiar el estado de una habitación
+- [x] **Frontend:** KPIs del Dashboard conectados a datos reales del backend
+- [x] **Frontend:** Modal operativo conectado al backend con loading state y manejo de errores
 
 ---
 
