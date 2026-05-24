@@ -3,7 +3,7 @@
 
 @baseUrl = http://localhost:4000
 # Instrucciones: Reemplaza estos valores con los tokens generados en el endpoint de login.
-@ownerToken = <PEGAR_AQUI_TOKEN_OWNER>
+@ownerToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjEsInVzZXJuYW1lIjoiYWRtaW4xMjMiLCJyb2xlIjoiT1dORVIiLCJpYXQiOjE3Nzk1OTUyOTAsImV4cCI6MTc3OTYzODQ5MH0.xRg-I_u9aXU47dsmUlJhxHmtSaQDUy0Y64V9I2lvaC8
 @managerToken = <PEGAR_AQUI_TOKEN_MANAGER>
 
 ### -------------------------------------------------------------
@@ -57,3 +57,62 @@ Content-Type: application/json
 ### 2A. Obtener todas las habitaciones (Debe retornar array de cuartos con status AVAILABLE)
 GET {{baseUrl}}/rooms
 Authorization: Bearer {{ownerToken}}
+
+### -------------------------------------------------------------
+### 3. ACTUALIZAR ESTADO DE HABITACIÓN — PATCH /rooms/:id/status
+### Reemplaza el :id con el ID real de una habitación existente
+### -------------------------------------------------------------
+
+### 3A. Cambiar habitación a OCCUPIED (simula Check-in directo) — Debe retornar 200
+PATCH {{baseUrl}}/rooms/1/status
+Authorization: Bearer {{ownerToken}}
+Content-Type: application/json
+
+{
+  "status": "OCCUPIED"
+}
+
+### 3B. Cambiar habitación a CLEANING (simula Check-out) — Debe retornar 200
+PATCH {{baseUrl}}/rooms/1/status
+Authorization: Bearer {{ownerToken}}
+Content-Type: application/json
+
+{
+  "status": "CLEANING"
+}
+
+### 3C. Liberar habitación a AVAILABLE (simula fin de limpieza) — Debe retornar 200
+PATCH {{baseUrl}}/rooms/1/status
+Authorization: Bearer {{ownerToken}}
+Content-Type: application/json
+
+{
+  "status": "AVAILABLE"
+}
+
+### 3D. Mandar habitación a MAINTENANCE — Debe retornar 200
+PATCH {{baseUrl}}/rooms/1/status
+Authorization: Bearer {{ownerToken}}
+Content-Type: application/json
+
+{
+  "status": "MAINTENANCE"
+}
+
+### 3E. Enviar estado inválido — Debe fallar 400 (validación del DTO)
+PATCH {{baseUrl}}/rooms/1/status
+Authorization: Bearer {{ownerToken}}
+Content-Type: application/json
+
+{
+  "status": "PRESIDENCIAL"
+}
+
+### 3F. ID de habitación inexistente — Debe fallar 404
+PATCH {{baseUrl}}/rooms/9999/status
+Authorization: Bearer {{ownerToken}}
+Content-Type: application/json
+
+{
+  "status": "AVAILABLE"
+}

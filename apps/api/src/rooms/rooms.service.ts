@@ -1,13 +1,13 @@
-import { Injectable, ConflictException } from '@nestjs/common';
+import { Injectable, ConflictException, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../providers/prisma/prisma.service';
 import { CreateRoomDto } from './dto/create-room.dto';
+import { UpdateRoomStatusDto } from './dto/update-room-status.dto';
 
 @Injectable()
 export class RoomsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   async create(createRoomDto: CreateRoomDto) {
-    // 1. Verify if the room number already exists
     const existingRoom = await this.prisma.room.findUnique({
       where: { number: createRoomDto.number },
     });
@@ -18,7 +18,6 @@ export class RoomsService {
       );
     }
 
-    // 2. Create the room (status is automatically set to AVAILABLE by Prisma default)
     const newRoom = await this.prisma.room.create({
       data: {
         number: createRoomDto.number,
@@ -33,9 +32,26 @@ export class RoomsService {
   }
 
   async findAll() {
-    // Return all rooms ordered by number
     return this.prisma.room.findMany({
       orderBy: { number: 'asc' },
     });
+  }
+
+  async updateStatus(id: number, updateRoomStatusDto: UpdateRoomStatusDto) {
+    const room = await this.prisma.room.findUnique({ where: { id } });
+
+    if (!room) {
+      throw new NotFoundException(`No existe una habitación con el ID ${id}`);
+    }
+
+    const updated = await this.prisma.room.update({
+      where: { id },
+      data: { status: updateRoomStatusDto.status },
+    });
+
+    return {
+      message: `Estado de habitación ${updated.number} actualizado a ${updated.status}`,
+      room: updated,
+    };
   }
 }
