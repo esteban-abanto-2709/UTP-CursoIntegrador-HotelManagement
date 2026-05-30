@@ -22,6 +22,7 @@ export class RoomsService {
       data: {
         number: createRoomDto.number,
         type: createRoomDto.type,
+        price: createRoomDto.price,
       },
     });
 

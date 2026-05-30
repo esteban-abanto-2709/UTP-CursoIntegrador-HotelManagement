@@ -7,6 +7,7 @@ import { PrismaService } from '@/providers/prisma/prisma.service';
 import { ReservationStatus } from '@prisma/client';
 import { CreateReservationDto } from './dto/create-reservation.dto';
 import { UpdateReservationStatusDto } from './dto/update-reservation-status.dto';
+import { CheckoutReservationDto } from './dto/checkout-reservation.dto';
 
 @Injectable()
 export class ReservationsService {
@@ -43,6 +44,8 @@ export class ReservationsService {
         checkIn,
         checkOut,
         roomId: dto.roomId,
+        // Snapshot del precio: si luego cambia la tarifa del cuarto, esta reserva no se altera
+        pricePerNight: room.price,
       },
       include: { room: { select: { number: true, type: true } } },
     });
@@ -111,9 +114,10 @@ export class ReservationsService {
     return { message: 'Check-in realizado', reservation: updated };
   }
 
-  async checkOut(id: number) {
+  async checkOut(id: number, dto: CheckoutReservationDto) {
     const reservation = await this.prisma.reservation.findUnique({
       where: { id },
+      include: { room: true },
     });
 
     if (!reservation) {
@@ -126,11 +130,31 @@ export class ReservationsService {
       );
     }
 
+    // Cálculo del cobro: noches reservadas × tarifa (mínimo 1 noche)
+    const MS_PER_DAY = 1000 * 60 * 60 * 24;
+    const nights = Math.max(
+      1,
+      Math.ceil(
+        (reservation.checkOut.getTime() - reservation.checkIn.getTime()) /
+          MS_PER_DAY,
+      ),
+    );
+    // pricePerNight se guarda al crear; fallback al precio actual del cuarto por si es null
+    const pricePerNight =
+      reservation.pricePerNight ?? reservation.room.price;
+    const totalAmount = Number(pricePerNight) * nights;
+
     // La habitación pasa a limpieza para entrar a la cola de housekeeping
     const [updated] = await this.prisma.$transaction([
       this.prisma.reservation.update({
         where: { id },
-        data: { status: 'COMPLETED', actualCheckOut: new Date() },
+        data: {
+          status: 'COMPLETED',
+          actualCheckOut: new Date(),
+          totalAmount,
+          paymentMethod: dto.paymentMethod,
+          paidAt: new Date(),
+        },
         include: { room: { select: { number: true, type: true } } },
       }),
       this.prisma.room.update({
@@ -139,6 +163,10 @@ export class ReservationsService {
       }),
     ]);
 
-    return { message: 'Check-out realizado', reservation: updated };
+    return {
+      message: 'Check-out realizado',
+      reservation: updated,
+      billing: { nights, pricePerNight: Number(pricePerNight), totalAmount },
+    };
   }
 }

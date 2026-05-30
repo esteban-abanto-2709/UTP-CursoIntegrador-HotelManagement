@@ -1,4 +1,11 @@
-import { IsEnum, IsNotEmpty, IsString, Matches } from 'class-validator';
+import {
+  IsEnum,
+  IsNotEmpty,
+  IsNumber,
+  IsString,
+  Matches,
+  Min,
+} from 'class-validator';
 import { RoomType } from '@prisma/client';
 
 export class CreateRoomDto {
@@ -14,4 +21,11 @@ export class CreateRoomDto {
   })
   @IsNotEmpty({ message: 'El tipo de habitación es obligatorio' })
   type: RoomType;
+
+  @IsNumber(
+    { maxDecimalPlaces: 2 },
+    { message: 'El precio debe ser un número con hasta 2 decimales' },
+  )
+  @Min(0, { message: 'El precio no puede ser negativo' })
+  price: number;
 }
