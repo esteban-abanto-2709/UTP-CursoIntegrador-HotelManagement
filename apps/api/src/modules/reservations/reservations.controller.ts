@@ -1,7 +1,9 @@
-import { Controller, Post, Get, Patch, Body, Param, ParseIntPipe, UseGuards } from '@nestjs/common';
+import { Controller, Post, Get, Patch, Body, Param, Query, ParseIntPipe, UseGuards } from '@nestjs/common';
 import { ReservationsService } from './reservations.service';
 import { CreateReservationDto } from './dto/create-reservation.dto';
 import { UpdateReservationStatusDto } from './dto/update-reservation-status.dto';
+import { UpdateReservationDto } from './dto/update-reservation.dto';
+import { FilterReservationsDto } from './dto/filter-reservations.dto';
 import { CheckoutReservationDto } from './dto/checkout-reservation.dto';
 import { JwtAuthGuard } from '@/common/guards/jwt-auth.guard';
 import { RolesGuard } from '@/common/guards/roles.guard';
@@ -20,8 +22,30 @@ export class ReservationsController {
   }
 
   @Get()
-  findAll() {
-    return this.reservationsService.findAll();
+  findAll(@Query() filters: FilterReservationsDto) {
+    return this.reservationsService.findAll(filters);
+  }
+
+  @Get(':id')
+  findOne(@Param('id', ParseIntPipe) id: number) {
+    return this.reservationsService.findOne(id);
+  }
+
+  @Patch(':id')
+  @UseGuards(RolesGuard)
+  @Roles('OWNER', 'MANAGER')
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdateReservationDto,
+  ) {
+    return this.reservationsService.update(id, dto);
+  }
+
+  @Patch(':id/cancel')
+  @UseGuards(RolesGuard)
+  @Roles('OWNER', 'MANAGER')
+  cancel(@Param('id', ParseIntPipe) id: number) {
+    return this.reservationsService.cancel(id);
   }
 
   @Patch(':id/status')

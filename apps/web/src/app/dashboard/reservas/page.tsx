@@ -5,7 +5,7 @@ import api from "@/lib/axios";
 import { routes } from "@/lib/routes";
 import { formatDate } from "@/lib/date";
 import { toast } from "sonner";
-import { Search, Plus, Loader2, LogIn, LogOut } from "lucide-react";
+import { Search, Plus, Loader2, LogIn, LogOut, Pencil, Ban } from "lucide-react";
 
 import {
   Table,
@@ -24,16 +24,11 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
+import ReservationFormDialog, {
+  ReservationForEdit,
+} from "./ReservationFormDialog";
+
 type ReservationStatus = "PENDING" | "ACTIVE" | "COMPLETED" | "CANCELLED";
-
-interface Room {
-  id: number;
-  number: string;
-  type: string;
-  status: string;
-}
-
-type RoomTypeValue = "SINGLE" | "DOUBLE" | "SUITE";
 
 type PaymentMethod = "CASH" | "CARD" | "TRANSFER";
 
@@ -66,6 +61,14 @@ const PAYMENT_LABELS: Record<PaymentMethod, string> = {
   TRANSFER: "Transferencia",
 };
 
+const STATUS_FILTERS: { value: "ALL" | ReservationStatus; label: string }[] = [
+  { value: "ALL", label: "Todos los estados" },
+  { value: "PENDING", label: "Próximos a llegar" },
+  { value: "ACTIVE", label: "En hotel (activas)" },
+  { value: "COMPLETED", label: "Finalizadas" },
+  { value: "CANCELLED", label: "Canceladas" },
+];
+
 function getRoomTypeLabel(type: string) {
   const labels: Record<string, string> = {
     SINGLE: "Sencilla",
@@ -75,34 +78,22 @@ function getRoomTypeLabel(type: string) {
   return labels[type] ?? type;
 }
 
-const ROOM_TYPES: { value: RoomTypeValue; label: string }[] = [
-  { value: "SINGLE", label: "Sencilla" },
-  { value: "DOUBLE", label: "Doble" },
-  { value: "SUITE", label: "Suite" },
-];
-
-function addDays(dateStr: string, days: number) {
-  const d = new Date(dateStr);
-  d.setUTCDate(d.getUTCDate() + days);
-  return d.toISOString().split("T")[0];
-}
-
 export default function ReservasPage() {
   const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState<"ALL" | ReservationStatus>(
+    "ALL",
+  );
   const [reservations, setReservations] = useState<Reservation[]>([]);
-  const [availableRooms, setAvailableRooms] = useState<Room[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [formCheckIn, setFormCheckIn] = useState("");
-  const [formCheckOut, setFormCheckOut] = useState("");
-  const [formType, setFormType] = useState<RoomTypeValue | "">("");
-  const [selectedRoomId, setSelectedRoomId] = useState("");
-  const [isSearchingRooms, setIsSearchingRooms] = useState(false);
-  // Id de la reserva sobre la que se está ejecutando un check-in/check-out
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [editingReservation, setEditingReservation] =
+    useState<ReservationForEdit | null>(null);
+  // Id de la reserva sobre la que se está ejecutando un check-in/check-out/cancelación
   const [actioningId, setActioningId] = useState<number | null>(null);
   // Reserva en proceso de cobro (abre el diálogo de check-out)
   const [checkoutTarget, setCheckoutTarget] = useState<Reservation | null>(null);
+  // Reserva en proceso de cancelación (abre el diálogo de confirmación)
+  const [cancelTarget, setCancelTarget] = useState<Reservation | null>(null);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("CASH");
 
   const fetchReservations = useCallback(async () => {
@@ -116,75 +107,26 @@ export default function ReservasPage() {
     }
   }, []);
 
-  const fetchAvailability = useCallback(
-    async (checkIn: string, checkOut: string, type: string) => {
-      setIsSearchingRooms(true);
-      try {
-        const res = await api.get(
-          routes.api.rooms.availability({ checkIn, checkOut, type }),
-        );
-        setAvailableRooms(res.data);
-      } catch {
-        toast.error("Error al consultar disponibilidad");
-        setAvailableRooms([]);
-      } finally {
-        setIsSearchingRooms(false);
-      }
-    },
-    [],
-  );
-
   useEffect(() => {
     fetchReservations();
   }, [fetchReservations]);
 
-  useEffect(() => {
-    if (!isModalOpen) return;
-    setSelectedRoomId("");
-    if (formCheckIn && formCheckOut && formType && formCheckOut > formCheckIn) {
-      fetchAvailability(formCheckIn, formCheckOut, formType);
-    } else {
-      setAvailableRooms([]);
-    }
-  }, [isModalOpen, formCheckIn, formCheckOut, formType, fetchAvailability]);
-
-  const handleOpenModal = () => {
-    setFormCheckIn("");
-    setFormCheckOut("");
-    setFormType("");
-    setSelectedRoomId("");
-    setAvailableRooms([]);
-    setIsModalOpen(true);
+  const handleNew = () => {
+    setEditingReservation(null);
+    setIsFormOpen(true);
   };
 
-  const handleAddReservation = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (!selectedRoomId) {
-      toast.error("Selecciona una habitación disponible");
-      return;
-    }
-    const formData = new FormData(e.currentTarget);
-
-    setIsSubmitting(true);
-    try {
-      await api.post(routes.api.reservations.create(), {
-        guestName: formData.get("guestName") as string,
-        dni: formData.get("dni") as string,
-        roomId: Number(selectedRoomId),
-        checkIn: formCheckIn,
-        checkOut: formCheckOut,
-      });
-      toast.success("Reserva registrada exitosamente");
-      setIsModalOpen(false);
-      fetchReservations();
-    } catch (error: unknown) {
-      const err = error as { response?: { data?: { message?: string | string[] } } };
-      const raw = err.response?.data?.message;
-      const msg = Array.isArray(raw) ? raw[0] : raw ?? "Error al registrar la reserva";
-      toast.error(msg);
-    } finally {
-      setIsSubmitting(false);
-    }
+  const handleEdit = (res: Reservation) => {
+    setEditingReservation({
+      id: res.id,
+      guestName: res.guestName,
+      dni: res.dni,
+      checkIn: res.checkIn,
+      checkOut: res.checkOut,
+      roomId: res.roomId,
+      room: res.room,
+    });
+    setIsFormOpen(true);
   };
 
   const handleCheckIn = async (id: number) => {
@@ -229,15 +171,31 @@ export default function ReservasPage() {
     }
   };
 
-  const filteredReservations = reservations.filter(
-    (r) =>
-      r.guestName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      r.dni.includes(searchTerm),
-  );
+  const confirmCancel = async () => {
+    if (!cancelTarget) return;
+    setActioningId(cancelTarget.id);
+    try {
+      const res = await api.patch(routes.api.reservations.cancel(cancelTarget.id));
+      toast.success(res.data.message ?? "Reserva cancelada");
+      setCancelTarget(null);
+      fetchReservations();
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { message?: string | string[] } } };
+      const raw = err.response?.data?.message;
+      const msg = Array.isArray(raw) ? raw[0] : raw ?? "Error al cancelar la reserva";
+      toast.error(msg);
+    } finally {
+      setActioningId(null);
+    }
+  };
 
-  const todayStr = new Date().toLocaleDateString("en-CA");
-  const criteriaReady =
-    !!formCheckIn && !!formCheckOut && !!formType && formCheckOut > formCheckIn;
+  const filteredReservations = reservations.filter((r) => {
+    const matchesSearch =
+      r.guestName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      r.dni.includes(searchTerm);
+    const matchesStatus = statusFilter === "ALL" || r.status === statusFilter;
+    return matchesSearch && matchesStatus;
+  });
 
   const getStatusBadge = (status: ReservationStatus) => {
     switch (status) {
@@ -283,144 +241,21 @@ export default function ReservasPage() {
         </div>
 
         <button
-          onClick={handleOpenModal}
+          onClick={handleNew}
           className="flex items-center gap-2 bg-zinc-900 text-white px-5 py-2.5 rounded-xl font-semibold hover:bg-zinc-800 transition-all shadow-md active:scale-95"
         >
           <Plus className="w-5 h-5" /> Nueva Reserva
         </button>
-
-        <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-          <DialogContent className="sm:max-w-[450px] rounded-2xl">
-            <DialogHeader>
-              <DialogTitle className="text-xl">Añadir Nueva Reserva</DialogTitle>
-              <DialogDescription>
-                Registra los datos del huésped para apartar de manera segura una
-                habitación en las fechas solicitadas.
-              </DialogDescription>
-            </DialogHeader>
-            <form
-              onSubmit={handleAddReservation}
-              className="flex flex-col gap-4 mt-2"
-            >
-              <div className="flex gap-4">
-                <div className="flex flex-col gap-1.5 w-full">
-                  <label className="text-sm font-semibold text-muted-foreground">
-                    Fecha de Entrada
-                  </label>
-                  <input
-                    type="date"
-                    required
-                    min={todayStr}
-                    value={formCheckIn}
-                    onChange={(e) => setFormCheckIn(e.target.value)}
-                    className="h-10 px-3 py-2 rounded-lg border border-border/50 bg-background text-foreground focus:ring-2 focus:border-primary focus:ring-primary/20 outline-none transition-all"
-                  />
-                </div>
-                <div className="flex flex-col gap-1.5 w-full">
-                  <label className="text-sm font-semibold text-muted-foreground">
-                    Fecha de Salida
-                  </label>
-                  <input
-                    type="date"
-                    required
-                    disabled={!formCheckIn}
-                    min={formCheckIn ? addDays(formCheckIn, 1) : todayStr}
-                    value={formCheckOut}
-                    onChange={(e) => setFormCheckOut(e.target.value)}
-                    className="h-10 px-3 py-2 rounded-lg border border-border/50 bg-background text-foreground focus:ring-2 focus:border-primary focus:ring-primary/20 outline-none transition-all disabled:opacity-60 disabled:cursor-not-allowed"
-                  />
-                </div>
-              </div>
-              <div className="flex flex-col gap-1.5">
-                <label className="text-sm font-semibold text-muted-foreground">
-                  Tipo de Habitación
-                </label>
-                <select
-                  required
-                  value={formType}
-                  onChange={(e) => setFormType(e.target.value as RoomTypeValue)}
-                  className="h-10 px-3 py-2 rounded-lg border border-border/50 bg-background text-foreground focus:ring-2 focus:border-primary focus:ring-primary/20 outline-none transition-all cursor-pointer"
-                >
-                  <option value="">Seleccione un tipo...</option>
-                  {ROOM_TYPES.map((t) => (
-                    <option key={t.value} value={t.value}>
-                      {t.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="flex flex-col gap-1.5">
-                <label className="text-sm font-semibold text-muted-foreground">
-                  Habitación Disponible
-                </label>
-                <select
-                  required
-                  value={selectedRoomId}
-                  onChange={(e) => setSelectedRoomId(e.target.value)}
-                  disabled={!criteriaReady || isSearchingRooms}
-                  className="h-10 px-3 py-2 rounded-lg border border-border/50 bg-background text-foreground focus:ring-2 focus:border-primary focus:ring-primary/20 outline-none transition-all cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
-                >
-                  {!criteriaReady ? (
-                    <option value="">Primero elige fechas y tipo...</option>
-                  ) : isSearchingRooms ? (
-                    <option value="">Buscando disponibilidad...</option>
-                  ) : availableRooms.length === 0 ? (
-                    <option value="">
-                      No hay cuartos de ese tipo libres en esas fechas
-                    </option>
-                  ) : (
-                    <>
-                      <option value="">Seleccione un cuarto...</option>
-                      {availableRooms.map((room) => (
-                        <option key={room.id} value={room.id}>
-                          Cuarto {room.number} — {getRoomTypeLabel(room.type)}
-                        </option>
-                      ))}
-                    </>
-                  )}
-                </select>
-              </div>
-              <div className="flex flex-col gap-1.5">
-                <label className="text-sm font-semibold text-muted-foreground">
-                  Nombre del Huésped Completo
-                </label>
-                <input
-                  name="guestName"
-                  required
-                  className="h-10 px-3 py-2 rounded-lg border border-border/50 bg-background text-foreground focus:ring-2 focus:border-primary focus:ring-primary/20 outline-none transition-all placeholder:text-muted-foreground"
-                  placeholder="Ej. Juan Pérez"
-                />
-              </div>
-              <div className="flex flex-col gap-1.5 mb-4">
-                <label className="text-sm font-semibold text-muted-foreground">
-                  DNI / Documento Identidad
-                </label>
-                <input
-                  name="dni"
-                  required
-                  className="h-10 px-3 py-2 rounded-lg border border-border/50 bg-background text-foreground focus:ring-2 focus:border-primary focus:ring-primary/20 outline-none transition-all placeholder:text-muted-foreground"
-                  placeholder="Ej. 12345678"
-                />
-              </div>
-              <button
-                type="submit"
-                disabled={isSubmitting || !selectedRoomId}
-                className="w-full bg-primary text-primary-foreground h-11 rounded-lg font-semibold shadow hover:bg-primary/90 transition-all active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-              >
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" /> Registrando...
-                  </>
-                ) : (
-                  "Confirmar y Registrar"
-                )}
-              </button>
-            </form>
-          </DialogContent>
-        </Dialog>
       </div>
 
-      {/* Buscador */}
+      <ReservationFormDialog
+        open={isFormOpen}
+        onOpenChange={setIsFormOpen}
+        onSuccess={fetchReservations}
+        reservation={editingReservation}
+      />
+
+      {/* Buscador + Filtro */}
       <div className="bg-card p-4 rounded-2xl border border-border/50 shadow-sm flex flex-col md:flex-row gap-4 justify-between">
         <div className="relative w-full max-w-md">
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -432,6 +267,19 @@ export default function ReservasPage() {
             className="w-full h-11 pl-10 pr-4 rounded-xl border border-border/50 bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 focus:bg-muted transition-all font-medium text-foreground"
           />
         </div>
+        <select
+          value={statusFilter}
+          onChange={(e) =>
+            setStatusFilter(e.target.value as "ALL" | ReservationStatus)
+          }
+          className="h-11 px-4 rounded-xl border border-border/50 bg-background text-foreground font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all cursor-pointer"
+        >
+          {STATUS_FILTERS.map((f) => (
+            <option key={f.value} value={f.value}>
+              {f.label}
+            </option>
+          ))}
+        </select>
       </div>
 
       {/* Tabla */}
@@ -475,11 +323,8 @@ export default function ReservasPage() {
             ) : filteredReservations.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={7} className="h-32 text-center text-muted-foreground">
-                  {searchTerm ? (
-                    <>
-                      No se encontraron reservas con{" "}
-                      <b className="text-foreground">&quot;{searchTerm}&quot;</b>.
-                    </>
+                  {searchTerm || statusFilter !== "ALL" ? (
+                    "No se encontraron reservas con esos criterios."
                   ) : (
                     "No hay reservas registradas aún."
                   )}
@@ -489,7 +334,7 @@ export default function ReservasPage() {
               filteredReservations.map((res) => (
                 <TableRow
                   key={res.id}
-                  className="cursor-pointer transition-colors hover:bg-muted/50 group"
+                  className="transition-colors hover:bg-muted/50 group"
                 >
                   <TableCell className="font-bold text-foreground pl-6">
                     #{res.id}
@@ -513,18 +358,36 @@ export default function ReservasPage() {
                   <TableCell>{getStatusBadge(res.status)}</TableCell>
                   <TableCell className="text-right pr-6">
                     {res.status === "PENDING" && (
-                      <button
-                        onClick={() => handleCheckIn(res.id)}
-                        disabled={actioningId === res.id}
-                        className="inline-flex items-center gap-1.5 bg-status-occupied-bg text-status-occupied-text border border-status-occupied-border px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-status-occupied-icon-bg transition-all active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed"
-                      >
-                        {actioningId === res.id ? (
-                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                        ) : (
-                          <LogIn className="w-3.5 h-3.5" />
-                        )}
-                        Check-in
-                      </button>
+                      <div className="inline-flex items-center gap-2">
+                        <button
+                          onClick={() => handleCheckIn(res.id)}
+                          disabled={actioningId === res.id}
+                          className="inline-flex items-center gap-1.5 bg-status-occupied-bg text-status-occupied-text border border-status-occupied-border px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-status-occupied-icon-bg transition-all active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed"
+                        >
+                          {actioningId === res.id ? (
+                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          ) : (
+                            <LogIn className="w-3.5 h-3.5" />
+                          )}
+                          Check-in
+                        </button>
+                        <button
+                          onClick={() => handleEdit(res)}
+                          disabled={actioningId === res.id}
+                          title="Editar reserva"
+                          className="inline-flex items-center justify-center w-8 h-8 bg-background text-muted-foreground border border-border/50 rounded-lg hover:bg-muted hover:text-foreground transition-all active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed"
+                        >
+                          <Pencil className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          onClick={() => setCancelTarget(res)}
+                          disabled={actioningId === res.id}
+                          title="Cancelar reserva"
+                          className="inline-flex items-center justify-center w-8 h-8 bg-background text-red-500 border border-red-500/20 rounded-lg hover:bg-red-500/10 hover:border-red-500/40 transition-all active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed"
+                        >
+                          <Ban className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
                     )}
                     {res.status === "ACTIVE" && (
                       <button
@@ -654,6 +517,70 @@ export default function ReservasPage() {
                 </div>
               );
             })()}
+        </DialogContent>
+      </Dialog>
+
+      {/* Diálogo de Confirmación de Cancelación */}
+      <Dialog
+        open={cancelTarget !== null}
+        onOpenChange={(open) => !open && setCancelTarget(null)}
+      >
+        <DialogContent className="sm:max-w-[420px] rounded-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-xl">Cancelar Reserva</DialogTitle>
+            <DialogDescription>
+              Esta acción libera las fechas de la habitación. La reserva no se
+              elimina, queda registrada como cancelada.
+            </DialogDescription>
+          </DialogHeader>
+
+          {cancelTarget && (
+            <div className="flex flex-col gap-4 mt-2">
+              <div className="bg-muted rounded-xl p-4 flex flex-col gap-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Huésped</span>
+                  <span className="font-semibold text-foreground">
+                    {cancelTarget.guestName}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Habitación</span>
+                  <span className="font-semibold text-foreground">
+                    Cto. {cancelTarget.room.number}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Fechas</span>
+                  <span className="font-semibold text-foreground">
+                    {formatDate(cancelTarget.checkIn)} →{" "}
+                    {formatDate(cancelTarget.checkOut)}
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setCancelTarget(null)}
+                  className="flex-1 h-11 rounded-lg border border-border/50 bg-background text-foreground font-semibold hover:bg-muted transition-all active:scale-95"
+                >
+                  Volver
+                </button>
+                <button
+                  onClick={confirmCancel}
+                  disabled={actioningId === cancelTarget.id}
+                  className="flex-1 h-11 rounded-lg bg-red-500 text-white font-semibold shadow hover:bg-red-600 transition-all active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                  {actioningId === cancelTarget.id ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" /> Cancelando...
+                    </>
+                  ) : (
+                    "Sí, cancelar"
+                  )}
+                </button>
+              </div>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </div>

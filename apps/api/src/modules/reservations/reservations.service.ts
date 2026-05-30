@@ -5,8 +5,11 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '@/providers/prisma/prisma.service';
+import { Prisma } from '@prisma/client';
 import { CreateReservationDto } from './dto/create-reservation.dto';
 import { UpdateReservationStatusDto } from './dto/update-reservation-status.dto';
+import { UpdateReservationDto } from './dto/update-reservation.dto';
+import { FilterReservationsDto } from './dto/filter-reservations.dto';
 import { CheckoutReservationDto } from './dto/checkout-reservation.dto';
 
 @Injectable()
@@ -31,20 +34,7 @@ export class ReservationsService {
       throw new NotFoundException(`Habitación ${dto.roomId} no encontrada`);
     }
 
-    const conflicto = await this.prisma.reservation.findFirst({
-      where: {
-        roomId: dto.roomId,
-        status: { in: ['PENDING', 'ACTIVE'] },
-        checkIn: { lt: checkOut },
-        checkOut: { gt: checkIn },
-      },
-    });
-
-    if (conflicto) {
-      throw new ConflictException(
-        `La habitación ${room.number} ya está reservada para esas fechas`,
-      );
-    }
+    await this.assertNoOverlap(dto.roomId, checkIn, checkOut);
 
     return this.prisma.reservation.create({
       data: {
@@ -60,11 +50,150 @@ export class ReservationsService {
     });
   }
 
-  findAll() {
+  private async assertNoOverlap(
+    roomId: number,
+    checkIn: Date,
+    checkOut: Date,
+    excludeReservationId?: number,
+  ) {
+    const conflicto = await this.prisma.reservation.findFirst({
+      where: {
+        roomId,
+        status: { in: ['PENDING', 'ACTIVE'] },
+        checkIn: { lt: checkOut },
+        checkOut: { gt: checkIn },
+        ...(excludeReservationId ? { id: { not: excludeReservationId } } : {}),
+      },
+      include: { room: { select: { number: true } } },
+    });
+
+    if (conflicto) {
+      throw new ConflictException(
+        `La habitación ${conflicto.room.number} ya está reservada para esas fechas`,
+      );
+    }
+  }
+
+  findAll(filters: FilterReservationsDto) {
+    const where: Prisma.ReservationWhereInput = {};
+
+    if (filters.status) {
+      where.status = filters.status;
+    }
+    if (filters.roomId) {
+      where.roomId = Number(filters.roomId);
+    }
+    if (filters.from) {
+      where.checkOut = { gte: new Date(filters.from) };
+    }
+    if (filters.to) {
+      where.checkIn = { lte: new Date(filters.to) };
+    }
+
     return this.prisma.reservation.findMany({
+      where,
       include: { room: { select: { number: true, type: true } } },
       orderBy: { checkIn: 'asc' },
     });
+  }
+
+  async findOne(id: number) {
+    const reservation = await this.prisma.reservation.findUnique({
+      where: { id },
+      include: { room: { select: { number: true, type: true } } },
+    });
+
+    if (!reservation) {
+      throw new NotFoundException(`Reserva ${id} no encontrada`);
+    }
+
+    return reservation;
+  }
+
+  async update(id: number, dto: UpdateReservationDto) {
+    const reservation = await this.prisma.reservation.findUnique({
+      where: { id },
+    });
+
+    if (!reservation) {
+      throw new NotFoundException(`Reserva ${id} no encontrada`);
+    }
+
+    if (reservation.status !== 'PENDING') {
+      throw new BadRequestException(
+        'Solo se pueden editar reservas pendientes',
+      );
+    }
+
+    const checkIn = dto.checkIn ? new Date(dto.checkIn) : reservation.checkIn;
+    const checkOut = dto.checkOut
+      ? new Date(dto.checkOut)
+      : reservation.checkOut;
+
+    if (checkOut <= checkIn) {
+      throw new BadRequestException(
+        'La fecha de salida debe ser posterior a la de entrada',
+      );
+    }
+
+    const roomId = dto.roomId ?? reservation.roomId;
+    const roomChanged =
+      dto.roomId !== undefined && dto.roomId !== reservation.roomId;
+    const datesChanged =
+      dto.checkIn !== undefined || dto.checkOut !== undefined;
+
+    const data: Prisma.ReservationUpdateInput = {};
+    if (dto.guestName !== undefined) data.guestName = dto.guestName;
+    if (dto.dni !== undefined) data.dni = dto.dni;
+    if (dto.checkIn !== undefined) data.checkIn = checkIn;
+    if (dto.checkOut !== undefined) data.checkOut = checkOut;
+
+    if (roomChanged) {
+      const newRoom = await this.prisma.room.findUnique({
+        where: { id: dto.roomId },
+      });
+      if (!newRoom) {
+        throw new NotFoundException(`Habitación ${dto.roomId} no encontrada`);
+      }
+      data.room = { connect: { id: dto.roomId } };
+      data.pricePerNight = newRoom.price;
+    }
+
+    if (roomChanged || datesChanged) {
+      await this.assertNoOverlap(roomId, checkIn, checkOut, id);
+    }
+
+    const updated = await this.prisma.reservation.update({
+      where: { id },
+      data,
+      include: { room: { select: { number: true, type: true } } },
+    });
+
+    return { message: 'Reserva actualizada', reservation: updated };
+  }
+
+  async cancel(id: number) {
+    const reservation = await this.prisma.reservation.findUnique({
+      where: { id },
+    });
+
+    if (!reservation) {
+      throw new NotFoundException(`Reserva ${id} no encontrada`);
+    }
+
+    if (reservation.status !== 'PENDING') {
+      throw new BadRequestException(
+        'Solo se pueden cancelar reservas pendientes',
+      );
+    }
+
+    const updated = await this.prisma.reservation.update({
+      where: { id },
+      data: { status: 'CANCELLED' },
+      include: { room: { select: { number: true, type: true } } },
+    });
+
+    return { message: 'Reserva cancelada', reservation: updated };
   }
 
   async updateStatus(id: number, dto: UpdateReservationStatusDto) {

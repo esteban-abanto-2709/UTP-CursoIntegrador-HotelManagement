@@ -5,6 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../providers/prisma/prisma.service';
+import { Prisma } from '@prisma/client';
 import { CreateRoomDto } from './dto/create-room.dto';
 import { UpdateRoomStatusDto } from './dto/update-room-status.dto';
 import { UpdateRoomDto } from './dto/update-room.dto';
@@ -55,17 +56,21 @@ export class RoomsService {
       );
     }
 
+    const overlap: Prisma.ReservationWhereInput = {
+      status: { in: ['PENDING', 'ACTIVE'] },
+      checkIn: { lt: checkOut },
+      checkOut: { gt: checkIn },
+    };
+
+    if (query.excludeReservationId) {
+      overlap.id = { not: Number(query.excludeReservationId) };
+    }
+
     return this.prisma.room.findMany({
       where: {
         type: query.type,
         status: { not: 'MAINTENANCE' },
-        reservations: {
-          none: {
-            status: { in: ['PENDING', 'ACTIVE'] },
-            checkIn: { lt: checkOut },
-            checkOut: { gt: checkIn },
-          },
-        },
+        reservations: { none: overlap },
       },
       orderBy: { number: 'asc' },
     });

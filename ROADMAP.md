@@ -91,6 +91,7 @@ No se muestran todos los cuartos ni se filtra por su estado actual: se filtra po
   - Buscar reservas del mismo cuarto en estado `PENDING`/`ACTIVE` que se solapen con las fechas pedidas.
   - Si existe alguna → `409 Conflict` con mensaje claro ("La habitación ya está reservada para esas fechas").
   - Consulta en Prisma (elegante, sin traer todo a memoria):
+
     ```ts
     const conflicto = await prisma.reservation.findFirst({
       where: {
@@ -101,9 +102,11 @@ No se muestran todos los cuartos ni se filtra por su estado actual: se filtra po
       },
     });
     ```
+
 - [x] **Endpoint de disponibilidad (`GET /rooms/availability?checkIn=&checkOut=&type=`):**
   - Recibe **3 parámetros**: `checkIn`, `checkOut` y `type` (SINGLE / DOUBLE / SUITE).
   - Devuelve los cuartos **de ese tipo** que están **libres en ese rango** (sin reserva solapada).
+
     ```ts
     prisma.room.findMany({
       where: {
@@ -118,6 +121,7 @@ No se muestran todos los cuartos ni se filtra por su estado actual: se filtra po
       },
     });
     ```
+
   - (Decisión de diseño) ¿el `type` es obligatorio u opcional? → **Resuelto: obligatorio.**
     Coincide con el caso de uso; relajarlo después es trivial.
   - (Decisión de diseño) ¿excluir cuartos en `MAINTENANCE`? → **Resuelto: se excluye solo
@@ -158,11 +162,16 @@ No se muestran todos los cuartos ni se filtra por su estado actual: se filtra po
 
 *Sin esto no se pueden corregir errores ni liberar fechas.*
 
-- [ ] `GET /reservations/:id` — detalle completo.
-- [ ] `PATCH /reservations/:id` — modificar fechas o cuarto → **re-validar overbooking**.
-- [ ] `DELETE /reservations/:id` (o `PATCH .../cancel`) — pasar a `CANCELLED` (libera las fechas, no borra).
-- [ ] Filtros en el listado: por estado, por cuarto, por fecha.
-- [ ] Frontend: botones de editar/cancelar en la tabla de reservas.
+- [x] `GET /reservations/:id` — detalle completo. (API listo; el frontend aún no lo consume — la tabla ya trae todo.)
+- [x] `PATCH /reservations/:id` — modificar fechas o cuarto → **re-validar overbooking** (excluyéndose a sí misma con `id: { not: id }`).
+  Solo editable en estado `PENDING`. Re-snapshotea `pricePerNight` al cambiar de cuarto.
+- [x] `PATCH /reservations/:id/cancel` — pasa a `CANCELLED` (libera las fechas, no borra). Solo cancelable en `PENDING`.
+- [~] Filtros en el listado: **por estado** hecho (UI dropdown + filtrado). Por cuarto y por fecha:
+  el API ya los soporta (`GET /reservations?status=&roomId=&from=&to=`), falta exponerlos en la UI.
+- [x] Frontend: botones de editar/cancelar en la tabla de reservas.
+  Diálogo compartido crear/editar (`ReservationFormDialog.tsx`) + confirmación de cancelación.
+  El editar reutiliza el flujo fecha-primero y usa `excludeReservationId` en disponibilidad para
+  que el cuarto actual aparezca en la lista.
 
 ---
 

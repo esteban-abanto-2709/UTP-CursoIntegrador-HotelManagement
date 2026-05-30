@@ -1,4 +1,10 @@
-import { IsDateString, IsEnum, IsNotEmpty } from 'class-validator';
+import {
+  IsDateString,
+  IsEnum,
+  IsNotEmpty,
+  IsOptional,
+  IsNumberString,
+} from 'class-validator';
 import { RoomType } from '@prisma/client';
 
 export class AvailabilityQueryDto {
@@ -19,4 +25,8 @@ export class AvailabilityQueryDto {
   })
   @IsNotEmpty({ message: 'El tipo de habitación es obligatorio' })
   type: RoomType;
+
+  @IsOptional()
+  @IsNumberString({}, { message: 'excludeReservationId debe ser numérico' })
+  excludeReservationId?: string;
 }
