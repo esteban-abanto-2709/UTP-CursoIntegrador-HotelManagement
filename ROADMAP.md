@@ -16,9 +16,9 @@
 | Inventario de Habitaciones | Completo | Completo | LISTO |
 | Dashboard de Estados | Completo | Completo | LISTO |
 | Reservas (CRUD básico) | Completo | Completo | LISTO |
-| Check-in / Check-out | Pendiente | Pendiente | PENDIENTE |
+| Check-in / Check-out | Completo | Completo | LISTO |
+| Housekeeping | Completo (API) | Pendiente | EN PROGRESO |
 | Cobro / Facturación | Pendiente | Pendiente | PENDIENTE |
-| Housekeeping | Pendiente | Pendiente | PENDIENTE |
 | Deploy | — | — | PENDIENTE |
 
 ---
