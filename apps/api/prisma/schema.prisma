@@ -57,6 +57,7 @@ model Room {
   number       String        @unique
   type         RoomType
   status       RoomStatus    @default(AVAILABLE)
+  price        Decimal       @db.Decimal(10, 2) // Tarifa por noche (S/.)
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
   reservations Reservation[]
@@ -67,6 +68,12 @@ enum ReservationStatus {
   ACTIVE
   COMPLETED
   CANCELLED
+}
+
+enum PaymentMethod {
+  CASH
+  CARD
+  TRANSFER
 }
 
 model Reservation {
@@ -80,6 +87,11 @@ model Reservation {
   actualCheckIn  DateTime?
   actualCheckOut DateTime?
   status         ReservationStatus @default(PENDING)
+  // Facturación
+  pricePerNight  Decimal?          @db.Decimal(10, 2) // Snapshot del precio al crear la reserva
+  totalAmount    Decimal?          @db.Decimal(10, 2) // Calculado al check-out
+  paymentMethod  PaymentMethod? // Elegido al check-out
+  paidAt         DateTime? // Timestamp del cobro
   room           Room              @relation(fields: [roomId], references: [id])
   roomId         Int
   createdAt      DateTime          @default(now())
