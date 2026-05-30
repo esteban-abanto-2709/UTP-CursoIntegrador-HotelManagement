@@ -1,8 +1,10 @@
 "use client";
 
-import { useState } from "react";
-import { mockReservations, Reservation } from "@/lib/mocks";
-import { Search, Plus } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
+import api from "@/lib/axios";
+import { routes } from "@/lib/routes";
+import { toast } from "sonner";
+import { Search, Plus, Loader2 } from "lucide-react";
 
 import {
   Table,
@@ -21,66 +23,134 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
+type ReservationStatus = "PENDING" | "ACTIVE" | "COMPLETED" | "CANCELLED";
+
+interface Room {
+  id: number;
+  number: string;
+  type: string;
+  status: string;
+}
+
+interface Reservation {
+  id: number;
+  guestName: string;
+  dni: string;
+  checkIn: string;
+  checkOut: string;
+  status: ReservationStatus;
+  roomId: number;
+  room: { number: string; type: string };
+}
+
+function formatDate(iso: string) {
+  return iso.split("T")[0];
+}
+
+function getRoomTypeLabel(type: string) {
+  const labels: Record<string, string> = {
+    SINGLE: "Sencilla",
+    DOUBLE: "Doble",
+    SUITE: "Suite",
+  };
+  return labels[type] ?? type;
+}
+
 export default function ReservasPage() {
   const [searchTerm, setSearchTerm] = useState("");
-  // Estado local para simular base de datos
-  const [reservas, setReservas] = useState<Reservation[]>(mockReservations);
+  const [reservations, setReservations] = useState<Reservation[]>([]);
+  const [availableRooms, setAvailableRooms] = useState<Room[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const filteredReservas = reservas.filter(
-    (res) =>
-      res.guestName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      res.dni.includes(searchTerm),
-  );
+  const fetchReservations = useCallback(async () => {
+    try {
+      const res = await api.get(routes.api.reservations.list());
+      setReservations(res.data);
+    } catch {
+      toast.error("Error al cargar las reservas");
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
 
-  const handleAddReservation = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const formData = new FormData(e.currentTarget);
-    const newReservation: Reservation = {
-      id: `RES-00${reservas.length + 1}`,
-      guestName: formData.get("guestName") as string,
-      dni: formData.get("dni") as string,
-      roomId: formData.get("roomId") as string,
-      checkIn: formData.get("checkIn") as string,
-      checkOut: formData.get("checkOut") as string,
-      status: "pendiente",
-    };
+  const fetchAvailableRooms = useCallback(async () => {
+    try {
+      const res = await api.get(routes.api.rooms.list());
+      setAvailableRooms(
+        (res.data as Room[]).filter((r) => r.status === "AVAILABLE"),
+      );
+    } catch {
+      toast.error("Error al cargar habitaciones disponibles");
+    }
+  }, []);
 
-    // Mantenemos la nueva reserva en el estado simulado (fácil de reemplazar por POST)
-    setReservas([...reservas, newReservation]);
-    setIsModalOpen(false);
+  useEffect(() => {
+    fetchReservations();
+  }, [fetchReservations]);
+
+  const handleOpenModal = () => {
+    fetchAvailableRooms();
+    setIsModalOpen(true);
   };
 
-  const getStatusBadge = (status: string) => {
+  const handleAddReservation = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+
+    setIsSubmitting(true);
+    try {
+      await api.post(routes.api.reservations.create(), {
+        guestName: formData.get("guestName") as string,
+        dni: formData.get("dni") as string,
+        roomId: Number(formData.get("roomId")),
+        checkIn: formData.get("checkIn") as string,
+        checkOut: formData.get("checkOut") as string,
+      });
+      toast.success("Reserva registrada exitosamente");
+      setIsModalOpen(false);
+      fetchReservations();
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { message?: string | string[] } } };
+      const raw = err.response?.data?.message;
+      const msg = Array.isArray(raw) ? raw[0] : raw ?? "Error al registrar la reserva";
+      toast.error(msg);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const filteredReservations = reservations.filter(
+    (r) =>
+      r.guestName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      r.dni.includes(searchTerm),
+  );
+
+  const getStatusBadge = (status: ReservationStatus) => {
     switch (status) {
-      case "activa":
+      case "ACTIVE":
         return (
           <span className="px-2 py-1 text-xs rounded-full bg-status-occupied-bg text-status-occupied-text font-semibold border border-status-occupied-border">
             En Hotel (Activa)
           </span>
         );
-      case "pendiente":
+      case "PENDING":
         return (
           <span className="px-2 py-1 text-xs rounded-full bg-status-cleaning-bg text-status-cleaning-text font-semibold border border-status-cleaning-border">
             Próximos a llegar
           </span>
         );
-      case "completada":
+      case "COMPLETED":
         return (
           <span className="px-2 py-1 text-xs rounded-full bg-status-available-bg text-status-available-text font-semibold border border-status-available-border">
             Finalizada
           </span>
         );
-      case "cancelada":
+      case "CANCELLED":
         return (
           <span className="px-2 py-1 text-xs rounded-full bg-status-maintenance-bg text-status-maintenance-text font-semibold border border-status-maintenance-border">
             Cancelada
-          </span>
-        );
-      default:
-        return (
-          <span className="px-2 py-1 text-xs rounded-full bg-zinc-100 text-zinc-700">
-            {status}
           </span>
         );
     }
@@ -100,9 +170,8 @@ export default function ReservasPage() {
           </p>
         </div>
 
-        {/* Modal Nueva Reserva */}
         <button
-          onClick={() => setIsModalOpen(true)}
+          onClick={handleOpenModal}
           className="flex items-center gap-2 bg-zinc-900 text-white px-5 py-2.5 rounded-xl font-semibold hover:bg-zinc-800 transition-all shadow-md active:scale-95"
         >
           <Plus className="w-5 h-5" /> Nueva Reserva
@@ -111,9 +180,7 @@ export default function ReservasPage() {
         <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
           <DialogContent className="sm:max-w-[450px] rounded-2xl">
             <DialogHeader>
-              <DialogTitle className="text-xl">
-                Añadir Nueva Reserva
-              </DialogTitle>
+              <DialogTitle className="text-xl">Añadir Nueva Reserva</DialogTitle>
               <DialogDescription>
                 Registra los datos del huésped para apartar de manera segura una
                 habitación en las fechas solicitadas.
@@ -178,41 +245,42 @@ export default function ReservasPage() {
                   required
                   className="h-10 px-3 py-2 rounded-lg border border-border/50 bg-background text-foreground focus:ring-2 focus:border-primary focus:ring-primary/20 outline-none transition-all cursor-pointer"
                 >
-                  <option value="" className="text-muted-foreground">
-                    Seleccione un cuarto disponible...
-                  </option>
-                  <option value="101" className="text-foreground">
-                    Cuarto 101 - Sencilla
-                  </option>
-                  <option value="104" className="text-foreground">
-                    Cuarto 104 - Sencilla
-                  </option>
-                  <option value="201" className="text-foreground">
-                    Cuarto 201 - Doble
-                  </option>
-                  <option value="204" className="text-foreground">
-                    Cuarto 204 - Doble
-                  </option>
+                  <option value="">Seleccione un cuarto disponible...</option>
+                  {availableRooms.map((room) => (
+                    <option key={room.id} value={room.id}>
+                      Cuarto {room.number} — {getRoomTypeLabel(room.type)}
+                    </option>
+                  ))}
+                  {availableRooms.length === 0 && (
+                    <option disabled>No hay habitaciones disponibles</option>
+                  )}
                 </select>
               </div>
               <button
                 type="submit"
-                className="w-full bg-primary text-primary-foreground h-11 rounded-lg font-semibold shadow hover:bg-primary/90 transition-all active:scale-[0.98]"
+                disabled={isSubmitting}
+                className="w-full bg-primary text-primary-foreground h-11 rounded-lg font-semibold shadow hover:bg-primary/90 transition-all active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
-                Confirmar y Registrar
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" /> Registrando...
+                  </>
+                ) : (
+                  "Confirmar y Registrar"
+                )}
               </button>
             </form>
           </DialogContent>
         </Dialog>
       </div>
 
-      {/* Cuadro de Búsqueda Falsa */}
+      {/* Buscador */}
       <div className="bg-card p-4 rounded-2xl border border-border/50 shadow-sm flex flex-col md:flex-row gap-4 justify-between">
         <div className="relative w-full max-w-md">
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <input
             type="text"
-            placeholder="🔎 Buscar una reserva por Documento o Nombre..."
+            placeholder="Buscar reserva por Documento o Nombre..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full h-11 pl-10 pr-4 rounded-xl border border-border/50 bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 focus:bg-muted transition-all font-medium text-foreground"
@@ -220,13 +288,13 @@ export default function ReservasPage() {
         </div>
       </div>
 
-      {/* Tabla de Reservas */}
+      {/* Tabla */}
       <div className="bg-card rounded-2xl border border-border/50 shadow-sm overflow-hidden mb-8">
         <Table>
           <TableHeader>
             <TableRow className="bg-muted/30 hover:bg-muted/30">
-              <TableHead className="font-semibold text-muted-foreground py-4 w-[110px] pl-6">
-                ID Reserva
+              <TableHead className="font-semibold text-muted-foreground py-4 w-[80px] pl-6">
+                ID
               </TableHead>
               <TableHead className="font-semibold text-muted-foreground">
                 Huésped
@@ -238,7 +306,7 @@ export default function ReservasPage() {
                 Alojamiento
               </TableHead>
               <TableHead className="font-semibold text-muted-foreground">
-                Fechas (In - Out)
+                Fechas (In → Out)
               </TableHead>
               <TableHead className="font-semibold text-muted-foreground text-right pr-6">
                 Estado
@@ -246,24 +314,36 @@ export default function ReservasPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredReservas.length === 0 ? (
+            {isLoading ? (
               <TableRow>
-                <TableCell
-                  colSpan={6}
-                  className="h-32 text-center text-muted-foreground"
-                >
-                  No se encontraron reservaciones que coincidan con{" "}
-                  <b className="text-foreground">&quot;{searchTerm}&quot;</b>.
+                <TableCell colSpan={6} className="h-32 text-center text-muted-foreground">
+                  <div className="flex flex-col items-center justify-center gap-2">
+                    <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                    <span>Cargando reservas...</span>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ) : filteredReservations.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={6} className="h-32 text-center text-muted-foreground">
+                  {searchTerm ? (
+                    <>
+                      No se encontraron reservas con{" "}
+                      <b className="text-foreground">&quot;{searchTerm}&quot;</b>.
+                    </>
+                  ) : (
+                    "No hay reservas registradas aún."
+                  )}
                 </TableCell>
               </TableRow>
             ) : (
-              filteredReservas.map((res) => (
+              filteredReservations.map((res) => (
                 <TableRow
                   key={res.id}
                   className="cursor-pointer transition-colors hover:bg-muted/50 group"
                 >
                   <TableCell className="font-bold text-foreground pl-6">
-                    {res.id}
+                    #{res.id}
                   </TableCell>
                   <TableCell className="font-medium text-foreground group-hover:text-primary transition-colors">
                     {res.guestName}
@@ -273,12 +353,13 @@ export default function ReservasPage() {
                   </TableCell>
                   <TableCell>
                     <span className="bg-muted text-muted-foreground px-2.5 py-1 rounded-md text-xs font-bold border border-border/50">
-                      Cto. {res.roomId}
+                      Cto. {res.room.number} — {getRoomTypeLabel(res.room.type)}
                     </span>
                   </TableCell>
                   <TableCell className="text-muted-foreground">
-                    {res.checkIn} <span className="opacity-50">→</span>{" "}
-                    {res.checkOut}
+                    {formatDate(res.checkIn)}{" "}
+                    <span className="opacity-50">→</span>{" "}
+                    {formatDate(res.checkOut)}
                   </TableCell>
                   <TableCell className="text-right pr-6">
                     {getStatusBadge(res.status)}
