@@ -53,6 +53,13 @@ const formSchema = z.object({
   type: z.enum(["SINGLE", "DOUBLE", "SUITE"], {
     message: "Debes seleccionar un tipo válido",
   }),
+  price: z
+    .string()
+    .min(1, "El precio es obligatorio")
+    .refine(
+      (v) => !isNaN(Number(v)) && Number(v) > 0,
+      "El precio por noche debe ser mayor a 0",
+    ),
 });
 
 interface RoomData {
@@ -60,6 +67,7 @@ interface RoomData {
   number: string;
   type: string;
   status: string;
+  price: string;
 }
 
 export default function RoomsPage() {
@@ -94,13 +102,17 @@ export default function RoomsPage() {
     defaultValues: {
       number: "",
       type: "SINGLE",
+      price: "",
     },
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
       setIsSubmitting(true);
-      await api.post(routes.api.rooms.create(), values);
+      await api.post(routes.api.rooms.create(), {
+        ...values,
+        price: Number(values.price),
+      });
 
       toast.success("Habitación creada exitosamente");
       form.reset();
@@ -265,6 +277,30 @@ export default function RoomsPage() {
                     )}
                   />
 
+                  <FormField
+                    control={form.control}
+                    name="price"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-muted-foreground">
+                          Precio por noche (S/.)
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            step="0.01"
+                            min="0"
+                            placeholder="ej: 120.00"
+                            className="bg-background border-border text-foreground focus-visible:ring-primary"
+                            disabled={isSubmitting}
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage className="text-destructive text-xs" />
+                      </FormItem>
+                    )}
+                  />
+
                   <div className="pt-2">
                     <Button
                       type="submit"
@@ -300,6 +336,9 @@ export default function RoomsPage() {
                 Tipo
               </TableHead>
               <TableHead className="text-muted-foreground font-semibold">
+                Precio / noche
+              </TableHead>
+              <TableHead className="text-muted-foreground font-semibold">
                 Estado Físico
               </TableHead>
             </TableRow>
@@ -308,7 +347,7 @@ export default function RoomsPage() {
             {isLoadingRooms ? (
               <TableRow className="border-border hover:bg-transparent">
                 <TableCell
-                  colSpan={3}
+                  colSpan={4}
                   className="h-32 text-center text-muted-foreground"
                 >
                   <div className="flex flex-col items-center justify-center gap-2">
@@ -320,7 +359,7 @@ export default function RoomsPage() {
             ) : rooms.length === 0 ? (
               <TableRow className="border-border hover:bg-transparent">
                 <TableCell
-                  colSpan={3}
+                  colSpan={4}
                   className="h-32 text-center text-muted-foreground font-medium"
                 >
                   No hay habitaciones registradas. Haz clic en &quot;Nueva
@@ -338,6 +377,9 @@ export default function RoomsPage() {
                   </TableCell>
                   <TableCell className="text-muted-foreground">
                     {getTypeTranslation(room.type)}
+                  </TableCell>
+                  <TableCell className="text-foreground font-medium">
+                    S/. {Number(room.price).toFixed(2)}
                   </TableCell>
                   <TableCell>{getStatusBadge(room.status)}</TableCell>
                 </TableRow>

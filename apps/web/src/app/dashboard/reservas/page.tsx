@@ -32,6 +32,8 @@ interface Room {
   status: string;
 }
 
+type PaymentMethod = "CASH" | "CARD" | "TRANSFER";
+
 interface Reservation {
   id: number;
   guestName: string;
@@ -41,11 +43,29 @@ interface Reservation {
   status: ReservationStatus;
   roomId: number;
   room: { number: string; type: string };
+  // Facturación (Prisma serializa Decimal como string; null hasta el check-out)
+  pricePerNight: string | null;
+  totalAmount: string | null;
+  paymentMethod: PaymentMethod | null;
 }
 
 function formatDate(iso: string) {
   return iso.split("T")[0];
 }
+
+// Noches reservadas, mínimo 1 — debe coincidir con el cálculo del backend
+function calcNights(checkIn: string, checkOut: string) {
+  const MS_PER_DAY = 1000 * 60 * 60 * 24;
+  const diff =
+    (new Date(checkOut).getTime() - new Date(checkIn).getTime()) / MS_PER_DAY;
+  return Math.max(1, Math.ceil(diff));
+}
+
+const PAYMENT_LABELS: Record<PaymentMethod, string> = {
+  CASH: "Efectivo",
+  CARD: "Tarjeta",
+  TRANSFER: "Transferencia",
+};
 
 function getRoomTypeLabel(type: string) {
   const labels: Record<string, string> = {
@@ -65,6 +85,9 @@ export default function ReservasPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   // Id de la reserva sobre la que se está ejecutando un check-in/check-out
   const [actioningId, setActioningId] = useState<number | null>(null);
+  // Reserva en proceso de cobro (abre el diálogo de check-out)
+  const [checkoutTarget, setCheckoutTarget] = useState<Reservation | null>(null);
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("CASH");
 
   const fetchReservations = useCallback(async () => {
     try {
@@ -139,11 +162,21 @@ export default function ReservasPage() {
     }
   };
 
-  const handleCheckOut = async (id: number) => {
-    setActioningId(id);
+  const openCheckout = (reservation: Reservation) => {
+    setPaymentMethod("CASH");
+    setCheckoutTarget(reservation);
+  };
+
+  const confirmCheckOut = async () => {
+    if (!checkoutTarget) return;
+    setActioningId(checkoutTarget.id);
     try {
-      const res = await api.patch(routes.api.reservations.checkOut(id));
+      const res = await api.patch(
+        routes.api.reservations.checkOut(checkoutTarget.id),
+        { paymentMethod },
+      );
       toast.success(res.data.message ?? "Check-out realizado");
+      setCheckoutTarget(null);
       fetchReservations();
     } catch (error: unknown) {
       const err = error as { response?: { data?: { message?: string | string[] } } };
@@ -416,20 +449,25 @@ export default function ReservasPage() {
                     )}
                     {res.status === "ACTIVE" && (
                       <button
-                        onClick={() => handleCheckOut(res.id)}
+                        onClick={() => openCheckout(res)}
                         disabled={actioningId === res.id}
                         className="inline-flex items-center gap-1.5 bg-status-cleaning-bg text-status-cleaning-text border border-status-cleaning-border px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-status-cleaning-icon-bg transition-all active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed"
                       >
-                        {actioningId === res.id ? (
-                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                        ) : (
-                          <LogOut className="w-3.5 h-3.5" />
-                        )}
+                        <LogOut className="w-3.5 h-3.5" />
                         Check-out
                       </button>
                     )}
-                    {(res.status === "COMPLETED" ||
-                      res.status === "CANCELLED") && (
+                    {res.status === "COMPLETED" && (
+                      <span className="text-xs font-semibold text-foreground">
+                        S/. {Number(res.totalAmount ?? 0).toFixed(2)}
+                        {res.paymentMethod && (
+                          <span className="ml-1 font-normal text-muted-foreground">
+                            ({PAYMENT_LABELS[res.paymentMethod]})
+                          </span>
+                        )}
+                      </span>
+                    )}
+                    {res.status === "CANCELLED" && (
                       <span className="text-xs text-muted-foreground">—</span>
                     )}
                   </TableCell>
@@ -439,6 +477,106 @@ export default function ReservasPage() {
           </TableBody>
         </Table>
       </div>
+
+      {/* Diálogo de Cobro / Check-out */}
+      <Dialog
+        open={checkoutTarget !== null}
+        onOpenChange={(open) => !open && setCheckoutTarget(null)}
+      >
+        <DialogContent className="sm:max-w-[440px] rounded-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-xl">Cobro y Check-out</DialogTitle>
+            <DialogDescription>
+              Revisa el detalle de la estadía y registra el método de pago para
+              cerrar la reserva.
+            </DialogDescription>
+          </DialogHeader>
+
+          {checkoutTarget &&
+            (() => {
+              const nights = calcNights(
+                checkoutTarget.checkIn,
+                checkoutTarget.checkOut,
+              );
+              const pricePerNight = Number(checkoutTarget.pricePerNight ?? 0);
+              const total = nights * pricePerNight;
+
+              return (
+                <div className="flex flex-col gap-4 mt-2">
+                  {/* Resumen */}
+                  <div className="bg-muted rounded-xl p-4 flex flex-col gap-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Huésped</span>
+                      <span className="font-semibold text-foreground">
+                        {checkoutTarget.guestName}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Habitación</span>
+                      <span className="font-semibold text-foreground">
+                        Cto. {checkoutTarget.room.number}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">
+                        {nights} noche{nights > 1 ? "s" : ""} × S/.{" "}
+                        {pricePerNight.toFixed(2)}
+                      </span>
+                      <span className="font-semibold text-foreground">
+                        S/. {total.toFixed(2)}
+                      </span>
+                    </div>
+                    <div className="border-t border-border/50 mt-1 pt-2 flex justify-between items-center">
+                      <span className="font-semibold text-foreground">
+                        Total a cobrar
+                      </span>
+                      <span className="text-xl font-bold text-primary">
+                        S/. {total.toFixed(2)}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Método de pago */}
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-sm font-semibold text-muted-foreground">
+                      Método de pago
+                    </label>
+                    <div className="grid grid-cols-3 gap-2">
+                      {(["CASH", "CARD", "TRANSFER"] as const).map((method) => (
+                        <button
+                          key={method}
+                          type="button"
+                          onClick={() => setPaymentMethod(method)}
+                          className={`px-3 py-2.5 rounded-lg text-sm font-semibold border transition-all ${
+                            paymentMethod === method
+                              ? "bg-primary text-primary-foreground border-primary"
+                              : "bg-background text-muted-foreground border-border/50 hover:bg-muted"
+                          }`}
+                        >
+                          {PAYMENT_LABELS[method]}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={confirmCheckOut}
+                    disabled={actioningId === checkoutTarget.id}
+                    className="w-full bg-primary text-primary-foreground h-11 rounded-lg font-semibold shadow hover:bg-primary/90 transition-all active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-1"
+                  >
+                    {actioningId === checkoutTarget.id ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" /> Procesando...
+                      </>
+                    ) : (
+                      "Confirmar y Cobrar"
+                    )}
+                  </button>
+                </div>
+              );
+            })()}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
