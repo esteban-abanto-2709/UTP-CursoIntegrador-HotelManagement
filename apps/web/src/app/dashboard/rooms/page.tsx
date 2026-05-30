@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { toast } from "sonner";
-import { Bed, Plus, Loader2 } from "lucide-react";
+import { Bed, Plus, Loader2, Pencil } from "lucide-react";
 
 import api from "@/lib/axios";
 import { routes } from "@/lib/routes";
@@ -27,7 +27,6 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import {
   Table,
@@ -76,6 +75,8 @@ export default function RoomsPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [rooms, setRooms] = useState<RoomData[]>([]);
   const [isLoadingRooms, setIsLoadingRooms] = useState(true);
+  // Habitación en edición; null = el diálogo está en modo "crear"
+  const [editingRoom, setEditingRoom] = useState<RoomData | null>(null);
 
   const canCreateRooms =
     currentUser?.role === "OWNER" || currentUser?.role === "MANAGER";
@@ -106,17 +107,38 @@ export default function RoomsPage() {
     },
   });
 
+  const openCreate = () => {
+    setEditingRoom(null);
+    form.reset({ number: "", type: "SINGLE", price: "" });
+    setIsOpen(true);
+  };
+
+  const openEdit = (room: RoomData) => {
+    setEditingRoom(room);
+    form.reset({
+      number: room.number,
+      type: room.type as "SINGLE" | "DOUBLE" | "SUITE",
+      price: String(room.price),
+    });
+    setIsOpen(true);
+  };
+
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
       setIsSubmitting(true);
-      await api.post(routes.api.rooms.create(), {
-        ...values,
-        price: Number(values.price),
-      });
+      const payload = { ...values, price: Number(values.price) };
 
-      toast.success("Habitación creada exitosamente");
+      if (editingRoom) {
+        await api.patch(routes.api.rooms.update(editingRoom.id), payload);
+        toast.success("Habitación actualizada exitosamente");
+      } else {
+        await api.post(routes.api.rooms.create(), payload);
+        toast.success("Habitación creada exitosamente");
+      }
+
       form.reset();
       setIsOpen(false);
+      setEditingRoom(null);
       fetchRooms();
     } catch (error: unknown) {
       const err = error as {
@@ -125,7 +147,7 @@ export default function RoomsPage() {
       const rawMessage = err.response?.data?.message;
       const message = Array.isArray(rawMessage)
         ? rawMessage[0]
-        : rawMessage || "Error al crear la habitación.";
+        : rawMessage || "Error al guardar la habitación.";
       toast.error(message);
     } finally {
       setIsSubmitting(false);
@@ -187,23 +209,29 @@ export default function RoomsPage() {
         </div>
 
         {canCreateRooms && (
-          <Dialog open={isOpen} onOpenChange={setIsOpen}>
-            <DialogTrigger
-              render={
-                <Button className="bg-primary hover:bg-primary/80 text-primary-foreground font-semibold shadow-[0_0_15px_rgba(14,165,233,0.3)] transition-all hover:shadow-[0_0_25px_rgba(14,165,233,0.5)]" />
-              }
+          <Dialog
+            open={isOpen}
+            onOpenChange={(open) => {
+              setIsOpen(open);
+              if (!open) setEditingRoom(null);
+            }}
+          >
+            <Button
+              onClick={openCreate}
+              className="bg-primary hover:bg-primary/80 text-primary-foreground font-semibold shadow-[0_0_15px_rgba(14,165,233,0.3)] transition-all hover:shadow-[0_0_25px_rgba(14,165,233,0.5)]"
             >
               <Plus className="mr-2 h-4 w-4" />
               Nueva Habitación
-            </DialogTrigger>
+            </Button>
             <DialogContent className="bg-card border border-border sm:max-w-md shadow-2xl">
               <DialogHeader className="mb-4">
                 <DialogTitle className="text-2xl text-foreground">
-                  Registrar Habitación
+                  {editingRoom ? "Editar Habitación" : "Registrar Habitación"}
                 </DialogTitle>
                 <DialogDescription className="text-muted-foreground">
-                  Añade un nuevo cuarto al inventario del hotel. Su estado será
-                  &quot;Disponible&quot; por defecto.
+                  {editingRoom
+                    ? "Modifica el número, tipo o tarifa de la habitación."
+                    : 'Añade un nuevo cuarto al inventario del hotel. Su estado será "Disponible" por defecto.'}
                 </DialogDescription>
               </DialogHeader>
 
@@ -312,6 +340,8 @@ export default function RoomsPage() {
                           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                           Guardando...
                         </>
+                      ) : editingRoom ? (
+                        "Guardar Cambios"
                       ) : (
                         "Guardar Habitación"
                       )}
@@ -341,13 +371,18 @@ export default function RoomsPage() {
               <TableHead className="text-muted-foreground font-semibold">
                 Estado Físico
               </TableHead>
+              {canCreateRooms && (
+                <TableHead className="text-muted-foreground font-semibold text-right">
+                  Acciones
+                </TableHead>
+              )}
             </TableRow>
           </TableHeader>
           <TableBody>
             {isLoadingRooms ? (
               <TableRow className="border-border hover:bg-transparent">
                 <TableCell
-                  colSpan={4}
+                  colSpan={canCreateRooms ? 5 : 4}
                   className="h-32 text-center text-muted-foreground"
                 >
                   <div className="flex flex-col items-center justify-center gap-2">
@@ -359,7 +394,7 @@ export default function RoomsPage() {
             ) : rooms.length === 0 ? (
               <TableRow className="border-border hover:bg-transparent">
                 <TableCell
-                  colSpan={4}
+                  colSpan={canCreateRooms ? 5 : 4}
                   className="h-32 text-center text-muted-foreground font-medium"
                 >
                   No hay habitaciones registradas. Haz clic en &quot;Nueva
@@ -382,6 +417,17 @@ export default function RoomsPage() {
                     S/. {Number(room.price).toFixed(2)}
                   </TableCell>
                   <TableCell>{getStatusBadge(room.status)}</TableCell>
+                  {canCreateRooms && (
+                    <TableCell className="text-right">
+                      <button
+                        onClick={() => openEdit(room)}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border border-border/50 text-muted-foreground hover:text-foreground hover:bg-muted transition-all active:scale-95"
+                      >
+                        <Pencil className="w-3.5 h-3.5" />
+                        Editar
+                      </button>
+                    </TableCell>
+                  )}
                 </TableRow>
               ))
             )}

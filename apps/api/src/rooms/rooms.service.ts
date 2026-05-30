@@ -2,6 +2,7 @@ import { Injectable, ConflictException, NotFoundException } from '@nestjs/common
 import { PrismaService } from '../providers/prisma/prisma.service';
 import { CreateRoomDto } from './dto/create-room.dto';
 import { UpdateRoomStatusDto } from './dto/update-room-status.dto';
+import { UpdateRoomDto } from './dto/update-room.dto';
 
 @Injectable()
 export class RoomsService {
@@ -52,6 +53,40 @@ export class RoomsService {
 
     return {
       message: `Estado de habitación ${updated.number} actualizado a ${updated.status}`,
+      room: updated,
+    };
+  }
+
+  async update(id: number, updateRoomDto: UpdateRoomDto) {
+    const room = await this.prisma.room.findUnique({ where: { id } });
+
+    if (!room) {
+      throw new NotFoundException(`No existe una habitación con el ID ${id}`);
+    }
+
+    // Si se cambia el número, validar que no choque con otra habitación
+    if (updateRoomDto.number && updateRoomDto.number !== room.number) {
+      const existing = await this.prisma.room.findUnique({
+        where: { number: updateRoomDto.number },
+      });
+      if (existing) {
+        throw new ConflictException(
+          `La habitación con el número ${updateRoomDto.number} ya existe`,
+        );
+      }
+    }
+
+    const updated = await this.prisma.room.update({
+      where: { id },
+      data: {
+        number: updateRoomDto.number,
+        type: updateRoomDto.type,
+        price: updateRoomDto.price,
+      },
+    });
+
+    return {
+      message: 'Habitación actualizada exitosamente',
       room: updated,
     };
   }

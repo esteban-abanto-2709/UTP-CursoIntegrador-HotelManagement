@@ -26,6 +26,7 @@ export const routes = {
       create: () => "/rooms",
       list: () => "/rooms",
       updateStatus: (id: number) => `/rooms/${id}/status`,
+      update: (id: number) => `/rooms/${id}`,
     },
     reservations: {
       list: () => "/reservations",
