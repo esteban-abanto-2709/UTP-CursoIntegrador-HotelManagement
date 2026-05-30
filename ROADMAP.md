@@ -2,7 +2,8 @@
 
 **Proyecto:** Sistema de Gestión Hotelera B2B — Curso Integrador UTP  
 **Stack:** NestJS + Prisma + PostgreSQL (API) | Next.js 16 + TailwindCSS (Frontend)  
-**Semanas disponibles:** 7 a la 16 (~9 semanas). Semanas 7-12 completadas.  
+**Infraestructura:** Backend en Render · Frontend en Vercel · Base de datos en Supabase  
+**Estado:** Sistema completo y desplegado en producción. Ciclo operativo funcional de extremo a extremo.  
 **Enfoque:** Desarrollo vertical por módulo (Backend + Frontend juntos). Primero funciona, luego se pule.
 
 ---
@@ -17,9 +18,9 @@
 | Dashboard de Estados | Completo | Completo | LISTO |
 | Reservas (CRUD básico) | Completo | Completo | LISTO |
 | Check-in / Check-out | Completo | Completo | LISTO |
-| Housekeeping | Completo | Completo | LISTO |
-| Cobro / Facturación | Pendiente | Pendiente | PENDIENTE |
-| Deploy | — | — | PENDIENTE |
+| Housekeeping (Limpieza) | Completo | Completo | LISTO |
+| Cobro / Facturación | Completo | Completo | LISTO |
+| Deploy (Render + Vercel) | Completo | Completo | LISTO |
 
 ---
 
@@ -46,191 +47,152 @@
 
 ---
 
-## Sprint 3: Base de Datos de Operaciones (Semanas 11 y 12)
+## Sprint 3: Modelos de Operaciones — COMPLETADO
 
-*Objetivo: Agregar al schema los modelos que soportan el negocio central: huéspedes, reservas y pagos.*
+*Objetivo: Agregar al schema los modelos que soportan el negocio central.*
 
-### Nuevos modelos en Prisma
+> **Desviación del plan original:** Se optó por un diseño simplificado. No se creó un modelo `Guest`
+> separado ni un modelo `Payment` separado — los datos del huésped y del cobro se embebieron
+> directamente en `Reservation`. Esto reduce complejidad y es suficiente para el alcance del curso.
 
-- [ ] **Modelo `Guest` (Huésped):**
-  - `id`, `dni` (unique), `fullName`, `email`, `phone`, `createdAt`
-  - Relación: un huésped puede tener N reservas
-
-- [ ] **Modelo `Reservation` (Reserva):**
-  - `id`, `checkIn` (DateTime), `checkOut` (DateTime), `status` (enum)
-  - Estado enum: `PENDING` (creada, sin llegar) / `ACTIVE` (huésped adentro) / `CHECKED_OUT` (salió) / `CANCELLED`
-  - Relaciones: `guestId → Guest`, `roomId → Room`, `employeeId → Employee` (quien la creó)
-  - `totalNights` (calculado), `pricePerNight` (snapshot al crear), `totalAmount` (calculado al checkout)
-
-- [ ] **Modelo `Payment` (Pago):**
-  - `id`, `reservationId` (unique), `amount`, `method` (CASH/CARD/TRANSFER), `paidAt`, `receivedBy` (employeeId)
-  - Se crea una vez al hacer checkout
-
-- [ ] Ejecutar `npx prisma migrate dev` y `npx prisma generate`
-
-### Backend: Módulo de Huéspedes
-
-- [ ] `POST /guests` — Crear huésped (con validación de DNI único)
-- [ ] `GET /guests` — Listar (con búsqueda por nombre o DNI via query param `?search=`)
-- [ ] `GET /guests/:id` — Detalle del huésped con su historial de reservas
-- [ ] `PATCH /guests/:id` — Actualizar datos de contacto
+- [x] **Modelo `Reservation`:**
+  - `id`, `guestName`, `dni`, `checkIn`, `checkOut`, `status` (enum)
+  - Timestamps reales: `actualCheckIn`, `actualCheckOut` (nullable)
+  - Estado enum: `PENDING` / `ACTIVE` / `COMPLETED` / `CANCELLED`
+  - Relación: `roomId → Room`
+- [x] **Facturación embebida en `Reservation`** (en vez de modelo `Payment` aparte):
+  - `pricePerNight` (snapshot al crear), `totalAmount` (calculado al checkout)
+  - `paymentMethod` (enum CASH/CARD/TRANSFER), `paidAt`
+- [x] **Precio en `Room`:** campo `price` (Decimal) — tarifa por noche
+- [x] Migraciones aplicadas con `prisma migrate deploy` y cliente regenerado
+- [x] ~~Datos del huésped embebidos en Reservation~~ — sin modelo `Guest` separado (simplificación)
 
 ---
 
-## Sprint 4: Reservas, Check-in y Check-out (Semanas 12 y 13)
+## Sprint 4: Reservas, Check-in y Check-out — COMPLETADO
 
 *Objetivo: El flujo operativo central del hotel funciona de extremo a extremo.*
 
 ### Backend: Módulo de Reservas
 
 **Crear Reserva** (`POST /reservations`):
-- [ ] Recibir: `guestId`, `roomId`, `checkIn`, `checkOut`
-- [ ] Validar que `checkOut > checkIn`
-- [ ] **Validar overbooking:** Consultar en DB si existe alguna reserva `PENDING` o `ACTIVE` para esa habitación donde las fechas se solapan. Condición de solapamiento: `newCheckIn < existingCheckOut AND newCheckOut > existingCheckIn`. Si hay conflicto, devolver `409 Conflict`.
-- [ ] Calcular `totalNights` y guardar `pricePerNight` (snapshot de la tarifa actual de la habitación)
-- [ ] La reserva se crea en estado `PENDING`
+- [x] Recibir `guestName`, `dni`, `roomId`, `checkIn`, `checkOut`
+- [x] Validar que `checkOut > checkIn`
+- [x] Validar que la habitación exista y esté `AVAILABLE`
+- [x] Guardar `pricePerNight` (snapshot de la tarifa actual de la habitación)
+- [x] La reserva se crea en estado `PENDING`
 
-**Otros endpoints de reservas:**
-- [ ] `GET /reservations` — Listar con filtros (`?status=`, `?roomId=`, `?guestId=`, `?date=`)
-- [ ] `GET /reservations/:id` — Detalle completo (incluye huésped y habitación)
-- [ ] `PATCH /reservations/:id` — Modificar fechas o habitación (re-validar overbooking)
-- [ ] `DELETE /reservations/:id` — Cancelar (cambia status a `CANCELLED`, no borra el registro)
+**Listado:**
+- [x] `GET /reservations` — Listar reservas con su habitación incluida
 
-**Check-in** (`POST /reservations/:id/checkin`):
-- [ ] Validar que la reserva esté en estado `PENDING`
-- [ ] Validar que la habitación esté en estado `AVAILABLE`
-- [ ] Cambiar estado de la reserva a `ACTIVE`
-- [ ] Cambiar estado de la habitación a `OCCUPIED`
-- [ ] Registrar `actualCheckIn` (timestamp real de llegada)
+**Check-in** (`PATCH /reservations/:id/checkin`):
+- [x] Validar que la reserva esté en estado `PENDING`
+- [x] Validar que la habitación esté en estado `AVAILABLE`
+- [x] Reserva → `ACTIVE`, habitación → `OCCUPIED`, registrar `actualCheckIn` (transacción atómica)
 
-**Check-out** (`POST /reservations/:id/checkout`):
-- [ ] Validar que la reserva esté en estado `ACTIVE`
-- [ ] Calcular `totalAmount` = noches reales × `pricePerNight` (usar la fecha real de salida)
-- [ ] Recibir `paymentMethod` (CASH / CARD / TRANSFER) en el body
-- [ ] Crear registro en `Payment` (amount, method, receivedBy = empleado logueado)
-- [ ] Cambiar estado de la reserva a `CHECKED_OUT`
-- [ ] Cambiar estado de la habitación a `CLEANING` (pasa automáticamente a la cola de housekeeping)
-- [ ] Devolver resumen del cobro para mostrar en el frontend
+**Check-out** (`PATCH /reservations/:id/checkout`):
+- [x] Validar que la reserva esté en estado `ACTIVE`
+- [x] Calcular `totalAmount` = noches × `pricePerNight` (mínimo 1 noche)
+- [x] Recibir `paymentMethod` (CASH / CARD / TRANSFER) en el body
+- [x] Guardar cobro en la reserva (`totalAmount`, `paymentMethod`, `paidAt`)
+- [x] Reserva → `COMPLETED`, habitación → `CLEANING` (transacción atómica)
+- [x] Devolver resumen del cobro (`billing`) para el frontend
 
-### Frontend: Conectar el Dashboard al Backend
+### Frontend: Dashboard
 
-- [ ] **Modal de habitación (click en el grid):**
-  - Estado `AVAILABLE`: mostrar botón "Registrar Check-in directo" (sin reserva previa) o "Ver reserva pendiente"
-  - Estado `OCCUPIED`: mostrar datos del huésped actual y botón "Efectuar Check-out"
-  - Estado `CLEANING`: mostrar mensaje "Pendiente de limpieza"
-  - Estado `MAINTENANCE`: mostrar mensaje y opción de volver a disponible (solo MANAGER/OWNER)
-  - Cada acción llama al endpoint correspondiente y refresca el grid
+- [x] **Modal de habitación (click en el grid):** acciones operativas según estado
+  (Check-in, Check-out, Finalizar limpieza, Habilitar) conectadas al backend con loading state
 
 ### Frontend: Página de Reservas (`/dashboard/reservas`)
 
-- [ ] Tabla de datos con columnas: Huésped, Habitación, Check-in, Check-out, Estado, Acciones
-- [ ] Buscador en tiempo real (filtra por nombre del huésped o DNI)
-- [ ] Filtro por estado de reserva (Pendiente / Activa / Finalizada / Cancelada)
-- [ ] Botón "Nueva Reserva" que abre un modal con el formulario:
-  - Campo de búsqueda de huésped por DNI (si no existe, botón "Crear huésped nuevo")
-  - Selector de habitación (solo muestra AVAILABLE en el rango de fechas elegido)
-  - Date pickers para check-in y check-out (check-out bloqueado para fechas menores a check-in)
-  - Resumen del costo calculado (noches × tarifa) antes de confirmar
-- [ ] Botón "Check-in" en las reservas con estado `PENDING`
-- [ ] Botón "Check-out" en las reservas con estado `ACTIVE` (abre diálogo de cobro)
-- [ ] **Diálogo de cobro al hacer Check-out:**
-  - Muestra resumen: huésped, habitación, fechas, total a cobrar
-  - Selector de método de pago (Efectivo / Tarjeta / Transferencia)
-  - Botón "Confirmar y Cobrar" que ejecuta el checkout
+- [x] Tabla con columnas: ID, Huésped, Documento, Alojamiento, Fechas, Estado, Acciones
+- [x] Buscador en tiempo real (filtra por nombre del huésped o DNI)
+- [x] Botón "Nueva Reserva" con modal: nombre, DNI, fechas y selector de habitación (solo `AVAILABLE`)
+- [x] Botón "Check-in" en reservas `PENDING`
+- [x] Botón "Check-out" en reservas `ACTIVE` (abre diálogo de cobro)
+- [x] **Diálogo de cobro:** resumen (huésped, habitación, noches × tarifa, total) + selector de método de pago + "Confirmar y Cobrar"
+- [x] Reservas finalizadas muestran el monto cobrado y el método de pago
 
 ---
 
-## Sprint 5: Housekeeping, Seguridad UI y Pulido (Semanas 13 y 14)
+## Sprint 5: Housekeeping y Pulido — COMPLETADO
 
-*Objetivo: Cerrar el ciclo operativo con la vista de limpieza y asegurar que cada rol solo vea lo que le corresponde.*
+*Objetivo: Cerrar el ciclo operativo con la vista de limpieza.*
 
-### Frontend: Página de Housekeeping (`/dashboard/servicio`)
+### Frontend: Página de Limpieza (`/dashboard/servicio`)
 
-- [ ] Vista dedicada exclusivamente para el rol `EMPLOYEE`
-- [ ] Lista de habitaciones filtrada únicamente a las que tienen estado `CLEANING`
-- [ ] Cada tarjeta muestra: número de habitación, tipo, hora desde que entró en limpieza
-- [ ] Botón "Marcar como Limpia" que ejecuta `PATCH /rooms/:id/status` con `AVAILABLE`
-- [ ] Al liberar, la habitación desaparece de esta lista y vuelve al grid verde del Dashboard
+- [x] Lista de habitaciones filtrada a estado `CLEANING` (datos reales del backend)
+- [x] Cada tarjeta muestra número de habitación y tipo
+- [x] Botón "Liberar Habitación" que ejecuta `PATCH /rooms/:id/status` con `AVAILABLE`
+- [x] Al liberar, la habitación desaparece de la lista y vuelve al grid verde del Dashboard
+- [x] Empty state ("¡Todo impecable!") cuando no hay habitaciones en limpieza
 
-### Seguridad y UX
+### UX
 
-- [ ] Si un `EMPLOYEE` intenta navegar a `/dashboard/reservas` por URL, redirigir a `/dashboard/servicio`
-- [ ] Empty states con ilustración cuando no hay habitaciones en limpieza
-- [ ] Skeleton loaders mientras cargan los datos (no pantallas en blanco)
-- [ ] Manejo de errores: mostrar toast cuando el backend devuelve overbooking (409) o conflicto de estado
-- [ ] Validación de formularios con mensajes claros (Zod + React Hook Form)
+- [x] Loading states (spinners) mientras cargan los datos
+- [x] Manejo de errores con toasts (sonner)
+- [x] Validación de formularios con Zod + React Hook Form (form de habitaciones)
+- [x] Eliminación de todos los mocks — la app usa 100% datos reales del backend
 
 ---
 
-## Sprint 6: Pruebas y Deploy (Semanas 15 y 16)
+## Sprint 6: Deploy — COMPLETADO
 
-*Objetivo: El sistema corre en producción y el profesor puede evaluarlo con cuentas reales.*
-
-### Flujo de prueba E2E completo
-
-- [ ] Entrar como OWNER → crear un MANAGER y un EMPLOYEE
-- [ ] Entrar como MANAGER → registrar habitaciones al sistema
-- [ ] Entrar como MANAGER → crear huésped → crear reserva futura → verificar que el sistema rechaza una segunda reserva en las mismas fechas (overbooking)
-- [ ] Entrar como MANAGER → efectuar Check-in a la reserva → verificar que la habitación pasa a OCCUPIED
-- [ ] Entrar como MANAGER → efectuar Check-out → verificar resumen de cobro → confirmar pago → verificar que la habitación pasa a CLEANING
-- [ ] Entrar como EMPLOYEE → ver la habitación en CLEANING → marcarla como Limpia → verificar que vuelve a verde en el Dashboard
-
-### Deploy
-
-- [ ] **Backend:** Deploy en Railway.app o Render.com
+- [x] **Backend:** Desplegado en Render
   - Variables de entorno: `DATABASE_URL`, `DIRECT_URL`, `JWT_SECRET`, `FRONTEND_URL`
-  - Ejecutar `prisma migrate deploy` en el entorno de producción
-- [ ] **Frontend:** Deploy en Vercel
-  - Variable de entorno: `NEXT_PUBLIC_API_URL` apuntando al backend en producción
-- [ ] **Documento de entrega:** URL pública del sistema + credenciales de prueba para el profesor (una cuenta OWNER, una MANAGER, una EMPLOYEE)
+  - `prisma migrate deploy` ejecutado en producción
+- [x] **Frontend:** Desplegado en Vercel
+  - Variable `NEXT_PUBLIC_API_URL` apuntando al backend en Render
+- [x] **Base de datos:** PostgreSQL en Supabase (pooler + direct URL para migraciones)
 
 ---
 
-## Flujos de Negocio Resumidos
+## Pendientes / Mejoras Futuras
 
-### Flujo 1: Reserva Anticipada → Check-in → Check-out → Limpieza
+*Funcionalidades del plan original que se simplificaron o quedaron fuera del alcance entregado.*
 
-```
-Recepcionista:
-1. Busca huésped por DNI (o crea uno nuevo)
-2. Selecciona fechas + habitación disponible
-3. Sistema valida que no hay overbooking → Reserva creada (PENDING)
-4. Al llegar el huésped → Check-in → Habitación pasa a OCCUPIED
-5. Al salir → Check-out → Sistema calcula total → Recepcionista selecciona método de pago → Se registra el pago → Habitación pasa a CLEANING
+- [ ] **Validación de overbooking:** hoy solo se valida que la habitación esté `AVAILABLE`.
+  No se valida solapamiento de fechas entre reservas (`PENDING`/`ACTIVE`) para la misma habitación.
+- [ ] **Editar / cancelar reservas:** no hay `PATCH /reservations/:id` (modificar fechas) ni
+  `DELETE /reservations/:id` (cancelar → `CANCELLED`).
+- [ ] **Detalle de reserva:** no existe `GET /reservations/:id`.
+- [ ] **Filtros en el listado de reservas:** por estado, habitación o fecha.
+- [ ] **Editar precio/datos de habitación:** no hay endpoint de edición de `Room`
+  (las habitaciones creadas antes de la facturación quedaron en `S/. 0.00`).
+- [ ] **Restricción de UI por rol:** un `EMPLOYEE` aún puede navegar a `/dashboard/reservas` por URL;
+  el plan contemplaba redirigirlo a `/dashboard/servicio`.
+- [ ] **Empleado que registra la operación:** las reservas/cobros no guardan qué empleado los ejecutó.
+- [ ] **Comprobante imprimible** del cobro tras el check-out.
+- [ ] **Documento de entrega:** URL pública + credenciales de prueba (OWNER / MANAGER / EMPLOYEE) para el profesor.
 
-Empleado de Limpieza:
-6. Ve la habitación en su lista → La limpia → Marca "Liberar" → Habitación vuelve a AVAILABLE
-```
+---
 
-### Flujo 2: Check-in Directo (sin reserva previa)
+## Flujos de Negocio (implementados)
 
-```
-1. Huésped llega sin reserva
-2. Recepcionista crea reserva en el momento (fechas: hoy → mañana/fecha que indique)
-3. Inmediatamente hace Check-in desde la misma pantalla
-4. El resto del flujo es idéntico al Flujo 1
-```
-
-### Regla de Overbooking
+### Flujo principal: Reserva → Check-in → Check-out → Limpieza
 
 ```
-Al crear o modificar una reserva, el backend consulta:
-¿Existe alguna reserva (PENDING o ACTIVE) para la misma habitación
-donde el rango de fechas se solape?
+Recepcionista (OWNER / MANAGER):
+1. Crea reserva: nombre del huésped, DNI, fechas y habitación disponible
+   → El sistema guarda el precio por noche como snapshot → Reserva creada (PENDING)
+2. Al llegar el huésped → Check-in → Habitación pasa a OCCUPIED (reserva ACTIVE)
+3. Al salir → Check-out → Se abre el diálogo de cobro:
+   - Sistema calcula total = noches × precio por noche (mínimo 1 noche)
+   - Recepcionista elige método de pago (Efectivo / Tarjeta / Transferencia)
+   - Se registra el cobro en la reserva → Reserva COMPLETED → Habitación pasa a CLEANING
 
-Condición SQL: checkIn < nuevaFechaSalida AND checkOut > nuevaFechaEntrada
-
-Si existe → Error 409: "La habitación ya está reservada para esas fechas"
-Si no existe → Reserva creada con éxito
+Personal de Limpieza (EMPLOYEE):
+4. Ve la habitación en CLEANING en la página de Servicio → La limpia →
+   "Liberar Habitación" → Habitación vuelve a AVAILABLE
 ```
 
-### Cálculo de Cobro al Checkout
+### Cálculo de Cobro al Check-out
 
 ```
-totalAmount = nochesReales × pricePerNight
+totalAmount = noches × pricePerNight  (mínimo 1 noche)
 
-nochesReales = (fechaRealSalida - fechaEntrada).days
-pricePerNight = snapshot guardado al crear la reserva (no cambia aunque se modifique la tarifa después)
+noches        = ceil((checkOut - checkIn) en días)   ← fechas planificadas de la reserva
+pricePerNight = snapshot guardado al crear la reserva (no cambia aunque luego se edite la tarifa del cuarto)
 
-El pago se registra en el modelo Payment con: monto, método, timestamp, empleado que lo recibió
+El cobro se guarda en la propia Reserva: totalAmount, paymentMethod y paidAt.
 ```
