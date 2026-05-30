@@ -2,10 +2,11 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
-import { Users, Loader2, ClipboardList } from "lucide-react";
+import { Users, Loader2, ClipboardList, Pencil, Lock } from "lucide-react";
 
 import api from "@/lib/axios";
 import { routes } from "@/lib/routes";
+import { useAuthStore } from "@/store/authStore";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -17,7 +18,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-import { EmployeeFormDialog } from "./EmployeeFormDialog";
+import { EmployeeFormDialog, EmployeeDetail } from "./EmployeeFormDialog";
 
 interface EmployeeData {
   id: number;
@@ -32,9 +33,14 @@ interface EmployeeData {
 }
 
 export default function StaffPage() {
+  const currentUser = useAuthStore((state) => state.user);
   const [employees, setEmployees] = useState<EmployeeData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [editingEmployee, setEditingEmployee] = useState<EmployeeDetail | null>(
+    null,
+  );
+  const [loadingDetailId, setLoadingDetailId] = useState<number | null>(null);
 
   const fetchEmployees = useCallback(async () => {
     try {
@@ -52,6 +58,28 @@ export default function StaffPage() {
   useEffect(() => {
     fetchEmployees();
   }, [fetchEmployees]);
+
+  // Un MANAGER solo puede editar EMPLEADOS; el OWNER puede editar a cualquiera
+  const canEdit = (role: string) =>
+    currentUser?.role === "OWNER" || role === "EMPLOYEE";
+
+  const openCreate = () => {
+    setEditingEmployee(null);
+    setIsFormOpen(true);
+  };
+
+  const openEdit = async (id: number) => {
+    setLoadingDetailId(id);
+    try {
+      const response = await api.get(routes.api.employees.getOne(id));
+      setEditingEmployee(response.data);
+      setIsFormOpen(true);
+    } catch {
+      toast.error("No se pudo cargar la información del empleado.");
+    } finally {
+      setLoadingDetailId(null);
+    }
+  };
 
   const getRoleBadge = (role: string) => {
     switch (role) {
@@ -111,16 +139,21 @@ export default function StaffPage() {
           </p>
         </div>
 
-        <Button onClick={() => setIsFormOpen(true)}>
+        <Button onClick={openCreate}>
           <ClipboardList className="mr-2 h-4 w-4" />
           Registrar Empleado
         </Button>
       </div>
 
       <EmployeeFormDialog
+        key={editingEmployee?.id ?? "new"}
         open={isFormOpen}
-        onOpenChange={setIsFormOpen}
+        onOpenChange={(open) => {
+          setIsFormOpen(open);
+          if (!open) setEditingEmployee(null);
+        }}
         onSuccess={fetchEmployees}
+        employee={editingEmployee}
       />
 
       {/* Tabla */}
@@ -168,9 +201,29 @@ export default function StaffPage() {
                   <TableCell>{getTurnoBadge(e.turno)}</TableCell>
                   <TableCell>{getRoleBadge(e.role)}</TableCell>
                   <TableCell className="text-right">
-                    <Button variant="ghost" size="sm" disabled>
-                      Editar
-                    </Button>
+                    {canEdit(e.role) ? (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => openEdit(e.id)}
+                        disabled={loadingDetailId === e.id}
+                      >
+                        {loadingDetailId === e.id ? (
+                          <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+                        ) : (
+                          <Pencil className="mr-1.5 h-3.5 w-3.5" />
+                        )}
+                        Editar
+                      </Button>
+                    ) : (
+                      <span
+                        title="Solo el propietario puede editar a un gerente"
+                        className="inline-flex items-center gap-1.5 text-xs text-muted-foreground/60 cursor-not-allowed px-3 py-1.5"
+                      >
+                        <Lock className="h-3.5 w-3.5" />
+                        Bloqueado
+                      </span>
+                    )}
                   </TableCell>
                 </TableRow>
               ))

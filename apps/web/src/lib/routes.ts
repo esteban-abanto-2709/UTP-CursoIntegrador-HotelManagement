@@ -21,6 +21,8 @@ export const routes = {
     employees: {
       create: () => "/employees",
       list: () => "/employees",
+      getOne: (id: number) => `/employees/${id}`,
+      update: (id: number) => `/employees/${id}`,
     },
     rooms: {
       create: () => "/rooms",

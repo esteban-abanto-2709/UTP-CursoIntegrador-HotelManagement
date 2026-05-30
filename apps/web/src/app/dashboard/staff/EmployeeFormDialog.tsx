@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -36,29 +36,53 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-const schema = z
-  .object({
-    username: z.string().min(3, "Mínimo 3 caracteres"),
-    password: z.string().min(8, "Mínimo 8 caracteres"),
-    confirmPassword: z.string().min(1, "Campo requerido"),
-    dni: z.string().min(8, "Mínimo 8 caracteres").max(12, "Máximo 12 caracteres"),
-    nombres: z.string().min(2, "Campo requerido"),
-    apellidoPaterno: z.string().min(2, "Campo requerido"),
-    apellidoMaterno: z.string().min(2, "Campo requerido"),
-    fechaNacimiento: z.string().min(1, "Campo requerido"),
-    cargo: z.string().min(1, "Selecciona un cargo"),
-    turno: z.string().min(1, "Selecciona un turno"),
-    fechaInicio: z.string().min(1, "Campo requerido"),
-    telefono: z.string().min(9, "Mínimo 9 dígitos"),
-    email: z.string().email("Correo inválido"),
-    direccion: z.string().optional(),
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: "Las contraseñas no coinciden",
-    path: ["confirmPassword"],
-  });
+// En edición la contraseña es opcional (vacía = mantener la actual); en alta es obligatoria
+function buildSchema(isEdit: boolean) {
+  return z
+    .object({
+      username: z.string().min(3, "Mínimo 3 caracteres"),
+      password: isEdit
+        ? z
+            .string()
+            .refine((v) => v === "" || v.length >= 8, "Mínimo 8 caracteres")
+        : z.string().min(8, "Mínimo 8 caracteres"),
+      confirmPassword: z.string(),
+      dni: z.string().min(8, "Mínimo 8 caracteres").max(12, "Máximo 12 caracteres"),
+      nombres: z.string().min(2, "Campo requerido"),
+      apellidoPaterno: z.string().min(2, "Campo requerido"),
+      apellidoMaterno: z.string().min(2, "Campo requerido"),
+      fechaNacimiento: z.string().min(1, "Campo requerido"),
+      cargo: z.string().min(1, "Selecciona un cargo"),
+      turno: z.string().min(1, "Selecciona un turno"),
+      fechaInicio: z.string().min(1, "Campo requerido"),
+      telefono: z.string().min(9, "Mínimo 9 dígitos"),
+      email: z.string().email("Correo inválido"),
+      direccion: z.string().optional(),
+    })
+    .refine((data) => data.password === data.confirmPassword, {
+      message: "Las contraseñas no coinciden",
+      path: ["confirmPassword"],
+    });
+}
 
-type FormValues = z.infer<typeof schema>;
+type FormValues = z.infer<ReturnType<typeof buildSchema>>;
+
+export interface EmployeeDetail {
+  id: number;
+  username: string;
+  role: string;
+  dni: string | null;
+  nombres: string | null;
+  apellidoPaterno: string | null;
+  apellidoMaterno: string | null;
+  fechaNacimiento: string | null;
+  cargo: string | null;
+  turno: string | null;
+  fechaInicio: string | null;
+  telefono: string | null;
+  email: string | null;
+  direccion: string | null;
+}
 
 const ALL_CARGOS = ["Manager", "Recepcionista", "Botones", "Limpieza"] as const;
 
@@ -72,36 +96,46 @@ interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSuccess?: () => void;
+  employee?: EmployeeDetail | null;
 }
 
-export function EmployeeFormDialog({ open, onOpenChange, onSuccess }: Props) {
+export function EmployeeFormDialog({
+  open,
+  onOpenChange,
+  onSuccess,
+  employee = null,
+}: Props) {
   const currentUser = useAuthStore((state) => state.user);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const isEdit = employee !== null;
 
   // MANAGERs no pueden crear otro Manager
   const cargos = currentUser?.role === "MANAGER"
     ? ALL_CARGOS.filter((c) => c !== "Manager")
     : ALL_CARGOS;
 
+  const schema = useMemo(() => buildSchema(isEdit), [isEdit]);
+
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
-      username: "",
+      username: employee?.username ?? "",
       password: "",
       confirmPassword: "",
-      dni: "",
-      nombres: "",
-      apellidoPaterno: "",
-      apellidoMaterno: "",
-      fechaNacimiento: "",
-      cargo: "",
-      turno: "",
-      fechaInicio: "",
-      telefono: "",
-      email: "",
-      direccion: "",
+      dni: employee?.dni ?? "",
+      nombres: employee?.nombres ?? "",
+      apellidoPaterno: employee?.apellidoPaterno ?? "",
+      apellidoMaterno: employee?.apellidoMaterno ?? "",
+      fechaNacimiento: employee?.fechaNacimiento?.split("T")[0] ?? "",
+      cargo: employee?.cargo ?? "",
+      turno: employee?.turno ?? "",
+      fechaInicio: employee?.fechaInicio?.split("T")[0] ?? "",
+      telefono: employee?.telefono ?? "",
+      email: employee?.email ?? "",
+      direccion: employee?.direccion ?? "",
     },
   });
 
@@ -115,15 +149,25 @@ export function EmployeeFormDialog({ open, onOpenChange, onSuccess }: Props) {
       setIsSubmitting(true);
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { confirmPassword, ...payload } = values;
-      await api.post(routes.api.employees.create(), payload);
-      toast.success("Empleado registrado exitosamente.");
+
+      if (isEdit && employee) {
+        // En edición, no enviamos la contraseña si quedó en blanco (mantiene la actual)
+        const editPayload: Partial<typeof payload> = { ...payload };
+        if (!editPayload.password) delete editPayload.password;
+        await api.patch(routes.api.employees.update(employee.id), editPayload);
+        toast.success("Empleado actualizado exitosamente.");
+      } else {
+        await api.post(routes.api.employees.create(), payload);
+        toast.success("Empleado registrado exitosamente.");
+      }
+
       form.reset();
       onOpenChange(false);
       onSuccess?.();
     } catch (error: unknown) {
       const err = error as { response?: { data?: { message?: string | string[] } } };
       const raw = err.response?.data?.message;
-      const message = Array.isArray(raw) ? raw[0] : raw ?? "Error al registrar empleado.";
+      const message = Array.isArray(raw) ? raw[0] : raw ?? "Error al guardar el empleado.";
       toast.error(message);
     } finally {
       setIsSubmitting(false);
@@ -135,10 +179,12 @@ export function EmployeeFormDialog({ open, onOpenChange, onSuccess }: Props) {
       <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-base font-semibold">
-            Ficha de Empleado
+            {isEdit ? "Editar Empleado" : "Ficha de Empleado"}
           </DialogTitle>
           <DialogDescription>
-            Completa los datos personales y laborales del nuevo colaborador.
+            {isEdit
+              ? "Modifica los datos del colaborador. Deja la contraseña en blanco para mantener la actual."
+              : "Completa los datos personales y laborales del nuevo colaborador."}
           </DialogDescription>
         </DialogHeader>
 
@@ -436,8 +482,10 @@ export function EmployeeFormDialog({ open, onOpenChange, onSuccess }: Props) {
               {isSubmitting ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Registrando...
+                  Guardando...
                 </>
+              ) : isEdit ? (
+                "Guardar Cambios"
               ) : (
                 "Registrar Empleado"
               )}
