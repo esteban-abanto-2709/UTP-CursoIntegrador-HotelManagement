@@ -1,10 +1,10 @@
 import {
   Injectable,
   BadRequestException,
+  ConflictException,
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '@/providers/prisma/prisma.service';
-import { ReservationStatus } from '@prisma/client';
 import { CreateReservationDto } from './dto/create-reservation.dto';
 import { UpdateReservationStatusDto } from './dto/update-reservation-status.dto';
 import { CheckoutReservationDto } from './dto/checkout-reservation.dto';
@@ -31,9 +31,18 @@ export class ReservationsService {
       throw new NotFoundException(`Habitación ${dto.roomId} no encontrada`);
     }
 
-    if (room.status !== 'AVAILABLE') {
-      throw new BadRequestException(
-        `La habitación ${room.number} no está disponible`,
+    const conflicto = await this.prisma.reservation.findFirst({
+      where: {
+        roomId: dto.roomId,
+        status: { in: ['PENDING', 'ACTIVE'] },
+        checkIn: { lt: checkOut },
+        checkOut: { gt: checkIn },
+      },
+    });
+
+    if (conflicto) {
+      throw new ConflictException(
+        `La habitación ${room.number} ya está reservada para esas fechas`,
       );
     }
 

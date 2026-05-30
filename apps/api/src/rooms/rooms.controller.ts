@@ -1,8 +1,9 @@
-import { Controller, Get, Post, Patch, Body, Param, ParseIntPipe, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Body, Param, Query, ParseIntPipe, UseGuards } from '@nestjs/common';
 import { RoomsService } from './rooms.service';
 import { CreateRoomDto } from './dto/create-room.dto';
 import { UpdateRoomStatusDto } from './dto/update-room-status.dto';
 import { UpdateRoomDto } from './dto/update-room.dto';
+import { AvailabilityQueryDto } from './dto/availability-query.dto';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
@@ -22,6 +23,12 @@ export class RoomsController {
   @Get()
   findAll() {
     return this.roomsService.findAll();
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('availability')
+  findAvailable(@Query() query: AvailabilityQueryDto) {
+    return this.roomsService.findAvailable(query);
   }
 
   @UseGuards(JwtAuthGuard)

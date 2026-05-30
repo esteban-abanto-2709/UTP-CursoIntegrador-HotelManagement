@@ -1,8 +1,14 @@
-import { Injectable, ConflictException, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  ConflictException,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '../providers/prisma/prisma.service';
 import { CreateRoomDto } from './dto/create-room.dto';
 import { UpdateRoomStatusDto } from './dto/update-room-status.dto';
 import { UpdateRoomDto } from './dto/update-room.dto';
+import { AvailabilityQueryDto } from './dto/availability-query.dto';
 
 @Injectable()
 export class RoomsService {
@@ -35,6 +41,32 @@ export class RoomsService {
 
   async findAll() {
     return this.prisma.room.findMany({
+      orderBy: { number: 'asc' },
+    });
+  }
+
+  async findAvailable(query: AvailabilityQueryDto) {
+    const checkIn = new Date(query.checkIn);
+    const checkOut = new Date(query.checkOut);
+
+    if (checkOut <= checkIn) {
+      throw new BadRequestException(
+        'La fecha de salida debe ser posterior a la de entrada',
+      );
+    }
+
+    return this.prisma.room.findMany({
+      where: {
+        type: query.type,
+        status: { not: 'MAINTENANCE' },
+        reservations: {
+          none: {
+            status: { in: ['PENDING', 'ACTIVE'] },
+            checkIn: { lt: checkOut },
+            checkOut: { gt: checkIn },
+          },
+        },
+      },
       orderBy: { number: 'asc' },
     });
   }

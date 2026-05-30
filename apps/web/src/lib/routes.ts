@@ -27,6 +27,8 @@ export const routes = {
     rooms: {
       create: () => "/rooms",
       list: () => "/rooms",
+      availability: (params: { checkIn: string; checkOut: string; type: string }) =>
+        `/rooms/availability?${new URLSearchParams(params).toString()}`,
       updateStatus: (id: number) => `/rooms/${id}/status`,
       update: (id: number) => `/rooms/${id}`,
     },
