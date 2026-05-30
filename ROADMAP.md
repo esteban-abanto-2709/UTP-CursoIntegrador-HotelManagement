@@ -2,7 +2,7 @@
 
 **Proyecto:** Sistema de Gestión Hotelera B2B — Curso Integrador UTP  
 **Stack:** NestJS + Prisma + PostgreSQL (API) | Next.js 16 + TailwindCSS (Frontend)  
-**Semanas disponibles:** 7 a la 16 (~9 semanas). Semanas 7-10 completadas.  
+**Semanas disponibles:** 7 a la 16 (~9 semanas). Semanas 7-12 completadas.  
 **Enfoque:** Desarrollo vertical por módulo (Backend + Frontend juntos). Primero funciona, luego se pule.
 
 ---
@@ -15,8 +15,7 @@
 | Gestión de Empleados (CRUD) | Completo | Completo | LISTO |
 | Inventario de Habitaciones | Completo | Completo | LISTO |
 | Dashboard de Estados | Completo | Completo | LISTO |
-| Huéspedes | Pendiente | Pendiente | PENDIENTE |
-| Reservas + Overbooking | Pendiente | Pendiente | PENDIENTE |
+| Reservas (CRUD básico) | Completo | Completo | LISTO |
 | Check-in / Check-out | Pendiente | Pendiente | PENDIENTE |
 | Cobro / Facturación | Pendiente | Pendiente | PENDIENTE |
 | Housekeeping | Pendiente | Pendiente | PENDIENTE |
