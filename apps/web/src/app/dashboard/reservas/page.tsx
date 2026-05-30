@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import api from "@/lib/axios";
 import { routes } from "@/lib/routes";
+import { formatDate } from "@/lib/date";
 import { toast } from "sonner";
 import { Search, Plus, Loader2, LogIn, LogOut } from "lucide-react";
 
@@ -49,10 +50,6 @@ interface Reservation {
   pricePerNight: string | null;
   totalAmount: string | null;
   paymentMethod: PaymentMethod | null;
-}
-
-function formatDate(iso: string) {
-  return iso.split("T")[0];
 }
 
 // Noches reservadas, mínimo 1 — debe coincidir con el cálculo del backend

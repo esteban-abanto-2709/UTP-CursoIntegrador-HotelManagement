@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { ChevronLeft, ChevronRight, CalendarDays } from "lucide-react";
+import { formatDate } from "@/lib/date";
 
 interface TimelineRoom {
   id: number;
@@ -80,9 +81,7 @@ function isSameDay(a: Date, b: Date) {
 }
 
 function formatRange(start: Date, end: Date) {
-  const fmt = (d: Date) =>
-    d.toLocaleDateString("es-PE", { day: "numeric", month: "short" });
-  return `${fmt(start)} – ${fmt(end)} ${end.getFullYear()}`;
+  return `${formatDate(start)} – ${formatDate(end)}`;
 }
 
 export default function OccupancyTimeline({
@@ -271,8 +270,6 @@ function buildBar(
     end: Date;
   },
 ) {
-  const fmt = (d: Date) =>
-    d.toLocaleDateString("es-PE", { day: "numeric", month: "short" });
   return {
     id: r.id,
     guestName: r.guestName,
@@ -281,6 +278,6 @@ function buildBar(
     width: pos.width,
     clippedStart: pos.clippedStart,
     clippedEnd: pos.clippedEnd,
-    rangeLabel: `${fmt(pos.start)} → ${fmt(pos.end)}`,
+    rangeLabel: `${formatDate(pos.start)} → ${formatDate(pos.end)}`,
   };
 }
