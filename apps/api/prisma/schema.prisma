@@ -53,10 +53,31 @@ enum RoomStatus {
 }
 
 model Room {
-  id        Int        @id @default(autoincrement())
-  number    String     @unique
-  type      RoomType
-  status    RoomStatus @default(AVAILABLE)
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
+  id           Int           @id @default(autoincrement())
+  number       String        @unique
+  type         RoomType
+  status       RoomStatus    @default(AVAILABLE)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  reservations Reservation[]
+}
+
+enum ReservationStatus {
+  PENDING
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
+model Reservation {
+  id          Int               @id @default(autoincrement())
+  guestName   String
+  dni         String
+  checkIn     DateTime
+  checkOut    DateTime
+  status      ReservationStatus @default(PENDING)
+  room        Room              @relation(fields: [roomId], references: [id])
+  roomId      Int
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
 }
