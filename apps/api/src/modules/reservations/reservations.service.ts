@@ -72,4 +72,73 @@ export class ReservationsService {
 
     return { message: 'Estado de reserva actualizado', reservation: updated };
   }
+
+  async checkIn(id: number) {
+    const reservation = await this.prisma.reservation.findUnique({
+      where: { id },
+      include: { room: true },
+    });
+
+    if (!reservation) {
+      throw new NotFoundException(`Reserva ${id} no encontrada`);
+    }
+
+    if (reservation.status !== 'PENDING') {
+      throw new BadRequestException(
+        'Solo se puede hacer check-in a reservas pendientes',
+      );
+    }
+
+    if (reservation.room.status !== 'AVAILABLE') {
+      throw new BadRequestException(
+        `La habitación ${reservation.room.number} no está disponible`,
+      );
+    }
+
+    // Actualizamos reserva y habitación de forma atómica
+    const [updated] = await this.prisma.$transaction([
+      this.prisma.reservation.update({
+        where: { id },
+        data: { status: 'ACTIVE', actualCheckIn: new Date() },
+        include: { room: { select: { number: true, type: true } } },
+      }),
+      this.prisma.room.update({
+        where: { id: reservation.roomId },
+        data: { status: 'OCCUPIED' },
+      }),
+    ]);
+
+    return { message: 'Check-in realizado', reservation: updated };
+  }
+
+  async checkOut(id: number) {
+    const reservation = await this.prisma.reservation.findUnique({
+      where: { id },
+    });
+
+    if (!reservation) {
+      throw new NotFoundException(`Reserva ${id} no encontrada`);
+    }
+
+    if (reservation.status !== 'ACTIVE') {
+      throw new BadRequestException(
+        'Solo se puede hacer check-out a reservas activas',
+      );
+    }
+
+    // La habitación pasa a limpieza para entrar a la cola de housekeeping
+    const [updated] = await this.prisma.$transaction([
+      this.prisma.reservation.update({
+        where: { id },
+        data: { status: 'COMPLETED', actualCheckOut: new Date() },
+        include: { room: { select: { number: true, type: true } } },
+      }),
+      this.prisma.room.update({
+        where: { id: reservation.roomId },
+        data: { status: 'CLEANING' },
+      }),
+    ]);
+
+    return { message: 'Check-out realizado', reservation: updated };
+  }
 }

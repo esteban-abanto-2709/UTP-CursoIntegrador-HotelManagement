@@ -32,4 +32,18 @@ export class ReservationsController {
   ) {
     return this.reservationsService.updateStatus(id, dto);
   }
+
+  @Patch(':id/checkin')
+  @UseGuards(RolesGuard)
+  @Roles('OWNER', 'MANAGER')
+  checkIn(@Param('id', ParseIntPipe) id: number) {
+    return this.reservationsService.checkIn(id);
+  }
+
+  @Patch(':id/checkout')
+  @UseGuards(RolesGuard)
+  @Roles('OWNER', 'MANAGER')
+  checkOut(@Param('id', ParseIntPipe) id: number) {
+    return this.reservationsService.checkOut(id);
+  }
 }
