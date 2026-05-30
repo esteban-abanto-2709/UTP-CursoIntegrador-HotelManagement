@@ -1,21 +1,69 @@
 "use client";
 
-import { useState } from "react";
-import { mockRooms, Room } from "@/lib/mocks";
-import { Sparkles, Droplets, AlertCircle, CheckCircle2 } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
+import api from "@/lib/axios";
+import { routes } from "@/lib/routes";
+import { toast } from "sonner";
+import {
+  Sparkles,
+  Droplets,
+  AlertCircle,
+  CheckCircle2,
+  Loader2,
+} from "lucide-react";
+
+interface Room {
+  id: number;
+  number: string;
+  type: string;
+  status: string;
+}
+
+function getRoomTypeLabel(type: string) {
+  const labels: Record<string, string> = {
+    SINGLE: "Sencilla",
+    DOUBLE: "Doble",
+    SUITE: "Suite",
+  };
+  return labels[type] ?? type;
+}
 
 export default function ServicioHabitacionPage() {
-  // Simulando que cargamos de la BD para la demo
-  const [rooms, setRooms] = useState<Room[]>(mockRooms);
+  const [rooms, setRooms] = useState<Room[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  // Id de la habitación que se está liberando en este momento
+  const [liberandoId, setLiberandoId] = useState<number | null>(null);
 
-  // Filtramos solo las que están en estado amarillo/limpieza
-  const habitacionesSucias = rooms.filter((r) => r.status === "limpieza");
+  const fetchRooms = useCallback(async () => {
+    try {
+      const res = await api.get(routes.api.rooms.list());
+      setRooms(res.data);
+    } catch {
+      toast.error("Error al cargar las habitaciones");
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
 
-  const handeFinalizarServicio = (roomId: string) => {
-    // Al tocar el bóton, cambiamos el estado de limpieza a "disponible" localmente
-    setRooms(
-      rooms.map((r) => (r.id === roomId ? { ...r, status: "disponible" } : r)),
-    );
+  useEffect(() => {
+    fetchRooms();
+  }, [fetchRooms]);
+
+  const habitacionesSucias = rooms.filter((r) => r.status === "CLEANING");
+
+  const handleLiberar = async (roomId: number) => {
+    setLiberandoId(roomId);
+    try {
+      const res = await api.patch(routes.api.rooms.updateStatus(roomId), {
+        status: "AVAILABLE",
+      });
+      toast.success(res.data.message ?? "Habitación liberada");
+      fetchRooms();
+    } catch {
+      toast.error("No se pudo liberar la habitación. Intenta de nuevo.");
+    } finally {
+      setLiberandoId(null);
+    }
   };
 
   return (
@@ -33,7 +81,12 @@ export default function ServicioHabitacionPage() {
         </div>
       </div>
 
-      {habitacionesSucias.length === 0 ? (
+      {isLoading ? (
+        <div className="h-64 flex flex-col items-center justify-center gap-4 text-muted-foreground">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <p>Cargando habitaciones...</p>
+        </div>
+      ) : habitacionesSucias.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 bg-status-available-bg/50 rounded-3xl border border-status-available-border border-dashed">
           <div className="w-16 h-16 bg-status-available-icon-bg rounded-full flex items-center justify-center mb-4">
             <Sparkles className="w-8 h-8 text-status-available-icon-text" />
@@ -63,7 +116,7 @@ export default function ServicioHabitacionPage() {
                         Habitación {room.number}
                       </h3>
                       <p className="text-sm font-medium text-status-cleaning-text">
-                        {room.type}
+                        {getRoomTypeLabel(room.type)}
                       </p>
                     </div>
                   </div>
@@ -80,10 +133,19 @@ export default function ServicioHabitacionPage() {
                 </div>
 
                 <button
-                  onClick={() => handeFinalizarServicio(room.id)}
-                  className="w-full flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-3.5 rounded-xl transition-all active:scale-95 shadow-md shadow-primary/20"
+                  onClick={() => handleLiberar(room.id)}
+                  disabled={liberandoId === room.id}
+                  className="w-full flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-3.5 rounded-xl transition-all active:scale-95 shadow-md shadow-primary/20 disabled:opacity-60 disabled:cursor-not-allowed"
                 >
-                  <CheckCircle2 className="w-5 h-5" /> Liberar Habitación
+                  {liberandoId === room.id ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" /> Liberando...
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle2 className="w-5 h-5" /> Liberar Habitación
+                    </>
+                  )}
                 </button>
               </div>
             </div>

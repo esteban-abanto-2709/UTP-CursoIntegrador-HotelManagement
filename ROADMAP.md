@@ -17,7 +17,7 @@
 | Dashboard de Estados | Completo | Completo | LISTO |
 | Reservas (CRUD básico) | Completo | Completo | LISTO |
 | Check-in / Check-out | Completo | Completo | LISTO |
-| Housekeeping | Completo (API) | Pendiente | EN PROGRESO |
+| Housekeeping | Completo | Completo | LISTO |
 | Cobro / Facturación | Pendiente | Pendiente | PENDIENTE |
 | Deploy | — | — | PENDIENTE |
 
