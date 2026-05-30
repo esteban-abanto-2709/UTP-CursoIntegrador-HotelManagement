@@ -9,6 +9,7 @@ export const routes = {
     staff: () => "/dashboard/staff",
     rooms: () => "/dashboard/rooms",
     reservas: () => "/dashboard/reservas",
+    calendario: () => "/dashboard/calendario",
     servicio: () => "/dashboard/servicio",
   },
 

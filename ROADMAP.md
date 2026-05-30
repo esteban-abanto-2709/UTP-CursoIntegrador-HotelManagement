@@ -86,7 +86,7 @@ No se muestran todos los cuartos ni se filtra por su estado actual: se filtra po
 
 *El corazón del cambio. Sin esto, lo demás no tiene sentido.*
 
-- [ ] **Validación de overbooking al crear reserva (`POST /reservations`):**
+- [x] **Validación de overbooking al crear reserva (`POST /reservations`):**
   - Quitar el chequeo de `room.status !== 'AVAILABLE'`.
   - Buscar reservas del mismo cuarto en estado `PENDING`/`ACTIVE` que se solapen con las fechas pedidas.
   - Si existe alguna → `409 Conflict` con mensaje claro ("La habitación ya está reservada para esas fechas").
@@ -101,7 +101,7 @@ No se muestran todos los cuartos ni se filtra por su estado actual: se filtra po
       },
     });
     ```
-- [ ] **Endpoint de disponibilidad (`GET /rooms/availability?checkIn=&checkOut=&type=`):**
+- [x] **Endpoint de disponibilidad (`GET /rooms/availability?checkIn=&checkOut=&type=`):**
   - Recibe **3 parámetros**: `checkIn`, `checkOut` y `type` (SINGLE / DOUBLE / SUITE).
   - Devuelve los cuartos **de ese tipo** que están **libres en ese rango** (sin reserva solapada).
     ```ts
@@ -118,11 +118,12 @@ No se muestran todos los cuartos ni se filtra por su estado actual: se filtra po
       },
     });
     ```
-  - (Decisión de diseño) ¿el `type` es obligatorio u opcional? Si se omite, podría devolver los
-    libres de todos los tipos. Por ahora el caso de uso lo asume **obligatorio**.
-  - (Decisión de diseño) ¿excluir cuartos en `MAINTENANCE`? Mantenimiento no tiene fecha fin hoy;
-    se puede dejar fuera de la disponibilidad o ignorarlo. A definir.
-- [ ] **Check-in conserva su chequeo de `AVAILABLE`** — esto SÍ es correcto: no puedes meter
+  - (Decisión de diseño) ¿el `type` es obligatorio u opcional? → **Resuelto: obligatorio.**
+    Coincide con el caso de uso; relajarlo después es trivial.
+  - (Decisión de diseño) ¿excluir cuartos en `MAINTENANCE`? → **Resuelto: se excluye solo
+    `MAINTENANCE`** (estado indefinido sin fecha fin). `OCCUPIED`/`CLEANING` SÍ se ofrecen para
+    fechas futuras, pues son transitorios y excluirlos reintroduce el falso rechazo.
+- [x] **Check-in conserva su chequeo de `AVAILABLE`** — esto SÍ es correcto: no puedes meter
   un huésped a un cuarto sucio u ocupado físicamente. El check-in es operativo (presente), no temporal.
 
 ---
@@ -131,12 +132,12 @@ No se muestran todos los cuartos ni se filtra por su estado actual: se filtra po
 
 *El formulario se invierte: primero fechas y tipo, luego los cuartos libres que cumplen.*
 
-- [ ] En "Nueva Reserva", el recepcionista elige primero: **check-in**, **check-out** y **tipo de habitación**.
-- [ ] Con esos 3 datos, llamar a `GET /rooms/availability?checkIn=&checkOut=&type=` y mostrar
+- [x] En "Nueva Reserva", el recepcionista elige primero: **check-in**, **check-out** y **tipo de habitación**.
+- [x] Con esos 3 datos, llamar a `GET /rooms/availability?checkIn=&checkOut=&type=` y mostrar
   **solo los cuartos de ese tipo libres** en el rango. (Reemplaza el filtro actual de "cuartos AVAILABLE ahora mismo".)
-- [ ] El recepcionista elige una habitación de la lista devuelta y completa los datos del huésped.
-- [ ] Bloquear en el date picker que `checkOut <= checkIn`.
-- [ ] Manejar el `409` de overbooking con un toast claro.
+- [x] El recepcionista elige una habitación de la lista devuelta y completa los datos del huésped.
+- [x] Bloquear en el date picker que `checkOut <= checkIn`.
+- [x] Manejar el `409` de overbooking con un toast claro.
 
 ---
 
@@ -144,10 +145,12 @@ No se muestran todos los cuartos ni se filtra por su estado actual: se filtra po
 
 *"Trabajar con fechas y calendarios": ver de un vistazo cuándo está ocupado cada cuarto.*
 
-- [ ] Vista tipo **timeline**: cada habitación es una fila, las reservas son barras a lo largo de un eje de fechas.
-- [ ] Reutilizar el patrón visual del Gantt que ya existe en `apps/web/src/app/temporal/Cronograma.tsx`.
-- [ ] Navegación por semana/mes; colores por estado de reserva.
-- [ ] (Opcional) crear reserva haciendo click-y-arrastre sobre un cuarto libre.
+- [x] Vista tipo **timeline**: cada habitación es una fila, las reservas son barras a lo largo de un eje de fechas.
+  Implementado en página propia `apps/web/src/app/dashboard/calendario/` (no se tocó el Gantt del curso).
+- [x] Reutilizar el patrón visual del Gantt: se creó `OccupancyTimeline.tsx` reutilizando su lenguaje
+  visual pero con eje de **días reales**, tema semántico actual y varias barras por fila.
+- [x] Navegación por semana (←/→, botón "Hoy"); colores por estado de reserva (PENDING/ACTIVE/COMPLETED).
+- [ ] (Opcional) crear reserva haciendo click-y-arrastre sobre un cuarto libre. **Pendiente.**
 
 ---
 
@@ -169,6 +172,7 @@ No se muestran todos los cuartos ni se filtra por su estado actual: se filtra po
   sobre `(roomId, [checkIn, checkOut))` (requiere extensión `btree_gist`). Evita la condición de
   carrera donde dos requests simultáneos pasan ambos la validación de aplicación. Es el estándar
   de oro; la validación en código cubre el 99% pero esto lo blinda.
+  > Ya registrado como **TD-001** en `docs/technical-debt.md` (riesgo 5/10).
 - [ ] Registrar qué empleado creó la reserva y quién recibió el pago (`employeeId`).
 
 ---

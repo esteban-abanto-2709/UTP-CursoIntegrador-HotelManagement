@@ -10,7 +10,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { Calendar, Home, BedDouble, LogOut, Users, Bed } from "lucide-react";
+import { Calendar, CalendarRange, Home, BedDouble, LogOut, Users, Bed } from "lucide-react";
 import { useAuthStore } from "@/store/authStore";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -40,6 +40,12 @@ const items = [
     title: "Reservas y Huéspedes",
     url: routes.dashboard.reservas(),
     icon: Calendar,
+    allowedRoles: ["OWNER", "MANAGER", "EMPLOYEE"],
+  },
+  {
+    title: "Calendario de Ocupación",
+    url: routes.dashboard.calendario(),
+    icon: CalendarRange,
     allowedRoles: ["OWNER", "MANAGER", "EMPLOYEE"],
   },
   {
