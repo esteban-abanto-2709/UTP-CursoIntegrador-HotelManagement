@@ -5,6 +5,8 @@ export interface User {
   id: number;
   username: string;
   role: "OWNER" | "MANAGER" | "EMPLOYEE";
+  nombres?: string | null;
+  apellidoPaterno?: string | null;
 }
 
 interface AuthState {
