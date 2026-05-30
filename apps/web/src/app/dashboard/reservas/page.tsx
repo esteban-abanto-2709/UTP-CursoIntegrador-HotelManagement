@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import api from "@/lib/axios";
 import { routes } from "@/lib/routes";
 import { toast } from "sonner";
-import { Search, Plus, Loader2 } from "lucide-react";
+import { Search, Plus, Loader2, LogIn, LogOut } from "lucide-react";
 
 import {
   Table,
@@ -63,6 +63,8 @@ export default function ReservasPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  // Id de la reserva sobre la que se está ejecutando un check-in/check-out
+  const [actioningId, setActioningId] = useState<number | null>(null);
 
   const fetchReservations = useCallback(async () => {
     try {
@@ -118,6 +120,38 @@ export default function ReservasPage() {
       toast.error(msg);
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleCheckIn = async (id: number) => {
+    setActioningId(id);
+    try {
+      const res = await api.patch(routes.api.reservations.checkIn(id));
+      toast.success(res.data.message ?? "Check-in realizado");
+      fetchReservations();
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { message?: string | string[] } } };
+      const raw = err.response?.data?.message;
+      const msg = Array.isArray(raw) ? raw[0] : raw ?? "Error al hacer check-in";
+      toast.error(msg);
+    } finally {
+      setActioningId(null);
+    }
+  };
+
+  const handleCheckOut = async (id: number) => {
+    setActioningId(id);
+    try {
+      const res = await api.patch(routes.api.reservations.checkOut(id));
+      toast.success(res.data.message ?? "Check-out realizado");
+      fetchReservations();
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { message?: string | string[] } } };
+      const raw = err.response?.data?.message;
+      const msg = Array.isArray(raw) ? raw[0] : raw ?? "Error al hacer check-out";
+      toast.error(msg);
+    } finally {
+      setActioningId(null);
     }
   };
 
@@ -308,15 +342,18 @@ export default function ReservasPage() {
               <TableHead className="font-semibold text-muted-foreground">
                 Fechas (In → Out)
               </TableHead>
-              <TableHead className="font-semibold text-muted-foreground text-right pr-6">
+              <TableHead className="font-semibold text-muted-foreground">
                 Estado
+              </TableHead>
+              <TableHead className="font-semibold text-muted-foreground text-right pr-6">
+                Acciones
               </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={6} className="h-32 text-center text-muted-foreground">
+                <TableCell colSpan={7} className="h-32 text-center text-muted-foreground">
                   <div className="flex flex-col items-center justify-center gap-2">
                     <Loader2 className="h-6 w-6 animate-spin text-primary" />
                     <span>Cargando reservas...</span>
@@ -325,7 +362,7 @@ export default function ReservasPage() {
               </TableRow>
             ) : filteredReservations.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="h-32 text-center text-muted-foreground">
+                <TableCell colSpan={7} className="h-32 text-center text-muted-foreground">
                   {searchTerm ? (
                     <>
                       No se encontraron reservas con{" "}
@@ -361,8 +398,40 @@ export default function ReservasPage() {
                     <span className="opacity-50">→</span>{" "}
                     {formatDate(res.checkOut)}
                   </TableCell>
+                  <TableCell>{getStatusBadge(res.status)}</TableCell>
                   <TableCell className="text-right pr-6">
-                    {getStatusBadge(res.status)}
+                    {res.status === "PENDING" && (
+                      <button
+                        onClick={() => handleCheckIn(res.id)}
+                        disabled={actioningId === res.id}
+                        className="inline-flex items-center gap-1.5 bg-status-occupied-bg text-status-occupied-text border border-status-occupied-border px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-status-occupied-icon-bg transition-all active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed"
+                      >
+                        {actioningId === res.id ? (
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        ) : (
+                          <LogIn className="w-3.5 h-3.5" />
+                        )}
+                        Check-in
+                      </button>
+                    )}
+                    {res.status === "ACTIVE" && (
+                      <button
+                        onClick={() => handleCheckOut(res.id)}
+                        disabled={actioningId === res.id}
+                        className="inline-flex items-center gap-1.5 bg-status-cleaning-bg text-status-cleaning-text border border-status-cleaning-border px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-status-cleaning-icon-bg transition-all active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed"
+                      >
+                        {actioningId === res.id ? (
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        ) : (
+                          <LogOut className="w-3.5 h-3.5" />
+                        )}
+                        Check-out
+                      </button>
+                    )}
+                    {(res.status === "COMPLETED" ||
+                      res.status === "CANCELLED") && (
+                      <span className="text-xs text-muted-foreground">—</span>
+                    )}
                   </TableCell>
                 </TableRow>
               ))
