@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import api from "@/lib/axios";
 import { routes } from "@/lib/routes";
 import { formatDate } from "@/lib/date";
+import { calcNights } from "@/lib/pricing";
 import { toast } from "sonner";
 import { Search, Plus, Loader2, LogIn, LogOut, Pencil, Ban } from "lucide-react";
 
@@ -48,13 +49,6 @@ interface Reservation {
 }
 
 // Noches reservadas, mínimo 1 — debe coincidir con el cálculo del backend
-function calcNights(checkIn: string, checkOut: string) {
-  const MS_PER_DAY = 1000 * 60 * 60 * 24;
-  const diff =
-    (new Date(checkOut).getTime() - new Date(checkIn).getTime()) / MS_PER_DAY;
-  return Math.max(1, Math.ceil(diff));
-}
-
 const PAYMENT_LABELS: Record<PaymentMethod, string> = {
   CASH: "Efectivo",
   CARD: "Tarjeta",

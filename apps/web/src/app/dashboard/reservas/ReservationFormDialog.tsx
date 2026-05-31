@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import api from "@/lib/axios";
 import { routes } from "@/lib/routes";
+import { calcNights } from "@/lib/pricing";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 
@@ -21,6 +22,7 @@ interface Room {
   number: string;
   type: string;
   status: string;
+  price: string;
 }
 
 export interface ReservationForEdit {
@@ -148,6 +150,16 @@ export default function ReservationFormDialog({
   const criteriaReady =
     !!formCheckIn && !!formCheckOut && !!formType && formCheckOut > formCheckIn;
 
+  const selectedRoom = availableRooms.find(
+    (r) => String(r.id) === selectedRoomId,
+  );
+  const estimateNights = criteriaReady
+    ? calcNights(formCheckIn, formCheckOut)
+    : 0;
+  const estimatePricePerNight = selectedRoom ? Number(selectedRoom.price) : 0;
+  const estimateTotal = estimateNights * estimatePricePerNight;
+  const hasEstimate = !!selectedRoom && criteriaReady;
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!selectedRoomId) {
@@ -196,13 +208,36 @@ export default function ReservationFormDialog({
           <DialogTitle className="text-xl">
             {isEdit ? "Editar Reserva" : "Añadir Nueva Reserva"}
           </DialogTitle>
-          <DialogDescription>
-            {isEdit
-              ? "Modifica las fechas, la habitación o los datos del huésped. Se revalidará la disponibilidad."
-              : "Registra los datos del huésped para apartar de manera segura una habitación en las fechas solicitadas."}
-          </DialogDescription>
+          {isEdit && (
+            <DialogDescription>
+              Modifica las fechas, la habitación o los datos del huésped. Se
+              revalidará la disponibilidad.
+            </DialogDescription>
+          )}
         </DialogHeader>
         <form onSubmit={handleSubmit} className="flex flex-col gap-4 mt-2">
+          <div className="flex flex-col gap-1.5">
+            <label className="text-sm font-semibold text-muted-foreground">
+              Nombre del Huésped Completo
+            </label>
+            <input
+              required
+              value={guestName}
+              onChange={(e) => setGuestName(e.target.value)}
+              className="h-10 px-3 py-2 rounded-lg border border-border/50 bg-background text-foreground focus:ring-2 focus:border-primary focus:ring-primary/20 outline-none transition-all"
+            />
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <label className="text-sm font-semibold text-muted-foreground">
+              DNI / Documento Identidad
+            </label>
+            <input
+              required
+              value={dni}
+              onChange={(e) => setDni(e.target.value)}
+              className="h-10 px-3 py-2 rounded-lg border border-border/50 bg-background text-foreground focus:ring-2 focus:border-primary focus:ring-primary/20 outline-none transition-all"
+            />
+          </div>
           <div className="flex gap-4">
             <div className="flex flex-col gap-1.5 w-full">
               <label className="text-sm font-semibold text-muted-foreground">
@@ -281,29 +316,25 @@ export default function ReservationFormDialog({
               )}
             </select>
           </div>
-          <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-semibold text-muted-foreground">
-              Nombre del Huésped Completo
-            </label>
-            <input
-              required
-              value={guestName}
-              onChange={(e) => setGuestName(e.target.value)}
-              className="h-10 px-3 py-2 rounded-lg border border-border/50 bg-background text-foreground focus:ring-2 focus:border-primary focus:ring-primary/20 outline-none transition-all placeholder:text-muted-foreground"
-              placeholder="Ej. Juan Pérez"
-            />
-          </div>
-          <div className="flex flex-col gap-1.5 mb-4">
-            <label className="text-sm font-semibold text-muted-foreground">
-              DNI / Documento Identidad
-            </label>
-            <input
-              required
-              value={dni}
-              onChange={(e) => setDni(e.target.value)}
-              className="h-10 px-3 py-2 rounded-lg border border-border/50 bg-background text-foreground focus:ring-2 focus:border-primary focus:ring-primary/20 outline-none transition-all placeholder:text-muted-foreground"
-              placeholder="Ej. 12345678"
-            />
+          <div className="bg-muted rounded-xl p-4 flex flex-col gap-2 text-sm mb-4">
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">
+                {hasEstimate
+                  ? `${estimateNights} noche${estimateNights > 1 ? "s" : ""} × S/. ${estimatePricePerNight.toFixed(2)}`
+                  : "Completa fechas y habitación"}
+              </span>
+              <span className="font-semibold text-foreground">
+                {hasEstimate ? `S/. ${estimateTotal.toFixed(2)}` : "—"}
+              </span>
+            </div>
+            <div className="border-t border-border/50 mt-1 pt-2 flex justify-between items-center">
+              <span className="font-semibold text-foreground">
+                Precio estimado
+              </span>
+              <span className="text-xl font-bold text-primary">
+                {hasEstimate ? `S/. ${estimateTotal.toFixed(2)}` : "S/. —"}
+              </span>
+            </div>
           </div>
           <button
             type="submit"
