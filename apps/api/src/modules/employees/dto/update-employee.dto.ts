@@ -1,15 +1,13 @@
 import {
   IsString,
   IsEmail,
-  IsEnum,
   IsOptional,
   MinLength,
   IsDateString,
   IsIn,
 } from 'class-validator';
-import { Turno } from '@prisma/client';
-import { VALID_CARGOS } from './create-employee.dto';
-import type { Cargo } from './create-employee.dto';
+import { VALID_CARGOS, VALID_TURNOS } from './create-employee.dto';
+import type { Cargo, Turno } from './create-employee.dto';
 
 export class UpdateEmployeeDto {
   @IsOptional()
@@ -17,7 +15,6 @@ export class UpdateEmployeeDto {
   @MinLength(3, { message: 'El usuario debe tener al menos 3 caracteres' })
   username?: string;
 
-  // Opcional: solo se re-hashea si se envía una nueva contraseña
   @IsOptional()
   @IsString()
   @MinLength(8, { message: 'La contraseña debe tener al menos 8 caracteres' })
@@ -49,7 +46,7 @@ export class UpdateEmployeeDto {
   cargo?: Cargo;
 
   @IsOptional()
-  @IsEnum(Turno, { message: 'Turno inválido' })
+  @IsIn(VALID_TURNOS, { message: 'Turno inválido' })
   turno?: Turno;
 
   @IsOptional()

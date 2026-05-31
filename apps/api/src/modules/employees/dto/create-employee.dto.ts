@@ -1,13 +1,11 @@
 import {
   IsString,
   IsEmail,
-  IsEnum,
   IsOptional,
   MinLength,
   IsDateString,
   IsIn,
 } from 'class-validator';
-import { Turno } from '@prisma/client';
 
 export const VALID_CARGOS = [
   'Manager',
@@ -17,6 +15,10 @@ export const VALID_CARGOS = [
 ] as const;
 
 export type Cargo = (typeof VALID_CARGOS)[number];
+
+export const VALID_TURNOS = ['MAÑANA', 'TARDE', 'NOCHE'] as const;
+
+export type Turno = (typeof VALID_TURNOS)[number];
 
 export class CreateEmployeeDto {
   @IsString()
@@ -46,7 +48,7 @@ export class CreateEmployeeDto {
   @IsIn(VALID_CARGOS, { message: 'Cargo inválido' })
   cargo!: Cargo;
 
-  @IsEnum(Turno, { message: 'Turno inválido' })
+  @IsIn(VALID_TURNOS, { message: 'Turno inválido' })
   turno!: Turno;
 
   @IsDateString()

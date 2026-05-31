@@ -5,8 +5,8 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { PrismaService } from '@/providers/prisma/prisma.service';
-import { Role } from '@prisma/client';
-import { CreateEmployeeDto, Cargo } from './dto/create-employee.dto';
+import { Employee, Role, Shift } from '@prisma/client';
+import { CreateEmployeeDto, Cargo, Turno } from './dto/create-employee.dto';
 import { UpdateEmployeeDto } from './dto/update-employee.dto';
 import * as bcrypt from 'bcrypt';
 
@@ -16,6 +16,46 @@ const CARGO_TO_ROLE: Record<Cargo, Role> = {
   Botones: Role.EMPLOYEE,
   Limpieza: Role.EMPLOYEE,
 };
+
+const TURNO_TO_SHIFT: Record<Turno, Shift> = {
+  MAÑANA: Shift.MORNING,
+  TARDE: Shift.AFTERNOON,
+  NOCHE: Shift.NIGHT,
+};
+
+const SHIFT_TO_TURNO: Record<Shift, Turno> = {
+  MORNING: 'MAÑANA',
+  AFTERNOON: 'TARDE',
+  NIGHT: 'NOCHE',
+};
+
+function toSpanishShape(employee: Employee) {
+  const {
+    password,
+    firstName,
+    lastName,
+    secondLastName,
+    birthDate,
+    position,
+    shift,
+    hireDate,
+    phone,
+    address,
+    ...rest
+  } = employee;
+  return {
+    ...rest,
+    nombres: firstName,
+    apellidoPaterno: lastName,
+    apellidoMaterno: secondLastName,
+    fechaNacimiento: birthDate,
+    cargo: position,
+    turno: shift ? SHIFT_TO_TURNO[shift] : null,
+    fechaInicio: hireDate,
+    telefono: phone,
+    direccion: address,
+  };
+}
 
 @Injectable()
 export class EmployeesService {
@@ -60,21 +100,20 @@ export class EmployeesService {
         password: hashedPassword,
         role: targetRole,
         dni: data.dni,
-        nombres: data.nombres,
-        apellidoPaterno: data.apellidoPaterno,
-        apellidoMaterno: data.apellidoMaterno,
-        fechaNacimiento: new Date(data.fechaNacimiento),
-        cargo: data.cargo,
-        turno: data.turno,
-        fechaInicio: new Date(data.fechaInicio),
-        telefono: data.telefono,
+        firstName: data.nombres,
+        lastName: data.apellidoPaterno,
+        secondLastName: data.apellidoMaterno,
+        birthDate: new Date(data.fechaNacimiento),
+        position: data.cargo,
+        shift: TURNO_TO_SHIFT[data.turno],
+        hireDate: new Date(data.fechaInicio),
+        phone: data.telefono,
         email: data.email,
-        direccion: data.direccion,
+        address: data.direccion,
       },
     });
 
-    const { password, ...result } = employee;
-    return result;
+    return toSpanishShape(employee);
   }
 
   async findOne(id: number, currentUser: any) {
@@ -84,15 +123,13 @@ export class EmployeesService {
       throw new NotFoundException(`No existe un empleado con el ID ${id}`);
     }
 
-    // Un MANAGER solo puede consultar el detalle de EMPLEADOS
     if (currentUser.role === 'MANAGER' && employee.role !== Role.EMPLOYEE) {
       throw new ForbiddenException(
         'No tienes permisos para ver a este usuario',
       );
     }
 
-    const { password, ...result } = employee;
-    return result;
+    return toSpanishShape(employee);
   }
 
   async update(id: number, data: UpdateEmployeeDto, currentUser: any) {
@@ -102,7 +139,6 @@ export class EmployeesService {
       throw new NotFoundException(`No existe un empleado con el ID ${id}`);
     }
 
-    // Un MANAGER no puede editar cuentas OWNER ni a otros MANAGER
     if (
       currentUser.role === 'MANAGER' &&
       employee.role !== Role.EMPLOYEE
@@ -112,14 +148,12 @@ export class EmployeesService {
       );
     }
 
-    // Si cambia el cargo, recalculamos el rol; si no, mantenemos el actual
     const targetRole = data.cargo ? CARGO_TO_ROLE[data.cargo] : employee.role;
 
     if (currentUser.role === 'MANAGER' && targetRole !== Role.EMPLOYEE) {
       throw new ConflictException('Los Managers solo pueden asignar Empleados');
     }
 
-    // Validar unicidad solo de los campos que cambian, excluyendo al propio empleado
     const conflicts: { username?: string; dni?: string; email?: string } = {};
     if (data.username && data.username !== employee.username)
       conflicts.username = data.username;
@@ -153,47 +187,57 @@ export class EmployeesService {
         username: data.username,
         role: data.cargo ? targetRole : undefined,
         dni: data.dni,
-        nombres: data.nombres,
-        apellidoPaterno: data.apellidoPaterno,
-        apellidoMaterno: data.apellidoMaterno,
-        fechaNacimiento: data.fechaNacimiento
+        firstName: data.nombres,
+        lastName: data.apellidoPaterno,
+        secondLastName: data.apellidoMaterno,
+        birthDate: data.fechaNacimiento
           ? new Date(data.fechaNacimiento)
           : undefined,
-        cargo: data.cargo,
-        turno: data.turno,
-        fechaInicio: data.fechaInicio ? new Date(data.fechaInicio) : undefined,
-        telefono: data.telefono,
+        position: data.cargo,
+        shift: data.turno ? TURNO_TO_SHIFT[data.turno] : undefined,
+        hireDate: data.fechaInicio ? new Date(data.fechaInicio) : undefined,
+        phone: data.telefono,
         email: data.email,
-        direccion: data.direccion,
-        // Solo re-hashea si se envió una nueva contraseña
+        address: data.direccion,
         password: data.password
           ? await bcrypt.hash(data.password, 10)
           : undefined,
       },
     });
 
-    const { password, ...result } = updated;
-    return result;
+    return toSpanishShape(updated);
   }
 
   async findAll(currentUser: any) {
     const where =
       currentUser.role === 'MANAGER' ? { role: { not: Role.OWNER } } : {};
 
-    return this.prisma.employee.findMany({
+    const employees = await this.prisma.employee.findMany({
       where,
       select: {
         id: true,
         username: true,
         role: true,
-        nombres: true,
-        apellidoPaterno: true,
-        apellidoMaterno: true,
-        cargo: true,
-        turno: true,
+        firstName: true,
+        lastName: true,
+        secondLastName: true,
+        position: true,
+        shift: true,
         createdAt: true,
       },
       orderBy: { createdAt: 'desc' },
     });
+
+    return employees.map((e) => ({
+      id: e.id,
+      username: e.username,
+      role: e.role,
+      nombres: e.firstName,
+      apellidoPaterno: e.lastName,
+      apellidoMaterno: e.secondLastName,
+      cargo: e.position,
+      turno: e.shift ? SHIFT_TO_TURNO[e.shift] : null,
+      createdAt: e.createdAt,
+    }));
   }
 }
