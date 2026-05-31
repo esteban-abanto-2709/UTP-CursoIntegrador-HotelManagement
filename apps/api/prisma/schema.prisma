@@ -12,31 +12,30 @@ enum Role {
   EMPLOYEE
 }
 
-enum Turno {
-  MAÑANA
-  TARDE
-  NOCHE
+enum Shift {
+  MORNING
+  AFTERNOON
+  NIGHT
 }
 
 model Employee {
-  id              Int       @id @default(autoincrement())
-  username        String    @unique
-  password        String
-  role            Role      @default(EMPLOYEE)
-  // HR profile — nullable so the OWNER seed account doesn't need them
-  dni             String?   @unique
-  nombres         String?
-  apellidoPaterno String?
-  apellidoMaterno String?
-  fechaNacimiento DateTime?
-  cargo           String?
-  turno           Turno?
-  fechaInicio     DateTime?
-  telefono        String?
-  email           String?   @unique
-  direccion       String?
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  id             Int       @id @default(autoincrement())
+  username       String    @unique
+  password       String
+  role           Role      @default(EMPLOYEE)
+  dni            String?   @unique
+  firstName      String?
+  lastName       String?
+  secondLastName String?
+  birthDate      DateTime?
+  position       String?
+  shift          Shift?
+  hireDate       DateTime?
+  phone          String?
+  email          String?   @unique
+  address        String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 }
 
 enum RoomType {
@@ -57,7 +56,7 @@ model Room {
   number       String        @unique
   type         RoomType
   status       RoomStatus    @default(AVAILABLE)
-  price        Decimal       @db.Decimal(10, 2) // Tarifa por noche (S/.)
+  price        Decimal       @db.Decimal(10, 2)
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
   reservations Reservation[]
@@ -80,18 +79,15 @@ model Reservation {
   id             Int               @id @default(autoincrement())
   guestName      String
   dni            String
-  // Fechas planificadas de la reserva
   checkIn        DateTime
   checkOut       DateTime
-  // Timestamps reales: se llenan al ejecutar el check-in/check-out
   actualCheckIn  DateTime?
   actualCheckOut DateTime?
   status         ReservationStatus @default(PENDING)
-  // Facturación
-  pricePerNight  Decimal?          @db.Decimal(10, 2) // Snapshot del precio al crear la reserva
-  totalAmount    Decimal?          @db.Decimal(10, 2) // Calculado al check-out
-  paymentMethod  PaymentMethod? // Elegido al check-out
-  paidAt         DateTime? // Timestamp del cobro
+  pricePerNight  Decimal?          @db.Decimal(10, 2)
+  totalAmount    Decimal?          @db.Decimal(10, 2)
+  paymentMethod  PaymentMethod?
+  paidAt         DateTime?
   room           Room              @relation(fields: [roomId], references: [id])
   roomId         Int
   createdAt      DateTime          @default(now())
