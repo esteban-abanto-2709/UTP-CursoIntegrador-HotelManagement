@@ -1,14 +1,26 @@
 # Roadmap — Lumina Resort PMS
-
 **Proyecto:** Lumina Resort PMS — Curso Integrador UTP  
 **Stack:** NestJS + Prisma + PostgreSQL · Next.js 16 + TailwindCSS  
 **Infraestructura:** Render (API) · Vercel (Web) · Supabase (BD)
 
 ---
 
+## Convención de trabajo con Prisma
+
+Cada tarea que toca la base de datos sigue este flujo fijo:
+
+1. Claude Code modifica `schema.prisma`
+2. **Tú corres:** `npx prisma migrate dev --create-only --name <nombre>`
+3. Claude Code revisa y ajusta el `migration.sql` generado
+4. **Tú aplicas la migración**
+
+Este flujo se repite en cada milestone. Claude Code nunca corre los comandos de migración.
+
+---
+
 ## Base construida — no se toca
 
-Lo siguiente ya está completo y desplegado. Es la fundación:
+Lo siguiente ya está completo y desplegado:
 
 - Auth JWT + roles (OWNER / MANAGER / EMPLOYEE)
 - CRUD Empleados y Habitaciones (con precio por noche)
@@ -23,124 +35,157 @@ Lo siguiente ya está completo y desplegado. Es la fundación:
 
 ## Milestone 1 — Guest como entidad propia
 
-> **Para qué sirve:** El modelo del profesor separa al huésped de la reserva.
-> Hoy `guestName` y `dni` son strings sueltos en `Reservation`.
-> Aquí los convertimos en un `Guest` real, con su propio ID y
-> la posibilidad de ver su historial de estadías.
-> Si el tiempo no alcanza para más, este milestone ya demuestra
-> que el modelo relacional está correcto.
+> El modelo del profesor separa al huésped de la reserva. Hoy `guestName` y `dni`
+> son strings sueltos en `Reservation`. Aquí se convierten en un `Guest` real con
+> historial de estadías. Si el tiempo no alcanza para más, este milestone ya
+> demuestra que el modelo relacional está correcto.
 
-- **[T001]** Agregar modelo `Guest` al schema de Prisma con campos: `nationalId` (unique), `fullName`, `email` (nullable), `phone` (nullable), `registeredAt`. Ejecutar `prisma migrate dev`.
-- **[T002]** Escribir script de migración de datos: crear un `Guest` por cada `Reservation` existente (deduplicando por `dni`) y asociar el `guestId` a cada reserva. Correr el script una sola vez después de la migración de schema.
-- **[T003]** Agregar campo `guestId` (FK → Guest) al modelo `Reservation` en Prisma. Marcar `guestName` y `dni` como `@deprecated` en comentarios (no borrar aún, para no romper queries existentes). Ejecutar `prisma migrate dev`.
-- **[T004]** Crear módulo NestJS `guests` con endpoints: `GET /guests` (listado con búsqueda por nombre o DNI), `GET /guests/:id` (detalle con historial de reservas vía `include`).
-- **[T005]** Actualizar `POST /reservations` y `PATCH /reservations/:id`: buscar o crear el `Guest` por `nationalId` antes de crear/editar la reserva. El DTO sigue recibiendo `guestName` y `dni` para no romper el frontend todavía.
-- **[T006]** Agregar página `/dashboard/huespedes` en el frontend: tabla con búsqueda en tiempo real por nombre o DNI, columna de cantidad de reservas. Reutilizar componentes de tabla existentes. Agregar enlace en el sidebar.
+**Workflow:** En el formulario de reserva, el empleado ingresa el DNI del cliente
+y presiona un botón "Buscar". Si el huésped existe, se cargan sus datos en los campos.
+Si no existe, los campos quedan editables para crearlo en ese momento. Esos mismos
+campos permiten actualizar datos del huésped antes de confirmar la reserva.
+
+### Prisma / BD
+
+- ✅ **[T001]** Modificar `schema.prisma`: agregar modelo `Guest` con campos `nationalId` (unique), `fullName`, `email` (nullable), `phone` (nullable), `registeredAt`. Agregar campo `guestId` (FK → Guest, nullable) al modelo `Reservation`. → **Tú corres:** `npx prisma migrate dev --create-only --name add_guest_model` → Claude Code revisa y ajusta el `migration.sql` → **Tú aplicas.**
+- ✅ **[T002]** Escribir script `prisma/seed-guests.ts`: recorrer todas las `Reservation` existentes, hacer upsert de `Guest` por `dni`, asociar el `guestId` resultante a cada reserva. → **Tú corres el script una sola vez** tras aplicar la migración anterior. *(Consolidado: el backfill se hizo como data migration en SQL dentro de la misma migración `add_guest_normalize_reservation`, sin script aparte.)*
+- ✅ **[T003]** Modificar `schema.prisma`: hacer `guestId` NOT NULL en `Reservation` (una vez que el seed ya pobló todos los registros). Eliminar campos `guestName` y `dni` del modelo `Reservation`. → **Tú corres:** `npx prisma migrate dev --create-only --name guest_fk_not_null` → Claude Code revisa y ajusta el `migration.sql` → **Tú aplicas.** *(Consolidado en la misma migración `add_guest_normalize_reservation`: backfill → guestId NOT NULL → drop de `guestName`/`dni`.)*
+
+### API
+
+- ✅ **[T004]** Crear módulo NestJS `guests` con endpoints: `GET /guests?search=` (buscar por DNI o nombre), `POST /guests` (crear), `PATCH /guests/:id` (actualizar datos). Proteger con `JwtAuthGuard`.
+- ✅ **[T005]** Actualizar `POST /reservations` y `PATCH /reservations/:id`: el DTO recibe `nationalId`, `fullName`, `email`, `phone`. El servicio hace upsert del `Guest` por `nationalId` y asocia el `guestId` a la reserva. Eliminar `guestName` y `dni` del DTO y de todas las queries.
+
+### Frontend
+
+- **[T006]** Agregar ruta `api.guests` en `routes.ts`. Actualizar el formulario de reserva (`ReservationFormDialog.tsx`): agregar campo DNI con botón "Buscar" que llama a `GET /guests?search={dni}`. Si hay resultado, rellenar automáticamente nombre, email y teléfono. Si no hay resultado, dejar los campos editables para crear el huésped. Los datos del huésped van en el mismo payload al guardar la reserva.
+- **[T007]** Crear página `/dashboard/huespedes`: tabla con búsqueda en tiempo real por nombre o DNI, columna con cantidad de reservas históricas. Agregar enlace en el sidebar.
 
 ---
 
 ## Milestone 2 — Cargos a la habitación (Room Charges)
 
-> **Para qué sirve:** Cubre la entidad `ROOM_CHARGE` del modelo del profesor.
-> Permite registrar consumos extra durante la estadía (minibar, room service,
-> daños, lavandería) que luego suman al cobro en el check-out.
-> Milestone completamente aditivo: no modifica nada de lo ya construido.
+> Cubre la entidad `ROOM_CHARGE` del modelo del profesor. Permite que cualquier
+> empleado registre consumos extra durante la estadía desde la página de servicio.
+> Al hacer check-out esos cargos se suman automáticamente al total.
 
-- **[T007]** Agregar modelos `ExpenseCategory` y `RoomCharge` al schema de Prisma. `ExpenseCategory` con campos `name` (semilla: Room Service, Minibar, Lavandería, Daños, Otros). `RoomCharge` con campos: `reservationId` (FK), `categoryId` (FK), `registeredBy` (FK → Employee), `description`, `amount`, `chargedAt`. Ejecutar `prisma migrate dev` + seed de categorías.
-- **[T008]** Crear módulo NestJS `room-charges` con endpoints: `POST /reservations/:id/charges` (registrar cargo; solo en reservas ACTIVE), `GET /reservations/:id/charges` (listar cargos de la reserva con su categoría). Proteger con `JwtAuthGuard`.
-- **[T009]** Agregar ruta `api.reservations.charges` en `apps/web/src/lib/routes.ts`. Actualizar el diálogo de check-out en el frontend: mostrar tabla de cargos de la reserva, formulario inline para agregar nuevo cargo (select de categoría + descripción + monto), subtotal de cargos debajo de la tabla.
+**Workflow:** Desde `/dashboard/servicio`, el empleado ve las reservas con estado
+ACTIVE. Selecciona una y puede agregar cargos adicionales (categoría + descripción
++ monto). Los cargos quedan asociados a la reserva y se acumulan hasta el check-out.
+Cualquier empleado con sesión activa puede registrar cargos.
+
+### Prisma / BD
+
+- **[T008]** Modificar `schema.prisma`: agregar modelo `ExpenseCategory` con campo `name`. Agregar modelo `RoomCharge` con campos: `reservationId` (FK → Reservation), `categoryId` (FK → ExpenseCategory), `registeredBy` (FK → Employee), `description`, `amount`, `chargedAt`. → **Tú corres:** `npx prisma migrate dev --create-only --name add_room_charges` → Claude Code revisa y ajusta el `migration.sql` → **Tú aplicas.** Luego Claude Code corre el seed de categorías: Room Service, Minibar, Lavandería, Daños, Otros.
+
+### API
+
+- **[T009]** Crear módulo NestJS `room-charges` con endpoints: `POST /reservations/:id/charges` (crear cargo; validar que la reserva esté en estado ACTIVE), `GET /reservations/:id/charges` (listar cargos con categoría). Accesible a cualquier empleado con JWT válido. Crear endpoint `GET /expense-categories` para poblar el selector del frontend.
+
+### Frontend
+
+- **[T010]** Agregar rutas `api.reservations.charges` y `api.expenseCategories` en `routes.ts`. Actualizar `/dashboard/servicio`: mostrar lista de reservas ACTIVE (llamar a `GET /reservations?status=ACTIVE`). Al seleccionar una reserva, mostrar panel o modal con: lista de cargos existentes y formulario para agregar nuevo cargo (select de categoría + descripción + monto + botón guardar). Mostrar subtotal de cargos acumulados.
 
 ---
 
 ## Milestone 3 — Payment desacoplado con descuentos
 
-> **Para qué sirve:** Cubre las entidades `PAYMENT` y `DISCOUNT` del modelo del profesor.
-> Hoy el cobro es `totalAmount` dentro de `Reservation`. Aquí lo separamos
-> en su propio modelo `Payment` con desglose completo: habitación, cargos,
-> descuento aplicado y gran total. Es el registro contable formal que le falta al sistema.
+> Cubre las entidades `PAYMENT` y `DISCOUNT` del modelo del profesor. Hoy el cobro
+> es `totalAmount` + `paymentMethod` dentro de `Reservation`. Aquí se separa en su
+> propio modelo `Payment` con desglose completo. `Reservation` deja de guardar datos
+> de cobro.
 
-- **[T010]** Agregar modelos `Discount` al schema de Prisma con campos: `name`, `description`, `percentage`, `isActive`. Ejecutar `prisma migrate dev`. Crear seed con 2-3 descuentos de ejemplo (Descuento Empleado 10%, Promoción Temporada 15%).
-- **[T011]** Agregar modelo `Payment` al schema de Prisma con campos: `reservationId` (FK, unique), `processedBy` (FK → Employee), `paymentMethod` (enum existente), `discountId` (FK → Discount, nullable), `roomTotal`, `chargesTotal`, `subtotal`, `discountAmount`, `grandTotal`, `processedAt`. Ejecutar `prisma migrate dev`.
-- **[T012]** Crear módulo NestJS `discounts` con endpoint `GET /discounts?active=true` para que el frontend pueda poblar el selector.
-- **[T013]** Refactorizar `checkOut` en `reservations.service.ts`: en lugar de escribir `paymentMethod` y `totalAmount` en `Reservation`, crear un registro en `Payment` dentro de la misma transacción de Prisma. Calcular: `roomTotal = nights × pricePerNight`, `chargesTotal = suma de RoomCharges de la reserva`, `subtotal = roomTotal + chargesTotal`, `discountAmount = subtotal × discount.percentage / 100` (si `discountId` viene en el DTO), `grandTotal = subtotal - discountAmount`. Limpiar los campos deprecados de `Reservation` (`totalAmount`, `paymentMethod`, `paidAt`) de las queries de respuesta.
-- **[T014]** Actualizar el diálogo de check-out en el frontend: agregar selector de descuento activo (opcional, cargado desde `GET /discounts`), mostrar el desglose completo (subtotal habitación + subtotal cargos + descuento + **gran total**) antes de confirmar. Actualizar la columna de monto en la tabla de reservas para leer del `Payment` asociado.
+**Workflow:** El diálogo de check-out se expande para mostrar el desglose completo:
+subtotal de habitación, subtotal de cargos adicionales, descuento seleccionado
+(opcional) y gran total. El empleado elige método de pago y descuento, confirma,
+y se crea el registro `Payment`. El resumen queda visible en pantalla. No se genera PDF.
+
+### Prisma / BD
+
+- **[T011]** Modificar `schema.prisma`: agregar modelo `Discount` con campos `name`, `description`, `percentage`, `isActive`. Agregar modelo `Payment` con campos: `reservationId` (FK → Reservation, unique), `processedBy` (FK → Employee), `paymentMethod` (enum PaymentMethod existente), `discountId` (FK → Discount, nullable), `roomTotal`, `chargesTotal`, `subtotal`, `discountAmount`, `grandTotal`, `processedAt`. Eliminar campos `totalAmount`, `paymentMethod` y `paidAt` del modelo `Reservation`. → **Tú corres:** `npx prisma migrate dev --create-only --name add_payment_model` → Claude Code revisa y ajusta el `migration.sql` → **Tú aplicas.** Luego Claude Code corre el seed de descuentos de ejemplo.
+
+### API
+
+- **[T012]** Crear módulo NestJS `discounts` con endpoint `GET /discounts?active=true`. Crear módulo NestJS `payments` con endpoint `GET /payments/:reservationId` (detalle del pago de una reserva).
+- **[T013]** Refactorizar `checkOut` en `reservations.service.ts`: el DTO recibe `paymentMethod` y `discountId` (nullable). Dentro de una transacción Prisma: calcular `roomTotal = nights × pricePerNight`, `chargesTotal = suma de RoomCharges de la reserva`, `subtotal = roomTotal + chargesTotal`, `discountAmount = subtotal × percentage / 100` si hay descuento (sino 0), `grandTotal = subtotal - discountAmount`. Crear registro `Payment` con ese desglose. Eliminar la escritura de `totalAmount`, `paymentMethod` y `paidAt` de `Reservation` (ya no existen en el schema).
+
+### Frontend
+
+- **[T014]** Agregar rutas `api.discounts` y `api.payments` en `routes.ts`. Actualizar el diálogo de check-out: al abrirse, llamar a `GET /reservations/:id/charges` y `GET /discounts?active=true` en paralelo. Mostrar desglose: fila "Habitación (N noches × S/. X)", fila "Cargos adicionales (S/. X)", selector de descuento activo (opcional), fila "**Total a cobrar (S/. X)**". Selector de método de pago. Al confirmar, enviar `paymentMethod` y `discountId` al endpoint de checkout. Actualizar la columna de monto en la tabla de reservas para leer del `Payment` asociado.
 
 ---
 
 ## Milestone 4 — Audit Log
 
-> **Para qué sirve:** Cubre la entidad `AUDIT_LOG` del modelo del profesor.
-> Registra quién hizo qué y cuándo sobre las entidades críticas del sistema.
-> Ideal para demos: se puede mostrar en vivo que cada acción queda trazada.
+> Cubre las entidades `AUDIT_ACTION` y `AUDIT_LOG` del modelo del profesor.
+> Registra quién hizo qué y cuándo sobre todas las entidades críticas.
+> Visible solo para OWNER desde una página dedicada.
 
-- **[T015]** Agregar modelos `AuditAction` y `AuditLog` al schema de Prisma. `AuditAction` con semilla de valores: CREATE, UPDATE, DELETE, CHECKIN, CHECKOUT, CANCEL. `AuditLog` con campos: `employeeId` (FK), `actionId` (FK), `tableName`, `recordId`, `previousValue` (String, JSON serializado), `newValue` (String, JSON serializado), `performedAt`. Ejecutar `prisma migrate dev` + seed de acciones.
-- **[T016]** Crear `AuditService` en NestJS como provider global (registrar en `AppModule`). Método principal: `log(employeeId, actionName, tableName, recordId, prev?, next?)`. El `employeeId` se obtiene del JWT vía `@CurrentUser()` en cada endpoint. El servicio busca el `AuditAction` por nombre y crea el registro.
-- **[T017]** Inyectar `AuditService` en los servicios de reservas, habitaciones y empleados. Agregar llamadas a `auditService.log(...)` en: crear reserva (CREATE), editar reserva (UPDATE), cancelar reserva (CANCEL), check-in (CHECKIN), check-out (CHECKOUT), cambiar estado de habitación (UPDATE), crear/editar empleado (CREATE / UPDATE).
-- **[T018]** Crear endpoint `GET /audit-logs` en NestJS con filtros opcionales por `tableName`, `employeeId` y rango `from`/`to`. Proteger con `@Roles('OWNER')`. Crear página `/dashboard/auditoria` en el frontend: tabla paginada del log con filtros. Acceso visible solo para rol OWNER (ocultar enlace del sidebar para otros roles).
+**Acciones registradas:** crear reserva, editar reserva, cancelar reserva, check-in,
+check-out, crear empleado, editar empleado, crear habitación, editar habitación,
+cambiar estado de habitación.
 
----
+### Prisma / BD
 
-## Milestone 5 — Pulido final y deuda técnica *(opcional si el tiempo no alcanza)*
+- **[T015]** Modificar `schema.prisma`: agregar modelo `AuditAction` con campo `name`. Agregar modelo `AuditLog` con campos: `employeeId` (FK → Employee), `actionId` (FK → AuditAction), `tableName`, `recordId`, `previousValue` (String, nullable), `newValue` (String, nullable), `performedAt`. → **Tú corres:** `npx prisma migrate dev --create-only --name add_audit_log` → Claude Code revisa y ajusta el `migration.sql` → **Tú aplicas.** Luego Claude Code corre el seed de acciones: CREATE, UPDATE, DELETE, CHECKIN, CHECKOUT, CANCEL.
 
-> **Para qué sirve:** Cierra los flecos que quedaron a medias y blindan el sistema
-> a nivel de base de datos. Sin esto el proyecto funciona; con esto es robusto.
+### API
 
-- **[T019]** Exponer en la UI los filtros de reservas por cuarto y por rango de fechas que ya existen en el API (`GET /reservations?roomId=&from=&to=`). Agregar inputs de filtro en la barra superior de `/dashboard/reservas`.
-- **[T020]** Registrar `createdBy` (FK → Employee) al crear una reserva y al procesar el pago, leyendo el `employeeId` del JWT con `@CurrentUser()`. Agregar campo `createdBy` al modelo `Reservation` en Prisma. Ejecutar `prisma migrate dev`. Mostrar el nombre del empleado en la tabla de reservas como columna opcional.
-- **[T021]** *(Opcional — deuda técnica TD-001)* Agregar constraint de BD contra doble-reserva: habilitar extensión `btree_gist` en PostgreSQL y crear `EXCLUDE USING gist` sobre `(roomId, tsrange(checkIn, checkOut, '[)'))` en una migración con raw SQL de Prisma. Blinda la condición de carrera donde dos requests simultáneos pasan ambos la validación de aplicación.
-- **[T022]** *(Opcional — requerimiento del profesor)* Migrar enums `Role`, `RoomType`, `RoomStatus`, `ReservationStatus` de Prisma enums a modelos/lookup tables relacionales (`JobPosition`, `RoomType`, `RoomStatus`, `ReservationStatus` como tablas con FK). Solo hacer si hay tiempo disponible; el profesor confirmó que no es bloqueante para la nota.
+- **[T016]** Crear `AuditService` en NestJS como provider global (registrar en `AppModule`). Método principal: `log(employeeId: number, action: string, tableName: string, recordId: number, prev?: object, next?: object)`. El servicio busca el `AuditAction` por nombre y crea el registro. El `employeeId` lo recibe como parámetro desde el controlador vía `@CurrentUser()`.
+- **[T017]** Inyectar `AuditService` en `ReservationsService`, `EmployeesService` y `RoomsService`. Agregar llamada a `auditService.log(...)` en cada operación: crear reserva (CREATE), editar reserva (UPDATE, con `prev` y `next`), cancelar reserva (CANCEL, con `prev`), check-in (CHECKIN), check-out (CHECKOUT), crear empleado (CREATE), editar empleado (UPDATE), crear habitación (CREATE), editar habitación (UPDATE), cambiar estado de habitación (UPDATE).
+- **[T018]** Crear endpoint `GET /audit-logs` protegido con `@Roles('OWNER')`, con filtros opcionales por query params: `tableName`, `employeeId`, `from`, `to`. Retornar con `include` de `employee` (nombre) y `action` (nombre).
 
----
+### Frontend
 
-## Milestone 6 — Extras opcionales *(fuera del alcance principal)*
-
-> **Para qué sirve:** Tareas que estaban en el roadmap anterior y no entraron en los
-> milestones de arriba, más mejoras de presentación. Ninguna es bloqueante: son
-> "nice to have" para pulir la entrega o la demo. Tomar solo si sobra tiempo.
-
-- **[T023]** *(Opcional)* Crear reserva con **click-y-arrastre** sobre un cuarto libre en el timeline de `/dashboard/calendario`. Al soltar, abrir el diálogo de nueva reserva con las fechas y la habitación prellenadas.
-- **[T024]** *(Opcional)* Prueba E2E del flujo de disponibilidad temporal: (a) crear dos reservas solapadas para el mismo cuarto → la segunda debe rechazarse con `409`; (b) verificar que una reserva futura se puede crear aunque el cuarto esté `OCCUPIED` hoy.
-- **[T025]** *(Opcional)* Documento de entrega: URL pública del sistema desplegado + credenciales de prueba para cada rol (OWNER / MANAGER / EMPLOYEE). Guardar en `docs/`.
-- **[T026]** *(Opcional)* Rediseño de UI: agregar fotos de las habitaciones y mejorar la presentación visual general (cards, dashboard, detalle de reserva). El diseño concreto se definirá consultando a **Claude Design**; esta tarea es la implementación una vez que el diseño esté listo.
+- **[T019]** Agregar ruta `api.auditLogs` en `routes.ts`. Crear página `/dashboard/auditoria`: tabla con columnas fecha/hora, empleado, acción, entidad, ID del registro. Filtros en barra superior: selector de entidad, selector de empleado, rango de fechas. Ocultar enlace del sidebar para MANAGER y EMPLOYEE. Proteger con `ProtectedRoute` validando rol OWNER.
 
 ---
 
-## Resumen visual de dependencias
+## Milestone 5 — Pulido y filtros *(opcional si el tiempo no alcanza)*
+
+> Flecos que mejoran la experiencia sin agregar entidades nuevas al modelo.
+> El sistema es completamente funcional sin este milestone.
+
+### Prisma / BD
+
+- **[T020]** Modificar `schema.prisma`: agregar campo `createdBy` (FK → Employee) al modelo `Reservation`. → **Tú corres:** `npx prisma migrate dev --create-only --name add_reservation_created_by` → Claude Code revisa y ajusta el `migration.sql` → **Tú aplicas.**
+
+### API
+
+- **[T021]** Actualizar `POST /reservations`: leer `employeeId` del JWT con `@CurrentUser()` y guardarlo en `createdBy` al crear la reserva.
+
+### Frontend
+
+- **[T022]** Agregar filtros de fecha y cuarto en `/dashboard/reservas`: input fecha inicio, input fecha fin, selector de habitación (poblado desde `GET /rooms`). Se combinan con el filtro de estado ya existente. Agregar ruta con los query params `from`, `to`, `roomId` en `routes.ts`.
+- **[T023]** Mostrar nombre del empleado que creó la reserva como columna opcional en la tabla de reservas (leer del `include` de `createdBy`).
+
+### Opcional — Deuda técnica TD-001
+
+- **[T024]** *(Solo si hay tiempo)* Agregar constraint de BD contra doble-reserva a nivel de PostgreSQL: en el `migration.sql` incluir raw SQL para habilitar extensión `btree_gist` y crear `EXCLUDE USING gist` sobre `(roomId, tsrange("checkIn", "checkOut", '[)'))`. Blinda la condición de carrera donde dos requests simultáneos pasan ambos la validación de aplicación.
+
+---
+
+## Mapa de dependencias
 
 ```
 Base construida
-    │
-    ▼
-Milestone 1 — Guest (migración de datos, módulo guests, página huéspedes)
-    │
-    ▼
-Milestone 2 — Room Charges (aditivo, no rompe nada)
-    │
-    ▼
-Milestone 3 — Payment desacoplado + Descuentos (refactor checkout)
-    │
-    ▼
-Milestone 4 — Audit Log (aditivo, solo inyección en servicios)
-    │
-    ▼
-Milestone 5 — Pulido + deuda técnica (opcional)
-    │
-    ▼
-Milestone 6 — Extras opcionales (calendario drag, E2E, doc de entrega, rediseño UI)
+      │
+      ▼
+Milestone 1 — Guest
+(schema → seed → fk not null → módulo guests → formulario reserva → página huéspedes)
+      │
+      ├──▶ Milestone 2 — Room Charges (aditivo, no depende de M1 para arrancar)
+      │         │
+      └─────────┤
+                ▼
+          Milestone 3 — Payment + Descuentos (depende de M2 para sumar cargos)
+                │
+                ▼
+          Milestone 4 — Audit Log (aditivo sobre servicios existentes)
+                │
+                ▼
+          Milestone 5 — Pulido y filtros (opcional)
 ```
 
-Cada milestone puede ser el punto de corte si el tiempo no alcanza.
-El sistema queda funcional y coherente en cualquiera de ellos.
-
----
-
-## Cómo trabajar este roadmap
-
-Las tareas están pensadas para ejecutarse de a una. El flujo es:
-
-1. `clear` para empezar limpio.
-2. Indicar el **código de tarea** (ej. "hagamos T007").
-3. Se implementa esa tarea completa.
-4. `clear` y se continúa con la siguiente.
-
-Las tareas marcadas *(Opcional)* no son bloqueantes para la nota ni para tener el sistema funcional.
+Cualquier milestone es un punto de corte válido.
+El sistema queda funcional y coherente en cada uno de ellos.

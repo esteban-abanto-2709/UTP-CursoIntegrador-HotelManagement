@@ -11,10 +11,27 @@ import { UpdateReservationStatusDto } from './dto/update-reservation-status.dto'
 import { UpdateReservationDto } from './dto/update-reservation.dto';
 import { FilterReservationsDto } from './dto/filter-reservations.dto';
 import { CheckoutReservationDto } from './dto/checkout-reservation.dto';
+import { GuestsService } from '../guests/guests.service';
 
 @Injectable()
 export class ReservationsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private guests: GuestsService,
+  ) {}
+
+  private readonly reservationInclude = {
+    room: { select: { number: true, type: true } },
+    guest: {
+      select: {
+        id: true,
+        nationalId: true,
+        fullName: true,
+        email: true,
+        phone: true,
+      },
+    },
+  } satisfies Prisma.ReservationInclude;
 
   async create(dto: CreateReservationDto) {
     const checkIn = new Date(dto.checkIn);
@@ -36,17 +53,23 @@ export class ReservationsService {
 
     await this.assertNoOverlap(dto.roomId, checkIn, checkOut);
 
+    const guest = await this.guests.upsertByNationalId({
+      nationalId: dto.nationalId,
+      fullName: dto.fullName,
+      email: dto.email,
+      phone: dto.phone,
+    });
+
     return this.prisma.reservation.create({
       data: {
-        guestName: dto.guestName,
-        dni: dto.dni,
+        guestId: guest.id,
         checkIn,
         checkOut,
         roomId: dto.roomId,
         // Snapshot del precio: si luego cambia la tarifa del cuarto, esta reserva no se altera
         pricePerNight: room.price,
       },
-      include: { room: { select: { number: true, type: true } } },
+      include: this.reservationInclude,
     });
   }
 
@@ -92,7 +115,7 @@ export class ReservationsService {
 
     return this.prisma.reservation.findMany({
       where,
-      include: { room: { select: { number: true, type: true } } },
+      include: this.reservationInclude,
       orderBy: { checkIn: 'asc' },
     });
   }
@@ -100,7 +123,7 @@ export class ReservationsService {
   async findOne(id: number) {
     const reservation = await this.prisma.reservation.findUnique({
       where: { id },
-      include: { room: { select: { number: true, type: true } } },
+      include: this.reservationInclude,
     });
 
     if (!reservation) {
@@ -143,10 +166,18 @@ export class ReservationsService {
       dto.checkIn !== undefined || dto.checkOut !== undefined;
 
     const data: Prisma.ReservationUpdateInput = {};
-    if (dto.guestName !== undefined) data.guestName = dto.guestName;
-    if (dto.dni !== undefined) data.dni = dto.dni;
     if (dto.checkIn !== undefined) data.checkIn = checkIn;
     if (dto.checkOut !== undefined) data.checkOut = checkOut;
+
+    if (dto.nationalId !== undefined && dto.fullName !== undefined) {
+      const guest = await this.guests.upsertByNationalId({
+        nationalId: dto.nationalId,
+        fullName: dto.fullName,
+        email: dto.email,
+        phone: dto.phone,
+      });
+      data.guest = { connect: { id: guest.id } };
+    }
 
     if (roomChanged) {
       const newRoom = await this.prisma.room.findUnique({
@@ -166,7 +197,7 @@ export class ReservationsService {
     const updated = await this.prisma.reservation.update({
       where: { id },
       data,
-      include: { room: { select: { number: true, type: true } } },
+      include: this.reservationInclude,
     });
 
     return { message: 'Reserva actualizada', reservation: updated };
@@ -190,7 +221,7 @@ export class ReservationsService {
     const updated = await this.prisma.reservation.update({
       where: { id },
       data: { status: 'CANCELLED' },
-      include: { room: { select: { number: true, type: true } } },
+      include: this.reservationInclude,
     });
 
     return { message: 'Reserva cancelada', reservation: updated };
@@ -208,7 +239,7 @@ export class ReservationsService {
     const updated = await this.prisma.reservation.update({
       where: { id },
       data: { status: dto.status },
-      include: { room: { select: { number: true, type: true } } },
+      include: this.reservationInclude,
     });
 
     return { message: 'Estado de reserva actualizado', reservation: updated };
@@ -241,7 +272,7 @@ export class ReservationsService {
       this.prisma.reservation.update({
         where: { id },
         data: { status: 'ACTIVE', actualCheckIn: new Date() },
-        include: { room: { select: { number: true, type: true } } },
+        include: this.reservationInclude,
       }),
       this.prisma.room.update({
         where: { id: reservation.roomId },
@@ -293,7 +324,7 @@ export class ReservationsService {
           paymentMethod: dto.paymentMethod,
           paidAt: new Date(),
         },
-        include: { room: { select: { number: true, type: true } } },
+        include: this.reservationInclude,
       }),
       this.prisma.room.update({
         where: { id: reservation.roomId },

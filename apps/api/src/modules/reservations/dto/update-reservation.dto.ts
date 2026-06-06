@@ -4,18 +4,27 @@ import {
   IsInt,
   IsDateString,
   IsOptional,
+  IsEmail,
 } from 'class-validator';
 
 export class UpdateReservationDto {
   @IsOptional()
   @IsString()
   @IsNotEmpty()
-  guestName?: string;
+  nationalId?: string;
 
   @IsOptional()
   @IsString()
   @IsNotEmpty()
-  dni?: string;
+  fullName?: string;
+
+  @IsOptional()
+  @IsEmail()
+  email?: string;
+
+  @IsOptional()
+  @IsString()
+  phone?: string;
 
   @IsOptional()
   @IsInt()
