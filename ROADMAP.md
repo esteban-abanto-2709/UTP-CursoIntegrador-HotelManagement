@@ -1,201 +1,146 @@
-# Roadmap: Sistema de Reservas con Disponibilidad Temporal
+# Roadmap — Lumina Resort PMS
 
-**Proyecto:** Lumina Resort PMS — Curso Integrador UTP
-**Stack:** NestJS + Prisma + PostgreSQL · Next.js 16 + TailwindCSS
-**Infraestructura:** Backend en Render · Frontend en Vercel · BD en Supabase
+**Proyecto:** Lumina Resort PMS — Curso Integrador UTP  
+**Stack:** NestJS + Prisma + PostgreSQL · Next.js 16 + TailwindCSS  
+**Infraestructura:** Render (API) · Vercel (Web) · Supabase (BD)
 
 ---
 
-## El Problema Central
+## Base construida — no se toca
 
-El sistema actual **confunde dos conceptos distintos** que parecen lo mismo:
+Lo siguiente ya está completo y desplegado. Es la fundación:
 
-1. **Estado físico de la habitación (`Room.status`)** — qué pasa con el cuarto *ahora mismo*:
-   `AVAILABLE`, `OCCUPIED`, `CLEANING`, `MAINTENANCE`. Es un hecho de **tiempo presente**.
-   Sirve para housekeeping, el dashboard en vivo y para autorizar un check-in.
+- Auth JWT + roles (OWNER / MANAGER / EMPLOYEE)
+- CRUD Empleados y Habitaciones (con precio por noche)
+- Dashboard de estados físicos en tiempo real + Housekeeping
+- Reservas: creación con flujo fecha-primero, validación de overbooking por solapamiento
+- Check-in / Check-out con cobro simple (noches × tarifa, método de pago)
+- Edición y cancelación de reservas en estado PENDING
+- Calendario / Timeline de ocupación por semana
+- Filtro de reservas por estado en la UI
 
-2. **Disponibilidad temporal** — si el cuarto está libre **en un rango de fechas**.
-   Es una **consulta sobre el tiempo**, que se calcula a partir de las reservas existentes.
-   Sirve para *decidir si se puede reservar*.
+---
 
-Hoy el sistema valida las reservas contra el concepto **(1)**, cuando debería usar **(2)**:
+## Milestone 1 — Guest como entidad propia
 
-```ts
-// apps/api/src/modules/reservations/reservations.service.ts  (actual — INCORRECTO)
-if (room.status !== 'AVAILABLE') {
-  throw new BadRequestException(`La habitación ${room.number} no está disponible`);
-}
+> **Para qué sirve:** El modelo del profesor separa al huésped de la reserva.
+> Hoy `guestName` y `dni` son strings sueltos en `Reservation`.
+> Aquí los convertimos en un `Guest` real, con su propio ID y
+> la posibilidad de ver su historial de estadías.
+> Si el tiempo no alcanza para más, este milestone ya demuestra
+> que el modelo relacional está correcto.
+
+- **[T001]** Agregar modelo `Guest` al schema de Prisma con campos: `nationalId` (unique), `fullName`, `email` (nullable), `phone` (nullable), `registeredAt`. Ejecutar `prisma migrate dev`.
+- **[T002]** Escribir script de migración de datos: crear un `Guest` por cada `Reservation` existente (deduplicando por `dni`) y asociar el `guestId` a cada reserva. Correr el script una sola vez después de la migración de schema.
+- **[T003]** Agregar campo `guestId` (FK → Guest) al modelo `Reservation` en Prisma. Marcar `guestName` y `dni` como `@deprecated` en comentarios (no borrar aún, para no romper queries existentes). Ejecutar `prisma migrate dev`.
+- **[T004]** Crear módulo NestJS `guests` con endpoints: `GET /guests` (listado con búsqueda por nombre o DNI), `GET /guests/:id` (detalle con historial de reservas vía `include`).
+- **[T005]** Actualizar `POST /reservations` y `PATCH /reservations/:id`: buscar o crear el `Guest` por `nationalId` antes de crear/editar la reserva. El DTO sigue recibiendo `guestName` y `dni` para no romper el frontend todavía.
+- **[T006]** Agregar página `/dashboard/huespedes` en el frontend: tabla con búsqueda en tiempo real por nombre o DNI, columna de cantidad de reservas. Reutilizar componentes de tabla existentes. Agregar enlace en el sidebar.
+
+---
+
+## Milestone 2 — Cargos a la habitación (Room Charges)
+
+> **Para qué sirve:** Cubre la entidad `ROOM_CHARGE` del modelo del profesor.
+> Permite registrar consumos extra durante la estadía (minibar, room service,
+> daños, lavandería) que luego suman al cobro en el check-out.
+> Milestone completamente aditivo: no modifica nada de lo ya construido.
+
+- **[T007]** Agregar modelos `ExpenseCategory` y `RoomCharge` al schema de Prisma. `ExpenseCategory` con campos `name` (semilla: Room Service, Minibar, Lavandería, Daños, Otros). `RoomCharge` con campos: `reservationId` (FK), `categoryId` (FK), `registeredBy` (FK → Employee), `description`, `amount`, `chargedAt`. Ejecutar `prisma migrate dev` + seed de categorías.
+- **[T008]** Crear módulo NestJS `room-charges` con endpoints: `POST /reservations/:id/charges` (registrar cargo; solo en reservas ACTIVE), `GET /reservations/:id/charges` (listar cargos de la reserva con su categoría). Proteger con `JwtAuthGuard`.
+- **[T009]** Agregar ruta `api.reservations.charges` en `apps/web/src/lib/routes.ts`. Actualizar el diálogo de check-out en el frontend: mostrar tabla de cargos de la reserva, formulario inline para agregar nuevo cargo (select de categoría + descripción + monto), subtotal de cargos debajo de la tabla.
+
+---
+
+## Milestone 3 — Payment desacoplado con descuentos
+
+> **Para qué sirve:** Cubre las entidades `PAYMENT` y `DISCOUNT` del modelo del profesor.
+> Hoy el cobro es `totalAmount` dentro de `Reservation`. Aquí lo separamos
+> en su propio modelo `Payment` con desglose completo: habitación, cargos,
+> descuento aplicado y gran total. Es el registro contable formal que le falta al sistema.
+
+- **[T010]** Agregar modelos `Discount` al schema de Prisma con campos: `name`, `description`, `percentage`, `isActive`. Ejecutar `prisma migrate dev`. Crear seed con 2-3 descuentos de ejemplo (Descuento Empleado 10%, Promoción Temporada 15%).
+- **[T011]** Agregar modelo `Payment` al schema de Prisma con campos: `reservationId` (FK, unique), `processedBy` (FK → Employee), `paymentMethod` (enum existente), `discountId` (FK → Discount, nullable), `roomTotal`, `chargesTotal`, `subtotal`, `discountAmount`, `grandTotal`, `processedAt`. Ejecutar `prisma migrate dev`.
+- **[T012]** Crear módulo NestJS `discounts` con endpoint `GET /discounts?active=true` para que el frontend pueda poblar el selector.
+- **[T013]** Refactorizar `checkOut` en `reservations.service.ts`: en lugar de escribir `paymentMethod` y `totalAmount` en `Reservation`, crear un registro en `Payment` dentro de la misma transacción de Prisma. Calcular: `roomTotal = nights × pricePerNight`, `chargesTotal = suma de RoomCharges de la reserva`, `subtotal = roomTotal + chargesTotal`, `discountAmount = subtotal × discount.percentage / 100` (si `discountId` viene en el DTO), `grandTotal = subtotal - discountAmount`. Limpiar los campos deprecados de `Reservation` (`totalAmount`, `paymentMethod`, `paidAt`) de las queries de respuesta.
+- **[T014]** Actualizar el diálogo de check-out en el frontend: agregar selector de descuento activo (opcional, cargado desde `GET /discounts`), mostrar el desglose completo (subtotal habitación + subtotal cargos + descuento + **gran total**) antes de confirmar. Actualizar la columna de monto en la tabla de reservas para leer del `Payment` asociado.
+
+---
+
+## Milestone 4 — Audit Log
+
+> **Para qué sirve:** Cubre la entidad `AUDIT_LOG` del modelo del profesor.
+> Registra quién hizo qué y cuándo sobre las entidades críticas del sistema.
+> Ideal para demos: se puede mostrar en vivo que cada acción queda trazada.
+
+- **[T015]** Agregar modelos `AuditAction` y `AuditLog` al schema de Prisma. `AuditAction` con semilla de valores: CREATE, UPDATE, DELETE, CHECKIN, CHECKOUT, CANCEL. `AuditLog` con campos: `employeeId` (FK), `actionId` (FK), `tableName`, `recordId`, `previousValue` (String, JSON serializado), `newValue` (String, JSON serializado), `performedAt`. Ejecutar `prisma migrate dev` + seed de acciones.
+- **[T016]** Crear `AuditService` en NestJS como provider global (registrar en `AppModule`). Método principal: `log(employeeId, actionName, tableName, recordId, prev?, next?)`. El `employeeId` se obtiene del JWT vía `@CurrentUser()` en cada endpoint. El servicio busca el `AuditAction` por nombre y crea el registro.
+- **[T017]** Inyectar `AuditService` en los servicios de reservas, habitaciones y empleados. Agregar llamadas a `auditService.log(...)` en: crear reserva (CREATE), editar reserva (UPDATE), cancelar reserva (CANCEL), check-in (CHECKIN), check-out (CHECKOUT), cambiar estado de habitación (UPDATE), crear/editar empleado (CREATE / UPDATE).
+- **[T018]** Crear endpoint `GET /audit-logs` en NestJS con filtros opcionales por `tableName`, `employeeId` y rango `from`/`to`. Proteger con `@Roles('OWNER')`. Crear página `/dashboard/auditoria` en el frontend: tabla paginada del log con filtros. Acceso visible solo para rol OWNER (ocultar enlace del sidebar para otros roles).
+
+---
+
+## Milestone 5 — Pulido final y deuda técnica *(opcional si el tiempo no alcanza)*
+
+> **Para qué sirve:** Cierra los flecos que quedaron a medias y blindan el sistema
+> a nivel de base de datos. Sin esto el proyecto funciona; con esto es robusto.
+
+- **[T019]** Exponer en la UI los filtros de reservas por cuarto y por rango de fechas que ya existen en el API (`GET /reservations?roomId=&from=&to=`). Agregar inputs de filtro en la barra superior de `/dashboard/reservas`.
+- **[T020]** Registrar `createdBy` (FK → Employee) al crear una reserva y al procesar el pago, leyendo el `employeeId` del JWT con `@CurrentUser()`. Agregar campo `createdBy` al modelo `Reservation` en Prisma. Ejecutar `prisma migrate dev`. Mostrar el nombre del empleado en la tabla de reservas como columna opcional.
+- **[T021]** *(Opcional — deuda técnica TD-001)* Agregar constraint de BD contra doble-reserva: habilitar extensión `btree_gist` en PostgreSQL y crear `EXCLUDE USING gist` sobre `(roomId, tsrange(checkIn, checkOut, '[)'))` en una migración con raw SQL de Prisma. Blinda la condición de carrera donde dos requests simultáneos pasan ambos la validación de aplicación.
+- **[T022]** *(Opcional — requerimiento del profesor)* Migrar enums `Role`, `RoomType`, `RoomStatus`, `ReservationStatus` de Prisma enums a modelos/lookup tables relacionales (`JobPosition`, `RoomType`, `RoomStatus`, `ReservationStatus` como tablas con FK). Solo hacer si hay tiempo disponible; el profesor confirmó que no es bloqueante para la nota.
+
+---
+
+## Milestone 6 — Extras opcionales *(fuera del alcance principal)*
+
+> **Para qué sirve:** Tareas que estaban en el roadmap anterior y no entraron en los
+> milestones de arriba, más mejoras de presentación. Ninguna es bloqueante: son
+> "nice to have" para pulir la entrega o la demo. Tomar solo si sobra tiempo.
+
+- **[T023]** *(Opcional)* Crear reserva con **click-y-arrastre** sobre un cuarto libre en el timeline de `/dashboard/calendario`. Al soltar, abrir el diálogo de nueva reserva con las fechas y la habitación prellenadas.
+- **[T024]** *(Opcional)* Prueba E2E del flujo de disponibilidad temporal: (a) crear dos reservas solapadas para el mismo cuarto → la segunda debe rechazarse con `409`; (b) verificar que una reserva futura se puede crear aunque el cuarto esté `OCCUPIED` hoy.
+- **[T025]** *(Opcional)* Documento de entrega: URL pública del sistema desplegado + credenciales de prueba para cada rol (OWNER / MANAGER / EMPLOYEE). Guardar en `docs/`.
+- **[T026]** *(Opcional)* Rediseño de UI: agregar fotos de las habitaciones y mejorar la presentación visual general (cards, dashboard, detalle de reserva). El diseño concreto se definirá consultando a **Claude Design**; esta tarea es la implementación una vez que el diseño esté listo.
+
+---
+
+## Resumen visual de dependencias
+
+```
+Base construida
+    │
+    ▼
+Milestone 1 — Guest (migración de datos, módulo guests, página huéspedes)
+    │
+    ▼
+Milestone 2 — Room Charges (aditivo, no rompe nada)
+    │
+    ▼
+Milestone 3 — Payment desacoplado + Descuentos (refactor checkout)
+    │
+    ▼
+Milestone 4 — Audit Log (aditivo, solo inyección en servicios)
+    │
+    ▼
+Milestone 5 — Pulido + deuda técnica (opcional)
+    │
+    ▼
+Milestone 6 — Extras opcionales (calendario drag, E2E, doc de entrega, rediseño UI)
 ```
 
-### Por qué está mal
-
-- **Falso rechazo:** un cuarto ocupado HOY no se puede reservar para el mes que viene,
-  aunque para esas fechas esté perfectamente libre.
-- **Falsa aceptación (overbooking):** dos reservas para el mismo cuarto en fechas que se
-  solapan se aceptan sin problema, mientras el cuarto figure `AVAILABLE` al momento de crearlas.
-
-### La regla correcta: solapamiento de fechas
-
-Una reserva nueva `[checkIn, checkOut)` entra en conflicto con una existente del **mismo cuarto** si:
-
-```
-nuevoCheckIn < existenteCheckOut   Y   nuevoCheckOut > existenteCheckIn
-```
-
-…considerando solo reservas que "retienen" el cuarto (estado `PENDING` o `ACTIVE`;
-las `CANCELLED` y `COMPLETED` liberan las fechas).
-
-**En resumen:** reservar es una operación sobre *intervalos de tiempo*, no sobre el estado actual.
-El `Room.status` deja de ser el portero de las reservas y se queda solo para lo operativo (check-in, limpieza).
+Cada milestone puede ser el punto de corte si el tiempo no alcanza.
+El sistema queda funcional y coherente en cualquiera de ellos.
 
 ---
 
-## Base ya construida (no se toca)
+## Cómo trabajar este roadmap
 
-Estos módulos ya están completos y desplegados; son la fundación sobre la que trabajamos:
+Las tareas están pensadas para ejecutarse de a una. El flujo es:
 
-- Autenticación JWT + roles (OWNER/MANAGER/EMPLOYEE)
-- CRUD de empleados (con edición) y de habitaciones (con edición y precio por noche)
-- Dashboard de estados físicos en tiempo real + housekeeping (limpieza)
-- Reservas: creación, check-in, check-out con cobro (precio snapshot, métodos de pago)
-- Modelo `Reservation` con `checkIn`, `checkOut`, `actualCheckIn`, `actualCheckOut`, `status`, `roomId`
+1. `clear` para empezar limpio.
+2. Indicar el **código de tarea** (ej. "hagamos T007").
+3. Se implementa esa tarea completa.
+4. `clear` y se continúa con la siguiente.
 
-> El modelo de datos actual **ya soporta** la disponibilidad temporal: tiene fechas, cuarto y estado.
-> El problema es solo la **lógica de validación**, no el schema.
-
----
-
-## Objetivo Principal
-
-> Convertir el módulo de reservas en un sistema **consciente del tiempo**: que valide overbooking
-> por solapamiento de fechas, que muestre disponibilidad por rango, y que se visualice en un calendario.
-
-### Caso de uso concreto (el objetivo que guía todo)
-
-> Al crear una reserva, el recepcionista indica **3 datos**: fecha de check-in, fecha de check-out
-> y **tipo de habitación** (SINGLE / DOUBLE / SUITE). El backend responde con la **lista de
-> habitaciones de ese tipo que están libres en ese rango de fechas**. El recepcionista elige una
-> de esa lista y confirma.
-
-Es decir, el endpoint clave recibe `{ checkIn, checkOut, type }` y devuelve los cuartos disponibles.
-No se muestran todos los cuartos ni se filtra por su estado actual: se filtra por **tipo** + **disponibilidad temporal**.
-
----
-
-## Fase 1 — Backend: Disponibilidad Temporal (núcleo)
-
-*El corazón del cambio. Sin esto, lo demás no tiene sentido.*
-
-- [x] **Validación de overbooking al crear reserva (`POST /reservations`):**
-  - Quitar el chequeo de `room.status !== 'AVAILABLE'`.
-  - Buscar reservas del mismo cuarto en estado `PENDING`/`ACTIVE` que se solapen con las fechas pedidas.
-  - Si existe alguna → `409 Conflict` con mensaje claro ("La habitación ya está reservada para esas fechas").
-  - Consulta en Prisma (elegante, sin traer todo a memoria):
-
-    ```ts
-    const conflicto = await prisma.reservation.findFirst({
-      where: {
-        roomId,
-        status: { in: ['PENDING', 'ACTIVE'] },
-        checkIn:  { lt: checkOutDate },
-        checkOut: { gt: checkInDate },
-      },
-    });
-    ```
-
-- [x] **Endpoint de disponibilidad (`GET /rooms/availability?checkIn=&checkOut=&type=`):**
-  - Recibe **3 parámetros**: `checkIn`, `checkOut` y `type` (SINGLE / DOUBLE / SUITE).
-  - Devuelve los cuartos **de ese tipo** que están **libres en ese rango** (sin reserva solapada).
-
-    ```ts
-    prisma.room.findMany({
-      where: {
-        type, // ← filtro por tipo de habitación solicitado
-        reservations: {
-          none: {
-            status: { in: ['PENDING', 'ACTIVE'] },
-            checkIn:  { lt: checkOutDate },
-            checkOut: { gt: checkInDate },
-          },
-        },
-      },
-    });
-    ```
-
-  - (Decisión de diseño) ¿el `type` es obligatorio u opcional? → **Resuelto: obligatorio.**
-    Coincide con el caso de uso; relajarlo después es trivial.
-  - (Decisión de diseño) ¿excluir cuartos en `MAINTENANCE`? → **Resuelto: se excluye solo
-    `MAINTENANCE`** (estado indefinido sin fecha fin). `OCCUPIED`/`CLEANING` SÍ se ofrecen para
-    fechas futuras, pues son transitorios y excluirlos reintroduce el falso rechazo.
-- [x] **Check-in conserva su chequeo de `AVAILABLE`** — esto SÍ es correcto: no puedes meter
-  un huésped a un cuarto sucio u ocupado físicamente. El check-in es operativo (presente), no temporal.
-
----
-
-## Fase 2 — Frontend: Flujo de reserva "fecha + tipo primero"
-
-*El formulario se invierte: primero fechas y tipo, luego los cuartos libres que cumplen.*
-
-- [x] En "Nueva Reserva", el recepcionista elige primero: **check-in**, **check-out** y **tipo de habitación**.
-- [x] Con esos 3 datos, llamar a `GET /rooms/availability?checkIn=&checkOut=&type=` y mostrar
-  **solo los cuartos de ese tipo libres** en el rango. (Reemplaza el filtro actual de "cuartos AVAILABLE ahora mismo".)
-- [x] El recepcionista elige una habitación de la lista devuelta y completa los datos del huésped.
-- [x] Bloquear en el date picker que `checkOut <= checkIn`.
-- [x] Manejar el `409` de overbooking con un toast claro.
-
----
-
-## Fase 3 — Visualización en Calendario / Timeline
-
-*"Trabajar con fechas y calendarios": ver de un vistazo cuándo está ocupado cada cuarto.*
-
-- [x] Vista tipo **timeline**: cada habitación es una fila, las reservas son barras a lo largo de un eje de fechas.
-  Implementado en página propia `apps/web/src/app/dashboard/calendario/` (no se tocó el Gantt del curso).
-- [x] Reutilizar el patrón visual del Gantt: se creó `OccupancyTimeline.tsx` reutilizando su lenguaje
-  visual pero con eje de **días reales**, tema semántico actual y varias barras por fila.
-- [x] Navegación por semana (←/→, botón "Hoy"); colores por estado de reserva (PENDING/ACTIVE/COMPLETED).
-- [ ] (Opcional) crear reserva haciendo click-y-arrastre sobre un cuarto libre. **Pendiente.**
-
----
-
-## Fase 4 — Ciclo de vida de la reserva
-
-*Sin esto no se pueden corregir errores ni liberar fechas.*
-
-- [x] `GET /reservations/:id` — detalle completo. (API listo; el frontend aún no lo consume — la tabla ya trae todo.)
-- [x] `PATCH /reservations/:id` — modificar fechas o cuarto → **re-validar overbooking** (excluyéndose a sí misma con `id: { not: id }`).
-  Solo editable en estado `PENDING`. Re-snapshotea `pricePerNight` al cambiar de cuarto.
-- [x] `PATCH /reservations/:id/cancel` — pasa a `CANCELLED` (libera las fechas, no borra). Solo cancelable en `PENDING`.
-- [~] Filtros en el listado: **por estado** hecho (UI dropdown + filtrado). Por cuarto y por fecha:
-  el API ya los soporta (`GET /reservations?status=&roomId=&from=&to=`), falta exponerlos en la UI.
-- [x] Frontend: botones de editar/cancelar en la tabla de reservas.
-  Diálogo compartido crear/editar (`ReservationFormDialog.tsx`) + confirmación de cancelación.
-  El editar reutiliza el flujo fecha-primero y usa `excludeReservationId` en disponibilidad para
-  que el cuarto actual aparezca en la lista.
-
----
-
-## Fase 5 — Robustez (avanzado / opcional)
-
-- [ ] **Constraint a nivel de BD contra doble-reserva:** `EXCLUDE USING gist` con `tsrange`
-  sobre `(roomId, [checkIn, checkOut))` (requiere extensión `btree_gist`). Evita la condición de
-  carrera donde dos requests simultáneos pasan ambos la validación de aplicación. Es el estándar
-  de oro; la validación en código cubre el 99% pero esto lo blinda.
-  > Ya registrado como **TD-001** en `docs/technical-debt.md` (riesgo 5/10).
-- [ ] Registrar qué empleado creó la reserva y quién recibió el pago (`employeeId`).
-
----
-
-## Fase 6 — Cierre y entrega
-
-- [ ] Prueba E2E del nuevo flujo: crear dos reservas solapadas → la segunda debe rechazarse (409).
-- [ ] Verificar que una reserva futura se puede crear aunque el cuarto esté ocupado HOY.
-- [ ] Documento de entrega: URL pública + credenciales de prueba (OWNER / MANAGER / EMPLOYEE).
-
----
-
-## Qué falta, en una frase
-
-> El modelo de datos ya está listo; falta **cambiar la lógica de validación de "estado actual" a
-> "solapamiento de fechas"** (Fase 1), **invertir el formulario a fecha-primero** (Fase 2), y darle
-> una **vista de calendario** (Fase 3). Lo demás (editar/cancelar, constraint de BD) es refinamiento.
+Las tareas marcadas *(Opcional)* no son bloqueantes para la nota ni para tener el sistema funcional.
