@@ -18,6 +18,7 @@ import {
   LogOut,
   Users,
   Bed,
+  Contact,
 } from "lucide-react";
 import { useAuthStore } from "@/store/authStore";
 import { useRouter, usePathname } from "next/navigation";
@@ -47,6 +48,12 @@ const items = [
     title: "Reservas",
     url: routes.dashboard.reservas(),
     icon: Calendar,
+    allowedRoles: ["OWNER", "MANAGER", "EMPLOYEE"],
+  },
+  {
+    title: "Huéspedes",
+    url: routes.dashboard.huespedes(),
+    icon: Contact,
     allowedRoles: ["OWNER", "MANAGER", "EMPLOYEE"],
   },
   {

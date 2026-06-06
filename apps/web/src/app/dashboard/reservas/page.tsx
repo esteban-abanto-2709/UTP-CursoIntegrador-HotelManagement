@@ -35,8 +35,13 @@ type PaymentMethod = "CASH" | "CARD" | "TRANSFER";
 
 interface Reservation {
   id: number;
-  guestName: string;
-  dni: string;
+  guest: {
+    id: number;
+    nationalId: string;
+    fullName: string;
+    email: string | null;
+    phone: string | null;
+  };
   checkIn: string;
   checkOut: string;
   status: ReservationStatus;
@@ -113,8 +118,7 @@ export default function ReservasPage() {
   const handleEdit = (res: Reservation) => {
     setEditingReservation({
       id: res.id,
-      guestName: res.guestName,
-      dni: res.dni,
+      guest: res.guest,
       checkIn: res.checkIn,
       checkOut: res.checkOut,
       roomId: res.roomId,
@@ -185,8 +189,8 @@ export default function ReservasPage() {
 
   const filteredReservations = reservations.filter((r) => {
     const matchesSearch =
-      r.guestName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      r.dni.includes(searchTerm);
+      r.guest.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      r.guest.nationalId.includes(searchTerm);
     const matchesStatus = statusFilter === "ALL" || r.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
@@ -334,10 +338,10 @@ export default function ReservasPage() {
                     #{res.id}
                   </TableCell>
                   <TableCell className="font-medium text-foreground group-hover:text-primary transition-colors">
-                    {res.guestName}
+                    {res.guest.fullName}
                   </TableCell>
                   <TableCell className="text-muted-foreground">
-                    {res.dni}
+                    {res.guest.nationalId}
                   </TableCell>
                   <TableCell>
                     <span className="bg-muted text-muted-foreground px-2.5 py-1 rounded-md text-xs font-bold border border-border/50">
@@ -444,7 +448,7 @@ export default function ReservasPage() {
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Huésped</span>
                       <span className="font-semibold text-foreground">
-                        {checkoutTarget.guestName}
+                        {checkoutTarget.guest.fullName}
                       </span>
                     </div>
                     <div className="flex justify-between">
@@ -534,7 +538,7 @@ export default function ReservasPage() {
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Huésped</span>
                   <span className="font-semibold text-foreground">
-                    {cancelTarget.guestName}
+                    {cancelTarget.guest.fullName}
                   </span>
                 </div>
                 <div className="flex justify-between">

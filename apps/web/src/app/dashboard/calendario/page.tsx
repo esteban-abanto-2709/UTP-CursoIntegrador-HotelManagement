@@ -15,7 +15,7 @@ interface Room {
 
 interface Reservation {
   id: number;
-  guestName: string;
+  guest: { fullName: string };
   checkIn: string;
   checkOut: string;
   status: "PENDING" | "ACTIVE" | "COMPLETED" | "CANCELLED";

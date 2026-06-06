@@ -5,7 +5,7 @@ import api from "@/lib/axios";
 import { routes } from "@/lib/routes";
 import { calcNights } from "@/lib/pricing";
 import { toast } from "sonner";
-import { Loader2 } from "lucide-react";
+import { Loader2, Search } from "lucide-react";
 
 import {
   Dialog,
@@ -27,8 +27,12 @@ interface Room {
 
 export interface ReservationForEdit {
   id: number;
-  guestName: string;
-  dni: string;
+  guest: {
+    nationalId: string;
+    fullName: string;
+    email: string | null;
+    phone: string | null;
+  };
   checkIn: string;
   checkOut: string;
   roomId: number;
@@ -71,8 +75,11 @@ export default function ReservationFormDialog({
 }: Props) {
   const isEdit = !!reservation;
 
-  const [guestName, setGuestName] = useState("");
-  const [dni, setDni] = useState("");
+  const [nationalId, setNationalId] = useState("");
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [isSearchingGuest, setIsSearchingGuest] = useState(false);
   const [formCheckIn, setFormCheckIn] = useState("");
   const [formCheckOut, setFormCheckOut] = useState("");
   const [formType, setFormType] = useState<RoomTypeValue | "">("");
@@ -118,15 +125,19 @@ export default function ReservationFormDialog({
   useEffect(() => {
     if (!open) return;
     if (reservation) {
-      setGuestName(reservation.guestName);
-      setDni(reservation.dni);
+      setNationalId(reservation.guest.nationalId);
+      setFullName(reservation.guest.fullName);
+      setEmail(reservation.guest.email ?? "");
+      setPhone(reservation.guest.phone ?? "");
       setFormCheckIn(reservation.checkIn.split("T")[0]);
       setFormCheckOut(reservation.checkOut.split("T")[0]);
       setFormType(reservation.room.type as RoomTypeValue);
       preselectRef.current = reservation.roomId;
     } else {
-      setGuestName("");
-      setDni("");
+      setNationalId("");
+      setFullName("");
+      setEmail("");
+      setPhone("");
       setFormCheckIn("");
       setFormCheckOut("");
       setFormType("");
@@ -160,6 +171,39 @@ export default function ReservationFormDialog({
   const estimateTotal = estimateNights * estimatePricePerNight;
   const hasEstimate = !!selectedRoom && criteriaReady;
 
+  const handleSearchGuest = async () => {
+    const query = nationalId.trim();
+    if (!query) {
+      toast.error("Ingresa un DNI para buscar");
+      return;
+    }
+
+    setIsSearchingGuest(true);
+    try {
+      const res = await api.get(routes.api.guests.list(query));
+      const guests = res.data as {
+        nationalId: string;
+        fullName: string;
+        email: string | null;
+        phone: string | null;
+      }[];
+      const match = guests.find((g) => g.nationalId === query);
+
+      if (match) {
+        setFullName(match.fullName);
+        setEmail(match.email ?? "");
+        setPhone(match.phone ?? "");
+        toast.success("Huésped encontrado");
+      } else {
+        toast.info("Huésped no registrado. Completa los datos para crearlo.");
+      }
+    } catch {
+      toast.error("Error al buscar el huésped");
+    } finally {
+      setIsSearchingGuest(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!selectedRoomId) {
@@ -170,8 +214,10 @@ export default function ReservationFormDialog({
     setIsSubmitting(true);
     try {
       const payload = {
-        guestName,
-        dni,
+        nationalId: nationalId.trim(),
+        fullName: fullName.trim(),
+        ...(email.trim() ? { email: email.trim() } : {}),
+        ...(phone.trim() ? { phone: phone.trim() } : {}),
         roomId: Number(selectedRoomId),
         checkIn: formCheckIn,
         checkOut: formCheckOut,
@@ -218,25 +264,69 @@ export default function ReservationFormDialog({
         <form onSubmit={handleSubmit} className="flex flex-col gap-4 mt-2">
           <div className="flex flex-col gap-1.5">
             <label className="text-sm font-semibold text-muted-foreground">
+              DNI / Documento Identidad
+            </label>
+            <div className="flex gap-2">
+              <input
+                required
+                value={nationalId}
+                onChange={(e) => setNationalId(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    handleSearchGuest();
+                  }
+                }}
+                className="h-10 flex-1 px-3 py-2 rounded-lg border border-border/50 bg-background text-foreground focus:ring-2 focus:border-primary focus:ring-primary/20 outline-none transition-all"
+              />
+              <button
+                type="button"
+                onClick={handleSearchGuest}
+                disabled={isSearchingGuest}
+                className="h-10 px-4 rounded-lg border border-border/50 bg-muted text-foreground font-semibold text-sm hover:bg-muted/70 transition-all active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-1.5 shrink-0"
+              >
+                {isSearchingGuest ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Search className="w-4 h-4" />
+                )}
+                Buscar
+              </button>
+            </div>
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <label className="text-sm font-semibold text-muted-foreground">
               Nombre del Huésped Completo
             </label>
             <input
               required
-              value={guestName}
-              onChange={(e) => setGuestName(e.target.value)}
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
               className="h-10 px-3 py-2 rounded-lg border border-border/50 bg-background text-foreground focus:ring-2 focus:border-primary focus:ring-primary/20 outline-none transition-all"
             />
           </div>
-          <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-semibold text-muted-foreground">
-              DNI / Documento Identidad
-            </label>
-            <input
-              required
-              value={dni}
-              onChange={(e) => setDni(e.target.value)}
-              className="h-10 px-3 py-2 rounded-lg border border-border/50 bg-background text-foreground focus:ring-2 focus:border-primary focus:ring-primary/20 outline-none transition-all"
-            />
+          <div className="flex gap-4">
+            <div className="flex flex-col gap-1.5 w-full">
+              <label className="text-sm font-semibold text-muted-foreground">
+                Email <span className="font-normal">(opcional)</span>
+              </label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="h-10 px-3 py-2 rounded-lg border border-border/50 bg-background text-foreground focus:ring-2 focus:border-primary focus:ring-primary/20 outline-none transition-all"
+              />
+            </div>
+            <div className="flex flex-col gap-1.5 w-full">
+              <label className="text-sm font-semibold text-muted-foreground">
+                Teléfono <span className="font-normal">(opcional)</span>
+              </label>
+              <input
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                className="h-10 px-3 py-2 rounded-lg border border-border/50 bg-background text-foreground focus:ring-2 focus:border-primary focus:ring-primary/20 outline-none transition-all"
+              />
+            </div>
           </div>
           <div className="flex gap-4">
             <div className="flex flex-col gap-1.5 w-full">

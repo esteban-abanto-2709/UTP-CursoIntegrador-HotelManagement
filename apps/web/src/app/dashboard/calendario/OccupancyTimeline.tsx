@@ -12,7 +12,7 @@ interface TimelineRoom {
 
 interface TimelineReservation {
   id: number;
-  guestName: string;
+  guest: { fullName: string };
   checkIn: string;
   checkOut: string;
   status: "PENDING" | "ACTIVE" | "COMPLETED" | "CANCELLED";
@@ -272,7 +272,7 @@ function buildBar(
 ) {
   return {
     id: r.id,
-    guestName: r.guestName,
+    guestName: r.guest.fullName,
     status: r.status as "PENDING" | "ACTIVE" | "COMPLETED",
     left: pos.left,
     width: pos.width,

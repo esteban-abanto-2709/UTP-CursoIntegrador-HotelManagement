@@ -11,6 +11,7 @@ export const routes = {
     reservas: () => "/dashboard/reservas",
     calendario: () => "/dashboard/calendario",
     servicio: () => "/dashboard/servicio",
+    huespedes: () => "/dashboard/huespedes",
   },
 
   // Rutas de la API (NestJS)
@@ -56,6 +57,13 @@ export const routes = {
       updateStatus: (id: number) => `/reservations/${id}/status`,
       checkIn: (id: number) => `/reservations/${id}/checkin`,
       checkOut: (id: number) => `/reservations/${id}/checkout`,
+    },
+    guests: {
+      list: (search?: string) =>
+        search ? `/guests?search=${encodeURIComponent(search)}` : "/guests",
+      getOne: (id: number) => `/guests/${id}`,
+      create: () => "/guests",
+      update: (id: number) => `/guests/${id}`,
     },
   },
 } as const;

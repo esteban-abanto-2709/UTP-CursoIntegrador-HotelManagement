@@ -58,8 +58,8 @@ campos permiten actualizar datos del huésped antes de confirmar la reserva.
 
 ### Frontend
 
-- **[T006]** Agregar ruta `api.guests` en `routes.ts`. Actualizar el formulario de reserva (`ReservationFormDialog.tsx`): agregar campo DNI con botón "Buscar" que llama a `GET /guests?search={dni}`. Si hay resultado, rellenar automáticamente nombre, email y teléfono. Si no hay resultado, dejar los campos editables para crear el huésped. Los datos del huésped van en el mismo payload al guardar la reserva.
-- **[T007]** Crear página `/dashboard/huespedes`: tabla con búsqueda en tiempo real por nombre o DNI, columna con cantidad de reservas históricas. Agregar enlace en el sidebar.
+- ✅ **[T006]** Agregar ruta `api.guests` en `routes.ts`. Actualizar el formulario de reserva (`ReservationFormDialog.tsx`): agregar campo DNI con botón "Buscar" que llama a `GET /guests?search={dni}`. Si hay resultado, rellenar automáticamente nombre, email y teléfono. Si no hay resultado, dejar los campos editables para crear el huésped. Los datos del huésped van en el mismo payload al guardar la reserva. *(Incluyó migrar `reservas/page.tsx` y el calendario al objeto `guest` anidado del nuevo contrato; el frontend leía aún `guestName`/`dni`.)*
+- ✅ **[T007]** Crear página `/dashboard/huespedes`: tabla con búsqueda en tiempo real por nombre o DNI, columna con cantidad de reservas históricas, más diálogo de detalle con el historial de estadías (`GET /guests/:id`). Agregar enlace en el sidebar (visible para los tres roles).
 
 ---
 
