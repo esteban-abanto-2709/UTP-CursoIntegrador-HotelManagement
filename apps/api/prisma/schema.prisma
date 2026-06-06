@@ -62,6 +62,16 @@ model Room {
   reservations Reservation[]
 }
 
+model Guest {
+  id           Int           @id @default(autoincrement())
+  nationalId   String        @unique
+  fullName     String
+  email        String?
+  phone        String?
+  registeredAt DateTime      @default(now())
+  reservations Reservation[]
+}
+
 enum ReservationStatus {
   PENDING
   ACTIVE
@@ -77,8 +87,6 @@ enum PaymentMethod {
 
 model Reservation {
   id             Int               @id @default(autoincrement())
-  guestName      String
-  dni            String
   checkIn        DateTime
   checkOut       DateTime
   actualCheckIn  DateTime?
@@ -90,8 +98,11 @@ model Reservation {
   paidAt         DateTime?
   room           Room              @relation(fields: [roomId], references: [id])
   roomId         Int
+  guest          Guest             @relation(fields: [guestId], references: [id])
+  guestId        Int
   createdAt      DateTime          @default(now())
   updatedAt      DateTime          @updatedAt
 
   @@index([roomId])
+  @@index([guestId])
 }
