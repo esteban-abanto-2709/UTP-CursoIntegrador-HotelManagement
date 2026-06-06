@@ -36,6 +36,7 @@ model Employee {
   address        String?
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
+  roomCharges    RoomCharge[]
 }
 
 enum RoomType {
@@ -100,9 +101,33 @@ model Reservation {
   roomId         Int
   guest          Guest             @relation(fields: [guestId], references: [id])
   guestId        Int
+  charges        RoomCharge[]
   createdAt      DateTime          @default(now())
   updatedAt      DateTime          @updatedAt
 
   @@index([roomId])
   @@index([guestId])
+}
+
+model ExpenseCategory {
+  id      Int          @id @default(autoincrement())
+  name    String       @unique
+  charges RoomCharge[]
+}
+
+model RoomCharge {
+  id            Int             @id @default(autoincrement())
+  reservation   Reservation     @relation(fields: [reservationId], references: [id])
+  reservationId Int
+  category      ExpenseCategory @relation(fields: [categoryId], references: [id])
+  categoryId    Int
+  employee      Employee        @relation(fields: [registeredBy], references: [id])
+  registeredBy  Int
+  description   String
+  amount        Decimal         @db.Decimal(10, 2)
+  chargedAt     DateTime        @default(now())
+
+  @@index([reservationId])
+  @@index([categoryId])
+  @@index([registeredBy])
 }

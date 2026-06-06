@@ -76,7 +76,7 @@ Cualquier empleado con sesión activa puede registrar cargos.
 
 ### Prisma / BD
 
-- **[T008]** Modificar `schema.prisma`: agregar modelo `ExpenseCategory` con campo `name`. Agregar modelo `RoomCharge` con campos: `reservationId` (FK → Reservation), `categoryId` (FK → ExpenseCategory), `registeredBy` (FK → Employee), `description`, `amount`, `chargedAt`. → **Tú corres:** `npx prisma migrate dev --create-only --name add_room_charges` → Claude Code revisa y ajusta el `migration.sql` → **Tú aplicas.** Luego Claude Code corre el seed de categorías: Room Service, Minibar, Lavandería, Daños, Otros.
+- ✅ **[T008]** Modificar `schema.prisma`: agregar modelo `ExpenseCategory` con campo `name`. Agregar modelo `RoomCharge` con campos: `reservationId` (FK → Reservation), `categoryId` (FK → ExpenseCategory), `registeredBy` (FK → Employee), `description`, `amount`, `chargedAt`. → **Tú corres:** `npx prisma migrate dev --create-only --name add_room_charges` → Claude Code revisa y ajusta el `migration.sql` → **Tú aplicas.** Luego Claude Code corre el seed de categorías: Room Service, Minibar, Lavandería, Daños, Otros.
 
 ### API
 
