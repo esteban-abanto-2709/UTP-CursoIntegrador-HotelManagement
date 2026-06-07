@@ -127,7 +127,7 @@ cambiar estado de habitación.
 
 ### Prisma / BD
 
-- **[T015]** Modificar `schema.prisma`: agregar modelo `AuditAction` con campo `name`. Agregar modelo `AuditLog` con campos: `employeeId` (FK → Employee), `actionId` (FK → AuditAction), `tableName`, `recordId`, `previousValue` (String, nullable), `newValue` (String, nullable), `performedAt`. → **Tú corres:** `npx prisma migrate dev --create-only --name add_audit_log` → Claude Code revisa y ajusta el `migration.sql` → **Tú aplicas.** Luego Claude Code corre el seed de acciones: CREATE, UPDATE, DELETE, CHECKIN, CHECKOUT, CANCEL.
+- ✅ **[T015]** Modificar `schema.prisma`: agregar modelo `AuditAction` con campo `name`. Agregar modelo `AuditLog` con campos: `employeeId` (FK → Employee), `actionId` (FK → AuditAction), `tableName`, `recordId`, `previousValue` (String, nullable), `newValue` (String, nullable), `performedAt`. → **Tú corres:** `npx prisma migrate dev --create-only --name add_audit_log` → Claude Code revisa y ajusta el `migration.sql` → **Tú aplicas.** Luego Claude Code corre el seed de acciones: CREATE, UPDATE, DELETE, CHECKIN, CHECKOUT, CANCEL. *(Ajustes: `AuditAction.name` quedó `@unique` para el upsert del seed, coherente con `ExpenseCategory`/`Discount`. Se añadió índice en `AuditLog.tableName` además de los dos FK, anticipando el filtro de [T018]. Migración puramente aditiva, sin data-migration. El seed se integró como `seeds/audit-actions.ts` en el orquestador `seed.ts` reejecutable.)*
 
 ### API
 
