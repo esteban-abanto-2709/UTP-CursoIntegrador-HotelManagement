@@ -52,16 +52,6 @@ Registro de atajos, decisiones pendientes y riesgos a futuro de este proyecto.
 - **Impacto futuro:** Cualquier reporte o auditoría que agrupe pagos por empleado contará esos `Payment` migrados bajo un empleado que no los procesó. Solo afecta a las reservas pagadas antes de T011; los cobros nuevos (T013) guardan el empleado real vía `@CurrentUser()`. No hay forma de recuperar el dato original.
 - **Fecha:** 2026-06-07 · **Estado:** Abierto
 
-## [TD-005] Datos sembrados (categorías de gasto) embebidos dentro de un `migration.sql`
-
-- **Ubicación:** `apps/api/prisma/migrations/20260606233807_add_room_charges/migration.sql:43`
-- **Riesgo:** 7/10
-- **Problema:** El `INSERT` de las 5 `ExpenseCategory` (Room Service, Minibar, Lavandería, Daños, Otros) vive dentro del `migration.sql`, mezclando datos con esquema. Lo correcto es que la migración solo defina estructura y los datos vayan en un seed (`prisma/seed.ts`). No se puede limpiar ahora mismo: la migración ya está aplicada, así que editar el archivo cambia su checksum y rompe el siguiente `npx prisma migrate dev` (drift "migration modified"). Absorber el cambio sin riesgo exige `prisma migrate reset` (borra la BD), y el siguiente milestone necesita seguir usando `migrate dev` sobre la BD actual.
-- **Impacto futuro:** Al borrar/recrear la BD desde cero, las categorías quedan acopladas a una migración en vez de a un seed reejecutable; no hay forma de re-sembrar selectivamente sin recorrer migraciones. Además bloquea la limpieza del archivo hasta el reset definitivo. **Plan:** crear el sistema de seeds local (múltiples archivos: categorías, owner, etc. + orquestador para `prisma db seed`) y, en el reset final del desarrollo, eliminar el bloque `INSERT` de este `migration.sql` para que la migración quede solo-esquema.
-- **Avance (2026-06-07):** La infraestructura de seeds ya está construida (T011) — `apps/api/prisma/seed.ts` (orquestador), `prisma/seeds/prisma-client.ts` (factory), `prisma/seeds/discounts.ts` (primer seed con `upsert`), `prisma/tsconfig.seed.json` y `migrations.seed` en `prisma.config.ts`. Falta engancharle `categories.ts` y `owner.ts` y, en el reset final, vaciar el `INSERT` de este `migration.sql`.
-- **Avance (2026-06-07):** Sistema de seeds completado. Permanentes enganchados al orquestador `seed.ts`: `seeds/owner.ts` (credenciales editables, `bcrypt`, `upsert` por `username`) y `seeds/categories.ts` (las 5 categorías con `upsert` por `name`, equivalentes al `INSERT`). Comando `npm run seed`. La data de prueba desechable vive en `seeds/testing/` con su propio orquestador `seed.placeholder.ts` (`npm run seed:placeholder`) — ver [TD-007]. **Único pendiente:** en el reset final del desarrollo, vaciar el bloque `INSERT` de este `migration.sql` para que la migración quede solo-esquema (las categorías ya las garantiza `npm run seed`).
-- **Fecha:** 2026-06-07 · **Estado:** Abierto (seeds completos; pendiente solo vaciar el `INSERT` en el reset final)
-
 ## [TD-007] Data de prueba template (`seeds/testing/`) es desechable
 
 - **Ubicación:** `apps/api/prisma/seeds/testing/` (rooms, guests, staff, reservations, charges, payments), orquestador `apps/api/prisma/seed.placeholder.ts`, script `seed:placeholder` en `apps/api/package.json`

@@ -39,8 +39,3 @@ ALTER TABLE "RoomCharge" ADD CONSTRAINT "RoomCharge_categoryId_fkey" FOREIGN KEY
 
 -- AddForeignKey
 ALTER TABLE "RoomCharge" ADD CONSTRAINT "RoomCharge_registeredBy_fkey" FOREIGN KEY ("registeredBy") REFERENCES "Employee"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- Seed: categorías de gasto base (idempotente)
-INSERT INTO "ExpenseCategory" ("name")
-VALUES ('Room Service'), ('Minibar'), ('Lavandería'), ('Daños'), ('Otros')
-ON CONFLICT ("name") DO NOTHING;
