@@ -8,6 +8,7 @@ import { CheckoutReservationDto } from './dto/checkout-reservation.dto';
 import { JwtAuthGuard } from '@/common/guards/jwt-auth.guard';
 import { RolesGuard } from '@/common/guards/roles.guard';
 import { Roles } from '@/common/decorators/roles.decorator';
+import { CurrentUser } from '@/common/decorators/current-user.decorator';
 
 @Controller('reservations')
 @UseGuards(JwtAuthGuard)
@@ -71,7 +72,8 @@ export class ReservationsController {
   checkOut(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: CheckoutReservationDto,
+    @CurrentUser() user: { id: number },
   ) {
-    return this.reservationsService.checkOut(id, dto);
+    return this.reservationsService.checkOut(id, dto, user.id);
   }
 }

@@ -283,7 +283,7 @@ export class ReservationsService {
     return { message: 'Check-in realizado', reservation: updated };
   }
 
-  async checkOut(id: number, dto: CheckoutReservationDto) {
+  async checkOut(id: number, dto: CheckoutReservationDto, employeeId: number) {
     const reservation = await this.prisma.reservation.findUnique({
       where: { id },
       include: { room: true },
@@ -299,6 +299,26 @@ export class ReservationsService {
       );
     }
 
+    const discount =
+      dto.discountId != null
+        ? await this.prisma.discount.findUnique({
+            where: { id: dto.discountId },
+          })
+        : null;
+
+    if (dto.discountId != null) {
+      if (!discount) {
+        throw new NotFoundException(
+          `Descuento ${dto.discountId} no encontrado`,
+        );
+      }
+      if (!discount.isActive) {
+        throw new BadRequestException(
+          `El descuento "${discount.name}" no está activo`,
+        );
+      }
+    }
+
     // Cálculo del cobro: noches reservadas × tarifa (mínimo 1 noche)
     const MS_PER_DAY = 1000 * 60 * 60 * 24;
     const nights = Math.max(
@@ -309,22 +329,43 @@ export class ReservationsService {
       ),
     );
     // pricePerNight se guarda al crear; fallback al precio actual del cuarto por si es null
-    const pricePerNight =
-      reservation.pricePerNight ?? reservation.room.price;
-    const totalAmount = Number(pricePerNight) * nights;
+    const pricePerNight = reservation.pricePerNight ?? reservation.room.price;
+
+    const chargesAgg = await this.prisma.roomCharge.aggregate({
+      where: { reservationId: id },
+      _sum: { amount: true },
+    });
+
+    const roomTotal = new Prisma.Decimal(pricePerNight).mul(nights);
+    const chargesTotal = chargesAgg._sum.amount ?? new Prisma.Decimal(0);
+    const subtotal = roomTotal.add(chargesTotal);
+    const discountAmount = discount
+      ? subtotal.mul(discount.percentage).div(100)
+      : new Prisma.Decimal(0);
+    const grandTotal = subtotal.sub(discountAmount);
 
     // La habitación pasa a limpieza para entrar a la cola de housekeeping
-    const [updated] = await this.prisma.$transaction([
+    const [updated, payment] = await this.prisma.$transaction([
       this.prisma.reservation.update({
         where: { id },
         data: {
           status: 'COMPLETED',
           actualCheckOut: new Date(),
-          totalAmount,
-          paymentMethod: dto.paymentMethod,
-          paidAt: new Date(),
         },
         include: this.reservationInclude,
+      }),
+      this.prisma.payment.create({
+        data: {
+          reservationId: id,
+          processedBy: employeeId,
+          paymentMethod: dto.paymentMethod,
+          discountId: discount?.id ?? null,
+          roomTotal,
+          chargesTotal,
+          subtotal,
+          discountAmount,
+          grandTotal,
+        },
       }),
       this.prisma.room.update({
         where: { id: reservation.roomId },
@@ -335,7 +376,7 @@ export class ReservationsService {
     return {
       message: 'Check-out realizado',
       reservation: updated,
-      billing: { nights, pricePerNight: Number(pricePerNight), totalAmount },
+      payment,
     };
   }
 }
