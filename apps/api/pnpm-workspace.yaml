@@ -1,0 +1,7 @@
+onlyBuiltDependencies:
+  - bcrypt
+  - prisma
+  - "@prisma/client"
+  - "@prisma/engines"
+  - "@nestjs/core"
+  - unrs-resolver

@@ -14,19 +14,19 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 All commands must be run from the respective app directory (`apps/api` or `apps/web`).
 
-### Backend (`apps/api`)
+### Backend (`apps/api`) — usa pnpm@10.17.1
 
 ```bash
-npm run start:dev       # Dev server with watch mode
-npm run build           # Compile TypeScript to dist/
-npm run test            # Jest unit tests
-npm run test:watch      # Unit tests in watch mode
-npm run test:e2e        # End-to-end tests
-npm run test:cov        # Coverage report
-npm run lint            # ESLint with auto-fix
-npx prisma migrate dev  # Run DB migrations
-npx prisma studio       # Open Prisma Studio UI
-npx prisma generate     # Regenerate Prisma client after schema change
+pnpm start:dev          # Dev server with watch mode
+pnpm build              # Compile TypeScript to dist/
+pnpm test               # Jest unit tests
+pnpm test:watch         # Unit tests in watch mode
+pnpm test:e2e           # End-to-end tests
+pnpm test:cov           # Coverage report
+pnpm lint               # ESLint with auto-fix
+pnpm prisma migrate dev # Run DB migrations
+pnpm prisma studio      # Open Prisma Studio UI
+pnpm prisma generate    # Regenerate Prisma client after schema change
 ```
 
 ### Frontend (`apps/web`) — usa pnpm@10.17.1
