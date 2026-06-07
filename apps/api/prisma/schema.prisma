@@ -37,6 +37,7 @@ model Employee {
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
   roomCharges    RoomCharge[]
+  payments       Payment[]
 }
 
 enum RoomType {
@@ -94,14 +95,12 @@ model Reservation {
   actualCheckOut DateTime?
   status         ReservationStatus @default(PENDING)
   pricePerNight  Decimal?          @db.Decimal(10, 2)
-  totalAmount    Decimal?          @db.Decimal(10, 2)
-  paymentMethod  PaymentMethod?
-  paidAt         DateTime?
   room           Room              @relation(fields: [roomId], references: [id])
   roomId         Int
   guest          Guest             @relation(fields: [guestId], references: [id])
   guestId        Int
   charges        RoomCharge[]
+  payment        Payment?
   createdAt      DateTime          @default(now())
   updatedAt      DateTime          @updatedAt
 
@@ -130,4 +129,33 @@ model RoomCharge {
   @@index([reservationId])
   @@index([categoryId])
   @@index([registeredBy])
+}
+
+model Discount {
+  id          Int       @id @default(autoincrement())
+  name        String    @unique
+  description String?
+  percentage  Decimal   @db.Decimal(5, 2)
+  isActive    Boolean   @default(true)
+  payments    Payment[]
+}
+
+model Payment {
+  id             Int           @id @default(autoincrement())
+  reservation    Reservation   @relation(fields: [reservationId], references: [id])
+  reservationId  Int           @unique
+  employee       Employee      @relation(fields: [processedBy], references: [id])
+  processedBy    Int
+  paymentMethod  PaymentMethod
+  discount       Discount?     @relation(fields: [discountId], references: [id])
+  discountId     Int?
+  roomTotal      Decimal       @db.Decimal(10, 2)
+  chargesTotal   Decimal       @db.Decimal(10, 2)
+  subtotal       Decimal       @db.Decimal(10, 2)
+  discountAmount Decimal       @db.Decimal(10, 2)
+  grandTotal     Decimal       @db.Decimal(10, 2)
+  processedAt    DateTime      @default(now())
+
+  @@index([processedBy])
+  @@index([discountId])
 }
