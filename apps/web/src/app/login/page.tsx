@@ -23,7 +23,7 @@ import { Input } from "@/components/ui/input";
 
 const formSchema = z.object({
   username: z.string().min(3, "El usuario debe tener al menos 3 caracteres"),
-  password: z.string().min(6, "La contraseña debe tener al menos 6 caracteres"),
+  password: z.string().min(4, "La contraseña debe tener al menos 4 caracteres"),
 });
 
 export default function LoginPage() {

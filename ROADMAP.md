@@ -137,7 +137,7 @@ cambiar estado de habitación.
 
 ### Frontend
 
-- **[T019]** Agregar ruta `api.auditLogs` en `routes.ts`. Crear página `/dashboard/auditoria`: tabla con columnas fecha/hora, empleado, acción, entidad, ID del registro. Filtros en barra superior: selector de entidad, selector de empleado, rango de fechas. Ocultar enlace del sidebar para MANAGER y EMPLOYEE. Proteger con `ProtectedRoute` validando rol OWNER.
+- ✅ **[T019]** Agregar ruta `api.auditLogs` en `routes.ts`. Crear página `/dashboard/auditoria`: tabla con columnas fecha/hora, empleado, acción, entidad, ID del registro. Filtros en barra superior: selector de entidad, selector de empleado, rango de fechas. Ocultar enlace del sidebar para MANAGER y EMPLOYEE. Proteger con `ProtectedRoute` validando rol OWNER. *(Ajustes: filtros con `<select>` nativo + inputs `date` siguiendo el patrón del formulario de reservas; clic en fila abre diálogo con el `previousValue`/`newValue` (antes/después) que el backend ya envía. La protección por rol replica el patrón existente de rooms/staff —solo se oculta el enlace del sidebar por `allowedRoles: ["OWNER"]`; el guard real es el backend `@Roles('OWNER')`—; no se añadió guard de rol a nivel de página, registrado en [TD-008].)*
 
 ---
 

@@ -60,3 +60,11 @@ Registro de atajos, decisiones pendientes y riesgos a futuro de este proyecto.
 - **Impacto futuro:** Si esta carpeta llega a producción siembra datos y usuarios falsos con contraseñas triviales. Es deuda intencional y de baja prioridad: existe para que quede registrado que debe eliminarse.
 - **Plan:** Al finalizar el proyecto, borrar la carpeta `seeds/testing/`, `seed.placeholder.ts` y el script `seed:placeholder`. Solo debe sobrevivir `npm run seed` (owner + categorías + discounts).
 - **Fecha:** 2026-06-07 · **Estado:** Abierto
+
+## [TD-008] Sin guard de rol en el frontend para páginas restringidas
+
+- **Ubicación:** `apps/web/src/app/dashboard/auditoria/page.tsx`, `apps/web/src/app/dashboard/rooms/page.tsx`, `apps/web/src/app/dashboard/staff/page.tsx`, `apps/web/src/components/protected-route.tsx`
+- **Riesgo:** 4/10
+- **Problema:** `ProtectedRoute` solo valida que exista token, no el rol. La restricción por rol depende únicamente de ocultar el enlace en el sidebar (`allowedRoles`) y del guard del backend (`@Roles('OWNER')` en `/audit-logs`, etc.). Un usuario no-OWNER que navegue directo a `/dashboard/auditoria` ve el cascarón de la página; la data falla con 403 (tabla vacía + toast de error), pero la UI no lo redirige.
+- **Impacto futuro:** No es un hueco de seguridad real (el backend protege los datos), pero es una fuga de UX: páginas visibles para roles que no deberían acceder. Mejora: extender `ProtectedRoute` con prop `allowedRoles` y envolver las páginas sensibles (auditoría, rooms, staff) para redirigir a `/dashboard` cuando el rol no coincide.
+- **Fecha:** 2026-06-07 · **Estado:** Abierto

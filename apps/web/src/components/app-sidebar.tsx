@@ -19,6 +19,7 @@ import {
   Users,
   Bed,
   Contact,
+  ScrollText,
 } from "lucide-react";
 import { useAuthStore } from "@/store/authStore";
 import { useRouter, usePathname } from "next/navigation";
@@ -67,6 +68,12 @@ const items = [
     url: routes.dashboard.servicio(),
     icon: BedDouble,
     allowedRoles: ["OWNER", "MANAGER", "EMPLOYEE"],
+  },
+  {
+    title: "Auditoría",
+    url: routes.dashboard.auditoria(),
+    icon: ScrollText,
+    allowedRoles: ["OWNER"],
   },
 ];
 

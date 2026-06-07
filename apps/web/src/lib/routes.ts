@@ -12,6 +12,7 @@ export const routes = {
     calendario: () => "/dashboard/calendario",
     servicio: () => "/dashboard/servicio",
     huespedes: () => "/dashboard/huespedes",
+    auditoria: () => "/dashboard/auditoria",
   },
 
   // Rutas de la API (NestJS)
@@ -76,6 +77,25 @@ export const routes = {
     },
     payments: {
       getByReservation: (reservationId: number) => `/payments/${reservationId}`,
+    },
+    auditLogs: {
+      list: (filters?: {
+        tableName?: string;
+        employeeId?: number;
+        from?: string;
+        to?: string;
+      }) => {
+        if (!filters) return "/audit-logs";
+        const q = new URLSearchParams();
+        if (filters.tableName) q.set("tableName", filters.tableName);
+        if (filters.employeeId != null) {
+          q.set("employeeId", String(filters.employeeId));
+        }
+        if (filters.from) q.set("from", filters.from);
+        if (filters.to) q.set("to", filters.to);
+        const qs = q.toString();
+        return qs ? `/audit-logs?${qs}` : "/audit-logs";
+      },
     },
   },
 } as const;
