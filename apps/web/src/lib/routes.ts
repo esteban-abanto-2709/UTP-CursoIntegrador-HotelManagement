@@ -70,5 +70,12 @@ export const routes = {
       create: () => "/guests",
       update: (id: number) => `/guests/${id}`,
     },
+    discounts: {
+      list: (activeOnly?: boolean) =>
+        activeOnly ? "/discounts?active=true" : "/discounts",
+    },
+    payments: {
+      getByReservation: (reservationId: number) => `/payments/${reservationId}`,
+    },
   },
 } as const;

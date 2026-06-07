@@ -49,8 +49,18 @@ interface Reservation {
   room: { number: string; type: string };
   // Facturación (Prisma serializa Decimal como string; null hasta el check-out)
   pricePerNight: string | null;
-  totalAmount: string | null;
-  paymentMethod: PaymentMethod | null;
+  payment: { grandTotal: string; paymentMethod: PaymentMethod } | null;
+}
+
+interface Discount {
+  id: number;
+  name: string;
+  percentage: string;
+}
+
+interface RoomCharge {
+  id: number;
+  amount: string;
 }
 
 // Noches reservadas, mínimo 1 — debe coincidir con el cálculo del backend
@@ -94,6 +104,13 @@ export default function ReservasPage() {
   // Reserva en proceso de cancelación (abre el diálogo de confirmación)
   const [cancelTarget, setCancelTarget] = useState<Reservation | null>(null);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("CASH");
+  // Desglose del check-out: cargos y descuentos cargados al abrir el diálogo
+  const [checkoutCharges, setCheckoutCharges] = useState<RoomCharge[]>([]);
+  const [activeDiscounts, setActiveDiscounts] = useState<Discount[]>([]);
+  const [selectedDiscountId, setSelectedDiscountId] = useState<number | null>(
+    null,
+  );
+  const [isLoadingCheckout, setIsLoadingCheckout] = useState(false);
 
   const fetchReservations = useCallback(async () => {
     try {
@@ -143,9 +160,25 @@ export default function ReservasPage() {
     }
   };
 
-  const openCheckout = (reservation: Reservation) => {
+  const openCheckout = async (reservation: Reservation) => {
     setPaymentMethod("CASH");
+    setSelectedDiscountId(null);
+    setCheckoutCharges([]);
+    setActiveDiscounts([]);
     setCheckoutTarget(reservation);
+    setIsLoadingCheckout(true);
+    try {
+      const [chargesRes, discountsRes] = await Promise.all([
+        api.get(routes.api.reservations.charges(reservation.id)),
+        api.get(routes.api.discounts.list(true)),
+      ]);
+      setCheckoutCharges(chargesRes.data);
+      setActiveDiscounts(discountsRes.data);
+    } catch {
+      toast.error("Error al cargar el detalle del check-out");
+    } finally {
+      setIsLoadingCheckout(false);
+    }
   };
 
   const confirmCheckOut = async () => {
@@ -154,7 +187,7 @@ export default function ReservasPage() {
     try {
       const res = await api.patch(
         routes.api.reservations.checkOut(checkoutTarget.id),
-        { paymentMethod },
+        { paymentMethod, discountId: selectedDiscountId ?? undefined },
       );
       toast.success(res.data.message ?? "Check-out realizado");
       setCheckoutTarget(null);
@@ -397,16 +430,17 @@ export default function ReservasPage() {
                         Check-out
                       </button>
                     )}
-                    {res.status === "COMPLETED" && (
-                      <span className="text-xs font-semibold text-foreground">
-                        S/. {Number(res.totalAmount ?? 0).toFixed(2)}
-                        {res.paymentMethod && (
+                    {res.status === "COMPLETED" &&
+                      (res.payment ? (
+                        <span className="text-xs font-semibold text-foreground">
+                          S/. {Number(res.payment.grandTotal).toFixed(2)}
                           <span className="ml-1 font-normal text-muted-foreground">
-                            ({PAYMENT_LABELS[res.paymentMethod]})
+                            ({PAYMENT_LABELS[res.payment.paymentMethod]})
                           </span>
-                        )}
-                      </span>
-                    )}
+                        </span>
+                      ) : (
+                        <span className="text-xs text-muted-foreground">—</span>
+                      ))}
                     {res.status === "CANCELLED" && (
                       <span className="text-xs text-muted-foreground">—</span>
                     )}
@@ -439,79 +473,147 @@ export default function ReservasPage() {
                 checkoutTarget.checkOut,
               );
               const pricePerNight = Number(checkoutTarget.pricePerNight ?? 0);
-              const total = nights * pricePerNight;
+              const roomTotal = nights * pricePerNight;
+              const chargesTotal = checkoutCharges.reduce(
+                (acc, c) => acc + Number(c.amount),
+                0,
+              );
+              const subtotal = roomTotal + chargesTotal;
+              const selectedDiscount = activeDiscounts.find(
+                (d) => d.id === selectedDiscountId,
+              );
+              const discountPct = selectedDiscount
+                ? Number(selectedDiscount.percentage)
+                : 0;
+              const discountAmount = (subtotal * discountPct) / 100;
+              const grandTotal = subtotal - discountAmount;
 
               return (
                 <div className="flex flex-col gap-4 mt-2">
-                  {/* Resumen */}
-                  <div className="bg-muted rounded-xl p-4 flex flex-col gap-2 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Huésped</span>
-                      <span className="font-semibold text-foreground">
-                        {checkoutTarget.guest.fullName}
-                      </span>
+                  {isLoadingCheckout ? (
+                    <div className="h-40 flex flex-col items-center justify-center gap-2 text-muted-foreground">
+                      <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                      <span className="text-sm">Cargando detalle...</span>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Habitación</span>
-                      <span className="font-semibold text-foreground">
-                        Cto. {checkoutTarget.room.number}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">
-                        {nights} noche{nights > 1 ? "s" : ""} × S/.{" "}
-                        {pricePerNight.toFixed(2)}
-                      </span>
-                      <span className="font-semibold text-foreground">
-                        S/. {total.toFixed(2)}
-                      </span>
-                    </div>
-                    <div className="border-t border-border/50 mt-1 pt-2 flex justify-between items-center">
-                      <span className="font-semibold text-foreground">
-                        Total a cobrar
-                      </span>
-                      <span className="text-xl font-bold text-primary">
-                        S/. {total.toFixed(2)}
-                      </span>
-                    </div>
-                  </div>
+                  ) : (
+                    <>
+                      {/* Resumen */}
+                      <div className="bg-muted rounded-xl p-4 flex flex-col gap-2 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Huésped</span>
+                          <span className="font-semibold text-foreground">
+                            {checkoutTarget.guest.fullName}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">
+                            Habitación
+                          </span>
+                          <span className="font-semibold text-foreground">
+                            Cto. {checkoutTarget.room.number}
+                          </span>
+                        </div>
+                        <div className="border-t border-border/50 mt-1 pt-2 flex justify-between">
+                          <span className="text-muted-foreground">
+                            Habitación ({nights} noche{nights > 1 ? "s" : ""} ×
+                            S/. {pricePerNight.toFixed(2)})
+                          </span>
+                          <span className="font-semibold text-foreground">
+                            S/. {roomTotal.toFixed(2)}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">
+                            Cargos adicionales
+                          </span>
+                          <span className="font-semibold text-foreground">
+                            S/. {chargesTotal.toFixed(2)}
+                          </span>
+                        </div>
+                        {selectedDiscount && (
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">
+                              Descuento ({discountPct.toFixed(0)}%)
+                            </span>
+                            <span className="font-semibold text-red-500">
+                              − S/. {discountAmount.toFixed(2)}
+                            </span>
+                          </div>
+                        )}
+                        <div className="border-t border-border/50 mt-1 pt-2 flex justify-between items-center">
+                          <span className="font-semibold text-foreground">
+                            Total a cobrar
+                          </span>
+                          <span className="text-xl font-bold text-primary">
+                            S/. {grandTotal.toFixed(2)}
+                          </span>
+                        </div>
+                      </div>
 
-                  {/* Método de pago */}
-                  <div className="flex flex-col gap-1.5">
-                    <label className="text-sm font-semibold text-muted-foreground">
-                      Método de pago
-                    </label>
-                    <div className="grid grid-cols-3 gap-2">
-                      {(["CASH", "CARD", "TRANSFER"] as const).map((method) => (
-                        <button
-                          key={method}
-                          type="button"
-                          onClick={() => setPaymentMethod(method)}
-                          className={`px-3 py-2.5 rounded-lg text-sm font-semibold border transition-all ${
-                            paymentMethod === method
-                              ? "bg-primary text-primary-foreground border-primary"
-                              : "bg-background text-muted-foreground border-border/50 hover:bg-muted"
-                          }`}
+                      {/* Descuento */}
+                      <div className="flex flex-col gap-1.5">
+                        <label className="text-sm font-semibold text-muted-foreground">
+                          Descuento
+                        </label>
+                        <select
+                          value={selectedDiscountId ?? ""}
+                          onChange={(e) =>
+                            setSelectedDiscountId(
+                              e.target.value ? Number(e.target.value) : null,
+                            )
+                          }
+                          className="h-11 px-3 rounded-xl border border-border/50 bg-background text-foreground font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all cursor-pointer"
                         >
-                          {PAYMENT_LABELS[method]}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
+                          <option value="">Sin descuento</option>
+                          {activeDiscounts.map((d) => (
+                            <option key={d.id} value={d.id}>
+                              {d.name} ({Number(d.percentage).toFixed(0)}%)
+                            </option>
+                          ))}
+                        </select>
+                      </div>
 
-                  <button
-                    onClick={confirmCheckOut}
-                    disabled={actioningId === checkoutTarget.id}
-                    className="w-full bg-primary text-primary-foreground h-11 rounded-lg font-semibold shadow hover:bg-primary/90 transition-all active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-1"
-                  >
-                    {actioningId === checkoutTarget.id ? (
-                      <>
-                        <Loader2 className="w-4 h-4 animate-spin" /> Procesando...
-                      </>
-                    ) : (
-                      "Confirmar y Cobrar"
-                    )}
-                  </button>
+                      {/* Método de pago */}
+                      <div className="flex flex-col gap-1.5">
+                        <label className="text-sm font-semibold text-muted-foreground">
+                          Método de pago
+                        </label>
+                        <div className="grid grid-cols-3 gap-2">
+                          {(["CASH", "CARD", "TRANSFER"] as const).map(
+                            (method) => (
+                              <button
+                                key={method}
+                                type="button"
+                                onClick={() => setPaymentMethod(method)}
+                                className={`px-3 py-2.5 rounded-lg text-sm font-semibold border transition-all ${
+                                  paymentMethod === method
+                                    ? "bg-primary text-primary-foreground border-primary"
+                                    : "bg-background text-muted-foreground border-border/50 hover:bg-muted"
+                                }`}
+                              >
+                                {PAYMENT_LABELS[method]}
+                              </button>
+                            ),
+                          )}
+                        </div>
+                      </div>
+
+                      <button
+                        onClick={confirmCheckOut}
+                        disabled={actioningId === checkoutTarget.id}
+                        className="w-full bg-primary text-primary-foreground h-11 rounded-lg font-semibold shadow hover:bg-primary/90 transition-all active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-1"
+                      >
+                        {actioningId === checkoutTarget.id ? (
+                          <>
+                            <Loader2 className="w-4 h-4 animate-spin" />{" "}
+                            Procesando...
+                          </>
+                        ) : (
+                          "Confirmar y Cobrar"
+                        )}
+                      </button>
+                    </>
+                  )}
                 </div>
               );
             })()}

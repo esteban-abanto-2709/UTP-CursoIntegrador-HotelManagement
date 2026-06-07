@@ -31,6 +31,7 @@ export class ReservationsService {
         phone: true,
       },
     },
+    payment: { select: { grandTotal: true, paymentMethod: true } },
   } satisfies Prisma.ReservationInclude;
 
   async create(dto: CreateReservationDto) {
