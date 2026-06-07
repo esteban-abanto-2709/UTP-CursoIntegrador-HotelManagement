@@ -44,10 +44,19 @@ Registro de atajos, decisiones pendientes y riesgos a futuro de este proyecto.
 - **Impacto futuro:** Mientras siga así, el backend no puede ser 100% inglés en su frontera. Migrarlo es el paso que cierra TD-002 (mover el contrato a inglés y eliminar el mapeo del service).
 - **Fecha:** 2026-05-31 · **Estado:** Abierto
 
+## [TD-006] `Payment.processedBy` placeholder en los cobros migrados desde Reservation
+
+- **Ubicación:** `apps/api/prisma/migrations/20260607155007_add_payment_model/migration.sql:50` (bloque DataMigration)
+- **Riesgo:** 3/10
+- **Problema:** El modelo viejo (`Reservation.totalAmount/paymentMethod/paidAt`) no registraba qué empleado procesó el cobro. Al normalizar a `Payment` (T011), el backfill asigna `processedBy = primer empleado existente` como placeholder para no perder el resto del cobro. Ese dato no refleja quién cobró realmente esas reservas históricas.
+- **Impacto futuro:** Cualquier reporte o auditoría que agrupe pagos por empleado contará esos `Payment` migrados bajo un empleado que no los procesó. Solo afecta a las reservas pagadas antes de T011; los cobros nuevos (T013) guardan el empleado real vía `@CurrentUser()`. No hay forma de recuperar el dato original.
+- **Fecha:** 2026-06-07 · **Estado:** Abierto
+
 ## [TD-005] Datos sembrados (categorías de gasto) embebidos dentro de un `migration.sql`
 
 - **Ubicación:** `apps/api/prisma/migrations/20260606233807_add_room_charges/migration.sql:43`
 - **Riesgo:** 7/10
 - **Problema:** El `INSERT` de las 5 `ExpenseCategory` (Room Service, Minibar, Lavandería, Daños, Otros) vive dentro del `migration.sql`, mezclando datos con esquema. Lo correcto es que la migración solo defina estructura y los datos vayan en un seed (`prisma/seed.ts`). No se puede limpiar ahora mismo: la migración ya está aplicada, así que editar el archivo cambia su checksum y rompe el siguiente `npx prisma migrate dev` (drift "migration modified"). Absorber el cambio sin riesgo exige `prisma migrate reset` (borra la BD), y el siguiente milestone necesita seguir usando `migrate dev` sobre la BD actual.
 - **Impacto futuro:** Al borrar/recrear la BD desde cero, las categorías quedan acopladas a una migración en vez de a un seed reejecutable; no hay forma de re-sembrar selectivamente sin recorrer migraciones. Además bloquea la limpieza del archivo hasta el reset definitivo. **Plan:** crear el sistema de seeds local (múltiples archivos: categorías, owner, etc. + orquestador para `prisma db seed`) y, en el reset final del desarrollo, eliminar el bloque `INSERT` de este `migration.sql` para que la migración quede solo-esquema.
-- **Fecha:** 2026-06-07 · **Estado:** Abierto
+- **Avance (2026-06-07):** La infraestructura de seeds ya está construida (T011) — `apps/api/prisma/seed.ts` (orquestador), `prisma/seeds/prisma-client.ts` (factory), `prisma/seeds/discounts.ts` (primer seed con `upsert`), `prisma/tsconfig.seed.json` y `migrations.seed` en `prisma.config.ts`. Falta engancharle `categories.ts` y `owner.ts` y, en el reset final, vaciar el `INSERT` de este `migration.sql`.
+- **Fecha:** 2026-06-07 · **Estado:** Abierto (infraestructura lista; pendiente migrar categorías + limpiar el `INSERT`)
