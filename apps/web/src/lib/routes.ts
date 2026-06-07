@@ -49,7 +49,8 @@ export const routes = {
       update: (id: number) => `/rooms/${id}`,
     },
     reservations: {
-      list: () => "/reservations",
+      list: (status?: string) =>
+        status ? `/reservations?status=${status}` : "/reservations",
       create: () => "/reservations",
       getOne: (id: number) => `/reservations/${id}`,
       update: (id: number) => `/reservations/${id}`,
@@ -57,6 +58,10 @@ export const routes = {
       updateStatus: (id: number) => `/reservations/${id}/status`,
       checkIn: (id: number) => `/reservations/${id}/checkin`,
       checkOut: (id: number) => `/reservations/${id}/checkout`,
+      charges: (id: number) => `/reservations/${id}/charges`,
+    },
+    expenseCategories: {
+      list: () => "/expense-categories",
     },
     guests: {
       list: (search?: string) =>

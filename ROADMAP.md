@@ -80,11 +80,11 @@ Cualquier empleado con sesión activa puede registrar cargos.
 
 ### API
 
-- **[T009]** Crear módulo NestJS `room-charges` con endpoints: `POST /reservations/:id/charges` (crear cargo; validar que la reserva esté en estado ACTIVE), `GET /reservations/:id/charges` (listar cargos con categoría). Accesible a cualquier empleado con JWT válido. Crear endpoint `GET /expense-categories` para poblar el selector del frontend.
+- ✅ **[T009]** Crear módulo NestJS `room-charges` con endpoints: `POST /reservations/:id/charges` (crear cargo; validar que la reserva esté en estado ACTIVE), `GET /reservations/:id/charges` (listar cargos con categoría). Accesible a cualquier empleado con JWT válido. Crear endpoint `GET /expense-categories` para poblar el selector del frontend.
 
 ### Frontend
 
-- **[T010]** Agregar rutas `api.reservations.charges` y `api.expenseCategories` en `routes.ts`. Actualizar `/dashboard/servicio`: mostrar lista de reservas ACTIVE (llamar a `GET /reservations?status=ACTIVE`). Al seleccionar una reserva, mostrar panel o modal con: lista de cargos existentes y formulario para agregar nuevo cargo (select de categoría + descripción + monto + botón guardar). Mostrar subtotal de cargos acumulados.
+- ✅ **[T010]** Agregar rutas `api.reservations.charges` y `api.expenseCategories` en `routes.ts`. Actualizar `/dashboard/servicio`: mostrar lista de reservas ACTIVE (llamar a `GET /reservations?status=ACTIVE`). Al seleccionar una reserva, mostrar panel o modal con: lista de cargos existentes y formulario para agregar nuevo cargo (select de categoría + descripción + monto + botón guardar). Mostrar subtotal de cargos acumulados.
 
 ---
 

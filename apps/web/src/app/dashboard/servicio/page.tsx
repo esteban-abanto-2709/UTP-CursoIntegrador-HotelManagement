@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import api from "@/lib/axios";
 import { routes } from "@/lib/routes";
+import { formatDate } from "@/lib/date";
 import { toast } from "sonner";
 import {
   Sparkles,
@@ -10,7 +11,11 @@ import {
   AlertCircle,
   CheckCircle2,
   Loader2,
+  Receipt,
+  ChevronRight,
 } from "lucide-react";
+
+import RoomChargesSheet, { ActiveReservation } from "./RoomChargesSheet";
 
 interface Room {
   id: number;
@@ -30,24 +35,35 @@ function getRoomTypeLabel(type: string) {
 
 export default function ServicioHabitacionPage() {
   const [rooms, setRooms] = useState<Room[]>([]);
+  const [activeReservations, setActiveReservations] = useState<
+    ActiveReservation[]
+  >([]);
   const [isLoading, setIsLoading] = useState(true);
   // Id de la habitación que se está liberando en este momento
   const [liberandoId, setLiberandoId] = useState<number | null>(null);
+  // Reserva seleccionada para gestionar sus cargos (abre el panel lateral)
+  const [chargesTarget, setChargesTarget] = useState<ActiveReservation | null>(
+    null,
+  );
 
-  const fetchRooms = useCallback(async () => {
+  const fetchData = useCallback(async () => {
     try {
-      const res = await api.get(routes.api.rooms.list());
-      setRooms(res.data);
+      const [roomsRes, reservationsRes] = await Promise.all([
+        api.get(routes.api.rooms.list()),
+        api.get(routes.api.reservations.list("ACTIVE")),
+      ]);
+      setRooms(roomsRes.data);
+      setActiveReservations(reservationsRes.data);
     } catch {
-      toast.error("Error al cargar las habitaciones");
+      toast.error("Error al cargar la información de servicio");
     } finally {
       setIsLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    fetchRooms();
-  }, [fetchRooms]);
+    fetchData();
+  }, [fetchData]);
 
   const habitacionesSucias = rooms.filter((r) => r.status === "CLEANING");
 
@@ -58,7 +74,7 @@ export default function ServicioHabitacionPage() {
         status: "AVAILABLE",
       });
       toast.success(res.data.message ?? "Habitación liberada");
-      fetchRooms();
+      fetchData();
     } catch {
       toast.error("No se pudo liberar la habitación. Intenta de nuevo.");
     } finally {
@@ -75,11 +91,17 @@ export default function ServicioHabitacionPage() {
             Servicio a la Habitación
           </h2>
           <p className="text-muted-foreground mt-2 text-base">
-            Panel exclusivo para el staff. Atiende las habitaciones liberadas
-            tras el Check-Out.
+            Panel del staff. Libera habitaciones tras el Check-Out y registra
+            cargos adicionales a las reservas activas.
           </p>
         </div>
       </div>
+
+      {/* Sección A — Limpieza pendiente */}
+      <div className="flex flex-col gap-4">
+        <h3 className="text-xl font-bold tracking-tight text-foreground">
+          Limpieza pendiente
+        </h3>
 
       {isLoading ? (
         <div className="h-64 flex flex-col items-center justify-center gap-4 text-muted-foreground">
@@ -152,6 +174,63 @@ export default function ServicioHabitacionPage() {
           ))}
         </div>
       )}
+      </div>
+
+      {/* Sección B — Cargos a reservas activas */}
+      <div className="flex flex-col gap-4">
+        <h3 className="text-xl font-bold tracking-tight text-foreground">
+          Cargos a reservas activas
+        </h3>
+
+        {isLoading ? (
+          <div className="h-40 flex flex-col items-center justify-center gap-4 text-muted-foreground">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <p>Cargando reservas...</p>
+          </div>
+        ) : activeReservations.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-16 bg-muted/40 rounded-3xl border border-border/50 border-dashed">
+            <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mb-4">
+              <Receipt className="w-8 h-8 text-muted-foreground" />
+            </div>
+            <h3 className="text-lg font-bold text-foreground">
+              No hay huéspedes en hotel
+            </h3>
+            <p className="text-muted-foreground mt-1">
+              Los cargos se registran sobre reservas en estado activo.
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {activeReservations.map((res) => (
+              <button
+                key={res.id}
+                onClick={() => setChargesTarget(res)}
+                className="group flex items-center justify-between gap-3 text-left rounded-2xl border border-border/50 bg-card p-5 shadow-sm hover:shadow-md hover:border-primary/30 transition-all active:scale-[0.99]"
+              >
+                <div className="flex flex-col min-w-0">
+                  <span className="text-base font-bold text-foreground truncate group-hover:text-primary transition-colors">
+                    {res.guest.fullName}
+                  </span>
+                  <span className="text-sm text-muted-foreground">
+                    Cto. {res.room.number} — {getRoomTypeLabel(res.room.type)}
+                  </span>
+                  <span className="text-xs text-muted-foreground mt-1">
+                    {formatDate(res.checkIn)}{" "}
+                    <span className="opacity-50">→</span>{" "}
+                    {formatDate(res.checkOut)}
+                  </span>
+                </div>
+                <ChevronRight className="w-5 h-5 text-muted-foreground shrink-0 group-hover:text-primary transition-colors" />
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <RoomChargesSheet
+        reservation={chargesTarget}
+        onOpenChange={(open) => !open && setChargesTarget(null)}
+      />
     </div>
   );
 }
