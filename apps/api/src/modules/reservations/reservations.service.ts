@@ -12,12 +12,14 @@ import { UpdateReservationDto } from './dto/update-reservation.dto';
 import { FilterReservationsDto } from './dto/filter-reservations.dto';
 import { CheckoutReservationDto } from './dto/checkout-reservation.dto';
 import { GuestsService } from '../guests/guests.service';
+import { AuditService } from '../audit/audit.service';
 
 @Injectable()
 export class ReservationsService {
   constructor(
     private prisma: PrismaService,
     private guests: GuestsService,
+    private audit: AuditService,
   ) {}
 
   private readonly reservationInclude = {
@@ -34,7 +36,7 @@ export class ReservationsService {
     payment: { select: { grandTotal: true, paymentMethod: true } },
   } satisfies Prisma.ReservationInclude;
 
-  async create(dto: CreateReservationDto) {
+  async create(dto: CreateReservationDto, employeeId: number) {
     const checkIn = new Date(dto.checkIn);
     const checkOut = new Date(dto.checkOut);
 
@@ -61,7 +63,7 @@ export class ReservationsService {
       phone: dto.phone,
     });
 
-    return this.prisma.reservation.create({
+    const created = await this.prisma.reservation.create({
       data: {
         guestId: guest.id,
         checkIn,
@@ -72,6 +74,17 @@ export class ReservationsService {
       },
       include: this.reservationInclude,
     });
+
+    await this.audit.log(
+      employeeId,
+      'CREATE',
+      'Reservation',
+      created.id,
+      undefined,
+      created,
+    );
+
+    return created;
   }
 
   private async assertNoOverlap(
@@ -134,7 +147,7 @@ export class ReservationsService {
     return reservation;
   }
 
-  async update(id: number, dto: UpdateReservationDto) {
+  async update(id: number, dto: UpdateReservationDto, employeeId: number) {
     const reservation = await this.prisma.reservation.findUnique({
       where: { id },
     });
@@ -201,10 +214,19 @@ export class ReservationsService {
       include: this.reservationInclude,
     });
 
+    await this.audit.log(
+      employeeId,
+      'UPDATE',
+      'Reservation',
+      id,
+      reservation,
+      updated,
+    );
+
     return { message: 'Reserva actualizada', reservation: updated };
   }
 
-  async cancel(id: number) {
+  async cancel(id: number, employeeId: number) {
     const reservation = await this.prisma.reservation.findUnique({
       where: { id },
     });
@@ -224,6 +246,14 @@ export class ReservationsService {
       data: { status: 'CANCELLED' },
       include: this.reservationInclude,
     });
+
+    await this.audit.log(
+      employeeId,
+      'CANCEL',
+      'Reservation',
+      id,
+      reservation,
+    );
 
     return { message: 'Reserva cancelada', reservation: updated };
   }
@@ -246,7 +276,7 @@ export class ReservationsService {
     return { message: 'Estado de reserva actualizado', reservation: updated };
   }
 
-  async checkIn(id: number) {
+  async checkIn(id: number, employeeId: number) {
     const reservation = await this.prisma.reservation.findUnique({
       where: { id },
       include: { room: true },
@@ -280,6 +310,8 @@ export class ReservationsService {
         data: { status: 'OCCUPIED' },
       }),
     ]);
+
+    await this.audit.log(employeeId, 'CHECKIN', 'Reservation', id);
 
     return { message: 'Check-in realizado', reservation: updated };
   }
@@ -373,6 +405,8 @@ export class ReservationsService {
         data: { status: 'CLEANING' },
       }),
     ]);
+
+    await this.audit.log(employeeId, 'CHECKOUT', 'Reservation', id);
 
     return {
       message: 'Check-out realizado',

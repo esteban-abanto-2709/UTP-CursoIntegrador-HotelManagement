@@ -8,6 +8,7 @@ import { PrismaService } from '@/providers/prisma/prisma.service';
 import { Employee, Role, Shift } from '@prisma/client';
 import { CreateEmployeeDto, Cargo, Turno } from './dto/create-employee.dto';
 import { UpdateEmployeeDto } from './dto/update-employee.dto';
+import { AuditService } from '../audit/audit.service';
 import * as bcrypt from 'bcrypt';
 
 const CARGO_TO_ROLE: Record<Cargo, Role> = {
@@ -59,7 +60,10 @@ function toSpanishShape(employee: Employee) {
 
 @Injectable()
 export class EmployeesService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private audit: AuditService,
+  ) {}
 
   async findByUsername(username: string) {
     return this.prisma.employee.findUnique({ where: { username } });
@@ -113,7 +117,18 @@ export class EmployeesService {
       },
     });
 
-    return toSpanishShape(employee);
+    const result = toSpanishShape(employee);
+
+    await this.audit.log(
+      currentUser.id,
+      'CREATE',
+      'Employee',
+      employee.id,
+      undefined,
+      result,
+    );
+
+    return result;
   }
 
   async findOne(id: number, currentUser: any) {
@@ -205,7 +220,18 @@ export class EmployeesService {
       },
     });
 
-    return toSpanishShape(updated);
+    const result = toSpanishShape(updated);
+
+    await this.audit.log(
+      currentUser.id,
+      'UPDATE',
+      'Employee',
+      id,
+      toSpanishShape(employee),
+      result,
+    );
+
+    return result;
   }
 
   async findAll(currentUser: any) {

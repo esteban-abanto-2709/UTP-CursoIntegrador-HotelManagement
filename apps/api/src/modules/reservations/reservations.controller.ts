@@ -18,8 +18,11 @@ export class ReservationsController {
   @Post()
   @UseGuards(RolesGuard)
   @Roles('OWNER', 'MANAGER')
-  create(@Body() dto: CreateReservationDto) {
-    return this.reservationsService.create(dto);
+  create(
+    @Body() dto: CreateReservationDto,
+    @CurrentUser() user: { id: number },
+  ) {
+    return this.reservationsService.create(dto, user.id);
   }
 
   @Get()
@@ -38,15 +41,19 @@ export class ReservationsController {
   update(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateReservationDto,
+    @CurrentUser() user: { id: number },
   ) {
-    return this.reservationsService.update(id, dto);
+    return this.reservationsService.update(id, dto, user.id);
   }
 
   @Patch(':id/cancel')
   @UseGuards(RolesGuard)
   @Roles('OWNER', 'MANAGER')
-  cancel(@Param('id', ParseIntPipe) id: number) {
-    return this.reservationsService.cancel(id);
+  cancel(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentUser() user: { id: number },
+  ) {
+    return this.reservationsService.cancel(id, user.id);
   }
 
   @Patch(':id/status')
@@ -62,8 +69,11 @@ export class ReservationsController {
   @Patch(':id/checkin')
   @UseGuards(RolesGuard)
   @Roles('OWNER', 'MANAGER')
-  checkIn(@Param('id', ParseIntPipe) id: number) {
-    return this.reservationsService.checkIn(id);
+  checkIn(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentUser() user: { id: number },
+  ) {
+    return this.reservationsService.checkIn(id, user.id);
   }
 
   @Patch(':id/checkout')

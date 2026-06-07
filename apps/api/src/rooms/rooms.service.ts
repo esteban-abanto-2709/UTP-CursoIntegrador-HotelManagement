@@ -10,12 +10,16 @@ import { CreateRoomDto } from './dto/create-room.dto';
 import { UpdateRoomStatusDto } from './dto/update-room-status.dto';
 import { UpdateRoomDto } from './dto/update-room.dto';
 import { AvailabilityQueryDto } from './dto/availability-query.dto';
+import { AuditService } from '../modules/audit/audit.service';
 
 @Injectable()
 export class RoomsService {
-  constructor(private readonly prisma: PrismaService) { }
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly audit: AuditService,
+  ) { }
 
-  async create(createRoomDto: CreateRoomDto) {
+  async create(createRoomDto: CreateRoomDto, employeeId: number) {
     const existingRoom = await this.prisma.room.findUnique({
       where: { number: createRoomDto.number },
     });
@@ -33,6 +37,15 @@ export class RoomsService {
         price: createRoomDto.price,
       },
     });
+
+    await this.audit.log(
+      employeeId,
+      'CREATE',
+      'Room',
+      newRoom.id,
+      undefined,
+      newRoom,
+    );
 
     return {
       message: 'Habitación creada exitosamente',
@@ -76,7 +89,11 @@ export class RoomsService {
     });
   }
 
-  async updateStatus(id: number, updateRoomStatusDto: UpdateRoomStatusDto) {
+  async updateStatus(
+    id: number,
+    updateRoomStatusDto: UpdateRoomStatusDto,
+    employeeId: number,
+  ) {
     const room = await this.prisma.room.findUnique({ where: { id } });
 
     if (!room) {
@@ -88,13 +105,22 @@ export class RoomsService {
       data: { status: updateRoomStatusDto.status },
     });
 
+    await this.audit.log(
+      employeeId,
+      'UPDATE',
+      'Room',
+      id,
+      { status: room.status },
+      { status: updated.status },
+    );
+
     return {
       message: `Estado de habitación ${updated.number} actualizado a ${updated.status}`,
       room: updated,
     };
   }
 
-  async update(id: number, updateRoomDto: UpdateRoomDto) {
+  async update(id: number, updateRoomDto: UpdateRoomDto, employeeId: number) {
     const room = await this.prisma.room.findUnique({ where: { id } });
 
     if (!room) {
@@ -121,6 +147,8 @@ export class RoomsService {
         price: updateRoomDto.price,
       },
     });
+
+    await this.audit.log(employeeId, 'UPDATE', 'Room', id, room, updated);
 
     return {
       message: 'Habitación actualizada exitosamente',

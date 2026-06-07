@@ -7,6 +7,7 @@ import { AvailabilityQueryDto } from './dto/availability-query.dto';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
+import { CurrentUser } from '../common/decorators/current-user.decorator';
 
 @Controller('rooms')
 export class RoomsController {
@@ -15,8 +16,11 @@ export class RoomsController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('OWNER', 'MANAGER')
   @Post()
-  create(@Body() createRoomDto: CreateRoomDto) {
-    return this.roomsService.create(createRoomDto);
+  create(
+    @Body() createRoomDto: CreateRoomDto,
+    @CurrentUser() user: { id: number },
+  ) {
+    return this.roomsService.create(createRoomDto, user.id);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -36,8 +40,9 @@ export class RoomsController {
   updateStatus(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateRoomStatusDto: UpdateRoomStatusDto,
+    @CurrentUser() user: { id: number },
   ) {
-    return this.roomsService.updateStatus(id, updateRoomStatusDto);
+    return this.roomsService.updateStatus(id, updateRoomStatusDto, user.id);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -46,7 +51,8 @@ export class RoomsController {
   update(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateRoomDto: UpdateRoomDto,
+    @CurrentUser() user: { id: number },
   ) {
-    return this.roomsService.update(id, updateRoomDto);
+    return this.roomsService.update(id, updateRoomDto, user.id);
   }
 }
