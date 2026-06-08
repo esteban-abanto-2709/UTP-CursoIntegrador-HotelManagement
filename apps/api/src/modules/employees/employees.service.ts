@@ -5,7 +5,7 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { PrismaService } from '@/providers/prisma/prisma.service';
-import { Employee, Role, Shift } from '@prisma/client';
+import { Employee, Role } from '@prisma/client';
 import { CreateEmployeeDto, Cargo, Turno } from './dto/create-employee.dto';
 import { UpdateEmployeeDto } from './dto/update-employee.dto';
 import { AuditService } from '../audit/audit.service';
@@ -18,13 +18,13 @@ const CARGO_TO_ROLE: Record<Cargo, Role> = {
   Limpieza: Role.EMPLOYEE,
 };
 
-const TURNO_TO_SHIFT: Record<Turno, Shift> = {
-  MAÑANA: Shift.MORNING,
-  TARDE: Shift.AFTERNOON,
-  NOCHE: Shift.NIGHT,
+const TURNO_TO_SHIFT_NAME: Record<Turno, string> = {
+  MAÑANA: 'MORNING',
+  TARDE: 'AFTERNOON',
+  NOCHE: 'NIGHT',
 };
 
-const SHIFT_TO_TURNO: Record<Shift, Turno> = {
+const SHIFT_NAME_TO_TURNO: Record<string, Turno> = {
   MORNING: 'MAÑANA',
   AFTERNOON: 'TARDE',
   NIGHT: 'NOCHE',
@@ -32,6 +32,7 @@ const SHIFT_TO_TURNO: Record<Shift, Turno> = {
 
 type EmployeeWithPosition = Employee & {
   jobPosition: { name: string } | null;
+  shift: { name: string } | null;
 };
 
 function toSpanishShape(employee: EmployeeWithPosition) {
@@ -43,6 +44,7 @@ function toSpanishShape(employee: EmployeeWithPosition) {
     birthDate,
     positionId,
     jobPosition,
+    shiftId,
     shift,
     hireDate,
     phone,
@@ -56,7 +58,7 @@ function toSpanishShape(employee: EmployeeWithPosition) {
     apellidoMaterno: secondLastName,
     fechaNacimiento: birthDate,
     cargo: jobPosition?.name ?? null,
-    turno: shift ? SHIFT_TO_TURNO[shift] : null,
+    turno: shift ? SHIFT_NAME_TO_TURNO[shift.name] : null,
     fechaInicio: hireDate,
     telefono: phone,
     direccion: address,
@@ -114,13 +116,13 @@ export class EmployeesService {
         secondLastName: data.apellidoMaterno,
         birthDate: new Date(data.fechaNacimiento),
         jobPosition: { connect: { name: data.cargo } },
-        shift: TURNO_TO_SHIFT[data.turno],
+        shift: { connect: { name: TURNO_TO_SHIFT_NAME[data.turno] } },
         hireDate: new Date(data.fechaInicio),
         phone: data.telefono,
         email: data.email,
         address: data.direccion,
       },
-      include: { jobPosition: true },
+      include: { jobPosition: true, shift: true },
     });
 
     const result = toSpanishShape(employee);
@@ -140,7 +142,7 @@ export class EmployeesService {
   async findOne(id: number, currentUser: any) {
     const employee = await this.prisma.employee.findUnique({
       where: { id },
-      include: { jobPosition: true },
+      include: { jobPosition: true, shift: true },
     });
 
     if (!employee) {
@@ -159,7 +161,7 @@ export class EmployeesService {
   async update(id: number, data: UpdateEmployeeDto, currentUser: any) {
     const employee = await this.prisma.employee.findUnique({
       where: { id },
-      include: { jobPosition: true },
+      include: { jobPosition: true, shift: true },
     });
 
     if (!employee) {
@@ -223,7 +225,9 @@ export class EmployeesService {
         jobPosition: data.cargo
           ? { connect: { name: data.cargo } }
           : undefined,
-        shift: data.turno ? TURNO_TO_SHIFT[data.turno] : undefined,
+        shift: data.turno
+          ? { connect: { name: TURNO_TO_SHIFT_NAME[data.turno] } }
+          : undefined,
         hireDate: data.fechaInicio ? new Date(data.fechaInicio) : undefined,
         phone: data.telefono,
         email: data.email,
@@ -232,7 +236,7 @@ export class EmployeesService {
           ? await bcrypt.hash(data.password, 10)
           : undefined,
       },
-      include: { jobPosition: true },
+      include: { jobPosition: true, shift: true },
     });
 
     const result = toSpanishShape(updated);
@@ -263,7 +267,7 @@ export class EmployeesService {
         lastName: true,
         secondLastName: true,
         jobPosition: { select: { name: true } },
-        shift: true,
+        shift: { select: { name: true } },
         createdAt: true,
       },
       orderBy: { createdAt: 'desc' },
@@ -277,7 +281,7 @@ export class EmployeesService {
       apellidoPaterno: e.lastName,
       apellidoMaterno: e.secondLastName,
       cargo: e.jobPosition?.name ?? null,
-      turno: e.shift ? SHIFT_TO_TURNO[e.shift] : null,
+      turno: e.shift ? SHIFT_NAME_TO_TURNO[e.shift.name] : null,
       createdAt: e.createdAt,
     }));
   }

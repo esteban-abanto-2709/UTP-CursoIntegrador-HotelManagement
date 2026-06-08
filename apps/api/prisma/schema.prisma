@@ -12,12 +12,6 @@ enum Role {
   EMPLOYEE
 }
 
-enum Shift {
-  MORNING
-  AFTERNOON
-  NIGHT
-}
-
 model Employee {
   id             Int       @id @default(autoincrement())
   username       String    @unique
@@ -30,7 +24,8 @@ model Employee {
   birthDate      DateTime?
   positionId     Int?
   jobPosition    JobPosition? @relation(fields: [positionId], references: [id])
-  shift          Shift?
+  shiftId        Int?
+  shift          Shift?    @relation(fields: [shiftId], references: [id])
   hireDate       DateTime?
   phone          String?
   email          String?   @unique
@@ -42,9 +37,16 @@ model Employee {
   auditLogs      AuditLog[]
 
   @@index([positionId])
+  @@index([shiftId])
 }
 
 model JobPosition {
+  id        Int        @id @default(autoincrement())
+  name      String     @unique
+  employees Employee[]
+}
+
+model Shift {
   id        Int        @id @default(autoincrement())
   name      String     @unique
   employees Employee[]
