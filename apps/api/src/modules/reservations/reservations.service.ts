@@ -36,6 +36,9 @@ export class ReservationsService {
     payment: {
       select: { grandTotal: true, paymentMethod: { select: { name: true } } },
     },
+    creator: {
+      select: { id: true, username: true, firstName: true, lastName: true },
+    },
   } satisfies Prisma.ReservationInclude;
 
   private flattenReservation<
@@ -91,6 +94,7 @@ export class ReservationsService {
         roomId: dto.roomId,
         // Snapshot del precio: si luego cambia la tarifa del cuarto, esta reserva no se altera
         pricePerNight: room.price,
+        createdBy: employeeId,
       },
       include: this.reservationInclude,
     });
