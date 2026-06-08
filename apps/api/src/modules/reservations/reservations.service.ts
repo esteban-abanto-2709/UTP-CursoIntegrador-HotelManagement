@@ -33,8 +33,26 @@ export class ReservationsService {
         phone: true,
       },
     },
-    payment: { select: { grandTotal: true, paymentMethod: true } },
+    payment: {
+      select: { grandTotal: true, paymentMethod: { select: { name: true } } },
+    },
   } satisfies Prisma.ReservationInclude;
+
+  private flattenPayment<
+    R extends {
+      payment: { paymentMethod: { name: string } | null } | null;
+    },
+  >(reservation: R) {
+    return {
+      ...reservation,
+      payment: reservation.payment
+        ? {
+            ...reservation.payment,
+            paymentMethod: reservation.payment.paymentMethod?.name ?? null,
+          }
+        : null,
+    };
+  }
 
   async create(dto: CreateReservationDto, employeeId: number) {
     const checkIn = new Date(dto.checkIn);
@@ -84,7 +102,7 @@ export class ReservationsService {
       created,
     );
 
-    return created;
+    return this.flattenPayment(created);
   }
 
   private async assertNoOverlap(
@@ -111,7 +129,7 @@ export class ReservationsService {
     }
   }
 
-  findAll(filters: FilterReservationsDto) {
+  async findAll(filters: FilterReservationsDto) {
     const where: Prisma.ReservationWhereInput = {};
 
     if (filters.status) {
@@ -127,11 +145,13 @@ export class ReservationsService {
       where.checkIn = { lte: new Date(filters.to) };
     }
 
-    return this.prisma.reservation.findMany({
+    const reservations = await this.prisma.reservation.findMany({
       where,
       include: this.reservationInclude,
       orderBy: { checkIn: 'asc' },
     });
+
+    return reservations.map((r) => this.flattenPayment(r));
   }
 
   async findOne(id: number) {
@@ -144,7 +164,7 @@ export class ReservationsService {
       throw new NotFoundException(`Reserva ${id} no encontrada`);
     }
 
-    return reservation;
+    return this.flattenPayment(reservation);
   }
 
   async update(id: number, dto: UpdateReservationDto, employeeId: number) {
@@ -223,7 +243,10 @@ export class ReservationsService {
       updated,
     );
 
-    return { message: 'Reserva actualizada', reservation: updated };
+    return {
+      message: 'Reserva actualizada',
+      reservation: this.flattenPayment(updated),
+    };
   }
 
   async cancel(id: number, employeeId: number) {
@@ -255,7 +278,10 @@ export class ReservationsService {
       reservation,
     );
 
-    return { message: 'Reserva cancelada', reservation: updated };
+    return {
+      message: 'Reserva cancelada',
+      reservation: this.flattenPayment(updated),
+    };
   }
 
   async updateStatus(id: number, dto: UpdateReservationStatusDto) {
@@ -273,7 +299,10 @@ export class ReservationsService {
       include: this.reservationInclude,
     });
 
-    return { message: 'Estado de reserva actualizado', reservation: updated };
+    return {
+      message: 'Estado de reserva actualizado',
+      reservation: this.flattenPayment(updated),
+    };
   }
 
   async checkIn(id: number, employeeId: number) {
@@ -313,7 +342,10 @@ export class ReservationsService {
 
     await this.audit.log(employeeId, 'CHECKIN', 'Reservation', id);
 
-    return { message: 'Check-in realizado', reservation: updated };
+    return {
+      message: 'Check-in realizado',
+      reservation: this.flattenPayment(updated),
+    };
   }
 
   async checkOut(id: number, dto: CheckoutReservationDto, employeeId: number) {
@@ -350,6 +382,15 @@ export class ReservationsService {
           `El descuento "${discount.name}" no está activo`,
         );
       }
+    }
+
+    const paymentMethod = await this.prisma.paymentMethod.findUnique({
+      where: { name: dto.paymentMethod },
+    });
+    if (!paymentMethod) {
+      throw new BadRequestException(
+        `Método de pago "${dto.paymentMethod}" no encontrado`,
+      );
     }
 
     // Cálculo del cobro: noches reservadas × tarifa (mínimo 1 noche)
@@ -391,7 +432,7 @@ export class ReservationsService {
         data: {
           reservationId: id,
           processedBy: employeeId,
-          paymentMethod: dto.paymentMethod,
+          paymentMethodId: paymentMethod.id,
           discountId: discount?.id ?? null,
           roomTotal,
           chargesTotal,
@@ -410,7 +451,7 @@ export class ReservationsService {
 
     return {
       message: 'Check-out realizado',
-      reservation: updated,
+      reservation: this.flattenPayment(updated),
       payment,
     };
   }

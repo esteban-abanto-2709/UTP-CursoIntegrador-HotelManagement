@@ -1,4 +1,4 @@
-import { PrismaClient, Role, PaymentMethod, ReservationStatus } from '@prisma/client';
+import { PrismaClient, Role, ReservationStatus } from '@prisma/client';
 import { createSeedClient } from '../prisma-client';
 
 const MS_PER_NIGHT = 1000 * 60 * 60 * 24;
@@ -21,6 +21,14 @@ export async function seedPayments(prisma: PrismaClient) {
   const discount = await prisma.discount.findFirst({
     where: { name: 'Cliente frecuente', isActive: true },
   });
+
+  const cash = await prisma.paymentMethod.findUnique({
+    where: { name: 'CASH' },
+  });
+  if (!cash) {
+    console.warn('Pagos omitidos: falta el método de pago CASH (corre el seed).');
+    return;
+  }
 
   const reservations = await prisma.reservation.findMany({
     where: { status: ReservationStatus.COMPLETED },
@@ -45,7 +53,7 @@ export async function seedPayments(prisma: PrismaClient) {
       data: {
         reservationId: reservation.id,
         processedBy: employee.id,
-        paymentMethod: PaymentMethod.CASH,
+        paymentMethodId: cash.id,
         discountId: discount?.id ?? null,
         roomTotal,
         chargesTotal,

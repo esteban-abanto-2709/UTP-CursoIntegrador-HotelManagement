@@ -93,12 +93,6 @@ enum ReservationStatus {
   CANCELLED
 }
 
-enum PaymentMethod {
-  CASH
-  CARD
-  TRANSFER
-}
-
 model Reservation {
   id             Int               @id @default(autoincrement())
   checkIn        DateTime
@@ -158,7 +152,8 @@ model Payment {
   reservationId  Int           @unique
   employee       Employee      @relation(fields: [processedBy], references: [id])
   processedBy    Int
-  paymentMethod  PaymentMethod
+  paymentMethodId Int?
+  paymentMethod  PaymentMethod? @relation(fields: [paymentMethodId], references: [id])
   discount       Discount?     @relation(fields: [discountId], references: [id])
   discountId     Int?
   roomTotal      Decimal       @db.Decimal(10, 2)
@@ -170,6 +165,13 @@ model Payment {
 
   @@index([processedBy])
   @@index([discountId])
+  @@index([paymentMethodId])
+}
+
+model PaymentMethod {
+  id       Int       @id @default(autoincrement())
+  name     String    @unique
+  payments Payment[]
 }
 
 model AuditAction {

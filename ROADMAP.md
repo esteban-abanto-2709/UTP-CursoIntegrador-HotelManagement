@@ -16,6 +16,7 @@
 - **M3 Payment + Descuentos** (T011–T014): `Discount` + `Payment` desacoplado con desglose (`Prisma.Decimal`), `checkOut` refactorizado, diálogo de checkout con desglose. Eliminados `totalAmount`/`paymentMethod`/`paidAt` de `Reservation`. Sistema de seeds reejecutable introducido aquí.
 - **M4 Audit Log** (T015–T019): `AuditAction` + `AuditLog`, `AuditService` `@Global()`, instrumentación en reservas/empleados/habitaciones, `GET /audit-logs` (`@Roles('OWNER')`), página `/dashboard/auditoria`.
 - **M6/T025 JobPosition**: `position: String?` → tabla `JobPosition` en una sola migración; contrato `cargo` por nombre intacto.
+- **M6/T026 Shift**: `enum Shift` → tabla `Shift` (`add_shift_table`) con rename del enum viejo a `Shift_old` para liberar el nombre, backfill y `DROP TYPE`; servicio mapea por nombre (`TURNO_TO_SHIFT_NAME`), contrato `turno` (MAÑANA/TARDE/NOCHE) intacto. Seed reejecutable `seeds/shifts.ts`.
 
 ---
 
@@ -35,7 +36,6 @@
 >
 > **Patrón** (una sola migración, como Guest y T025): crear tabla catálogo → sembrar → FK nullable → backfill desde el enum → drop del enum/columna vieja — todo en la misma migración. Luego actualizar API (DTOs, services, `include`) y front (selectores poblados desde el catálogo, lectura del objeto anidado). **Seed:** registrar el catálogo en el seed reejecutable (`prisma/seeds/<x>.ts` en `seed.ts`), no solo inline. Las seis son independientes; de menor a mayor blast radius.
 
-- **[T026] Shift** *(solo-label en `Employee`)*: tabla `Shift` (`name @unique`; MORNING/AFTERNOON/NIGHT) + `shiftId` (FK nullable) en `Employee`, eliminando `shift Shift?` y el enum. Migración `add_shift_table`. Actualizar DTO/servicio empleados + selector (`GET /shifts`).
 - **[T027] PaymentMethod** *(solo en checkout/`Payment`)*: tabla `PaymentMethod` (CASH/CARD/TRANSFER) + `paymentMethodId` (FK nullable) en `Payment`, eliminando `paymentMethod` y el enum. Migración `add_payment_method_table`. Actualizar `checkOut` (recibe `paymentMethodId`), `include` del `Payment` y selector del checkout (`GET /payment-methods`).
 - **[T028] RoomType** *(selectores/display en `Room`)*: tabla `RoomType` (SINGLE/DOUBLE/SUITE) + `typeId` (FK nullable) en `Room`, eliminando `type` y el enum. Migración `add_room_type_table`. Actualizar DTO/servicio habitaciones, `include` del `type`, selector del formulario (`GET /room-types`).
 - **[T029] RoomStatus** *(alimenta housekeeping + colores `globals.css` + transiciones)*: tabla `RoomStatus` (AVAILABLE/OCCUPIED/CLEANING/MAINTENANCE) + `statusId` (FK nullable) en `Room`, eliminando `status` y el enum. Migración `add_room_status_table`. Actualizar servicio (lectura/escritura, transiciones check-in/out), `include`, y mapear colores del front por `name` del catálogo, no por enum.
