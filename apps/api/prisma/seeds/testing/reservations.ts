@@ -50,6 +50,9 @@ export async function seedReservations(prisma: PrismaClient) {
     console.log('Reservas ya sembradas, omitido.');
     return;
   }
+  const manager = await prisma.employee.findUnique({
+    where: { username: 'manager' },
+  });
   let created = 0;
   for (const r of reservations) {
     const room = await prisma.room.findUnique({ where: { number: r.roomNumber } });
@@ -68,6 +71,7 @@ export async function seedReservations(prisma: PrismaClient) {
         pricePerNight: r.pricePerNight,
         roomId: room.id,
         guestId: guest.id,
+        createdBy: manager?.id ?? null,
       },
     });
     created++;
