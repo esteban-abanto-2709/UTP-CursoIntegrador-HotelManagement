@@ -100,8 +100,6 @@ model Reservation {
   statusId       Int?
   status         ReservationStatus? @relation(fields: [statusId], references: [id])
   rateSnapshot   Decimal?           @db.Decimal(10, 2)
-  totalNights    Int?
-  roomTotal      Decimal?           @db.Decimal(10, 2)
   room           Room               @relation(fields: [roomId], references: [id])
   roomId         Int
   guest          Guest              @relation(fields: [guestId], references: [id])

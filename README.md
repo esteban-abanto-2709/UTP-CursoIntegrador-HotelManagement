@@ -12,7 +12,11 @@ apps/
 ## Documentación
 
 - **Frontend (web):** ver [`apps/web/README.md`](apps/web/README.md) — setup local, variables de entorno y deploy en Vercel.
-- **Backend (API):** ver [`apps/api/`](apps/api/) — NestJS, Prisma, endpoints REST.
+- **Backend (API):** ver [`apps/api/README.md`](apps/api/README.md) — NestJS, Prisma, endpoints REST.
+- **Roadmap:** ver [`ROADMAP.md`](ROADMAP.md) — tareas pendientes.
+- **Changelog:** ver [`CHANGELOG.md`](CHANGELOG.md) — historial de lo ya resuelto.
+
+> **Alcance del curso:** las únicas solicitudes técnicas del profesor son (1) tablas **100% normalizadas** y (2) un **sistema de auditoría**. El resto son features, en su mayoría opcionales.
 
 ## Requisitos Previos
 

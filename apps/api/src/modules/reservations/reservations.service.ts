@@ -42,7 +42,6 @@ export class ReservationsService {
     },
   } satisfies Prisma.ReservationInclude;
 
-  // Noches reservadas entre dos fechas (mínimo 1)
   private calcNights(checkIn: Date, checkOut: Date) {
     const MS_PER_DAY = 1000 * 60 * 60 * 24;
     return Math.max(
@@ -98,8 +97,6 @@ export class ReservationsService {
       phone: dto.phone,
     });
 
-    const nights = this.calcNights(checkIn, checkOut);
-
     const created = await this.prisma.reservation.create({
       data: {
         guest: { connect: { id: guest.id } },
@@ -107,10 +104,7 @@ export class ReservationsService {
         checkOut,
         room: { connect: { id: dto.roomId } },
         status: { connect: { name: 'PENDING' } },
-        // Snapshot del precio: si luego cambia la tarifa del cuarto, esta reserva no se altera
         rateSnapshot: room.price,
-        totalNights: nights,
-        roomTotal: new Prisma.Decimal(room.price).mul(nights),
         creator: { connect: { id: employeeId } },
       },
       include: this.reservationInclude,
@@ -237,7 +231,6 @@ export class ReservationsService {
       data.guest = { connect: { id: guest.id } };
     }
 
-    let effectiveRate: Prisma.Decimal | null = reservation.rateSnapshot;
     if (roomChanged) {
       const newRoom = await this.prisma.room.findUnique({
         where: { id: dto.roomId },
@@ -247,16 +240,9 @@ export class ReservationsService {
       }
       data.room = { connect: { id: dto.roomId } };
       data.rateSnapshot = newRoom.price;
-      effectiveRate = newRoom.price;
     }
 
     if (roomChanged || datesChanged) {
-      const nights = this.calcNights(checkIn, checkOut);
-      data.totalNights = nights;
-      data.roomTotal =
-        effectiveRate != null
-          ? new Prisma.Decimal(effectiveRate).mul(nights)
-          : null;
       await this.assertNoOverlap(roomId, checkIn, checkOut, id);
     }
 
@@ -360,7 +346,6 @@ export class ReservationsService {
       );
     }
 
-    // Actualizamos reserva y habitación de forma atómica
     const [updated] = await this.prisma.$transaction([
       this.prisma.reservation.update({
         where: { id },
@@ -429,9 +414,7 @@ export class ReservationsService {
       );
     }
 
-    // Cálculo del cobro: noches reservadas × tarifa (mínimo 1 noche)
     const nights = this.calcNights(reservation.checkIn, reservation.checkOut);
-    // rateSnapshot se guarda al crear; fallback al precio actual del cuarto por si es null
     const rate = reservation.rateSnapshot ?? reservation.room.price;
 
     const chargesAgg = await this.prisma.roomCharge.aggregate({
@@ -447,7 +430,6 @@ export class ReservationsService {
       : new Prisma.Decimal(0);
     const grandTotal = subtotal.sub(discountAmount);
 
-    // La habitación pasa a limpieza para entrar a la cola de housekeeping
     const [updated, payment] = await this.prisma.$transaction([
       this.prisma.reservation.update({
         where: { id },

@@ -61,10 +61,6 @@ export async function seedReservations(prisma: PrismaClient) {
       console.warn(`Reserva omitida: falta room ${r.roomNumber} o guest ${r.guestNationalId}.`);
       continue;
     }
-    const nights = Math.max(
-      1,
-      Math.ceil((r.checkOut.getTime() - r.checkIn.getTime()) / 86400000),
-    );
     await prisma.reservation.create({
       data: {
         checkIn: r.checkIn,
@@ -73,8 +69,6 @@ export async function seedReservations(prisma: PrismaClient) {
         actualCheckOut: r.actualCheckOut,
         status: { connect: { name: r.status } },
         rateSnapshot: r.rateSnapshot,
-        totalNights: nights,
-        roomTotal: r.rateSnapshot * nights,
         room: { connect: { id: room.id } },
         guest: { connect: { id: guest.id } },
         creator: manager ? { connect: { id: manager.id } } : undefined,

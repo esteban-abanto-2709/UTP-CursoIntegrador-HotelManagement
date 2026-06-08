@@ -47,10 +47,7 @@ interface Reservation {
   status: ReservationStatus;
   roomId: number;
   room: { number: string; type: string };
-  // Facturación (Prisma serializa Decimal como string; null hasta el check-out)
   rateSnapshot: string | null;
-  totalNights: number | null;
-  roomTotal: string | null;
   payment: { grandTotal: string; paymentMethod: PaymentMethod } | null;
   creator: {
     id: number;
@@ -77,7 +74,6 @@ interface RoomOption {
   type: string;
 }
 
-// Noches reservadas, mínimo 1 — debe coincidir con el cálculo del backend
 const PAYMENT_LABELS: Record<PaymentMethod, string> = {
   CASH: "Efectivo",
   CARD: "Tarjeta",
@@ -112,7 +108,6 @@ export default function ReservasPage() {
   const [statusFilter, setStatusFilter] = useState<"ALL" | ReservationStatus>(
     "ALL",
   );
-  // Filtros server-side combinables con el estado
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
   const [roomFilter, setRoomFilter] = useState("");
@@ -122,14 +117,10 @@ export default function ReservasPage() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingReservation, setEditingReservation] =
     useState<ReservationForEdit | null>(null);
-  // Id de la reserva sobre la que se está ejecutando un check-in/check-out/cancelación
   const [actioningId, setActioningId] = useState<number | null>(null);
-  // Reserva en proceso de cobro (abre el diálogo de check-out)
   const [checkoutTarget, setCheckoutTarget] = useState<Reservation | null>(null);
-  // Reserva en proceso de cancelación (abre el diálogo de confirmación)
   const [cancelTarget, setCancelTarget] = useState<Reservation | null>(null);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("CASH");
-  // Desglose del check-out: cargos y descuentos cargados al abrir el diálogo
   const [checkoutCharges, setCheckoutCharges] = useState<RoomCharge[]>([]);
   const [activeDiscounts, setActiveDiscounts] = useState<Discount[]>([]);
   const [selectedDiscountId, setSelectedDiscountId] = useState<number | null>(
@@ -268,7 +259,6 @@ export default function ReservasPage() {
     }
   };
 
-  // El estado/fecha/habitación se filtran server-side; aquí solo la búsqueda por texto
   const filteredReservations = reservations.filter(
     (r) =>
       r.guest.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -313,7 +303,6 @@ export default function ReservasPage() {
 
   return (
     <div className="flex flex-col gap-6 max-w-7xl mx-auto w-full animate-in fade-in slide-in-from-bottom-4 duration-500">
-      {/* Cabecera Principal */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b pb-6">
         <div>
           <h2 className="text-3xl font-bold tracking-tight text-foreground">
@@ -340,7 +329,6 @@ export default function ReservasPage() {
         reservation={editingReservation}
       />
 
-      {/* Buscador + Filtros */}
       <div className="bg-card p-4 rounded-2xl border border-border/50 shadow-sm flex flex-col gap-4">
         <div className="relative w-full">
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
@@ -408,7 +396,6 @@ export default function ReservasPage() {
         </div>
       </div>
 
-      {/* Tabla */}
       <div className="bg-card rounded-2xl border border-border/50 shadow-sm overflow-hidden mb-8">
         <Table>
           <TableHeader>
@@ -553,7 +540,6 @@ export default function ReservasPage() {
         </Table>
       </div>
 
-      {/* Diálogo de Cobro / Check-out */}
       <Dialog
         open={checkoutTarget !== null}
         onOpenChange={(open) => !open && setCheckoutTarget(null)}
@@ -598,7 +584,6 @@ export default function ReservasPage() {
                     </div>
                   ) : (
                     <>
-                      {/* Resumen */}
                       <div className="bg-muted rounded-xl p-4 flex flex-col gap-2 text-sm">
                         <div className="flex justify-between">
                           <span className="text-muted-foreground">Huésped</span>
@@ -651,7 +636,6 @@ export default function ReservasPage() {
                         </div>
                       </div>
 
-                      {/* Descuento */}
                       <div className="flex flex-col gap-1.5">
                         <label className="text-sm font-semibold text-muted-foreground">
                           Descuento
@@ -674,7 +658,6 @@ export default function ReservasPage() {
                         </select>
                       </div>
 
-                      {/* Método de pago */}
                       <div className="flex flex-col gap-1.5">
                         <label className="text-sm font-semibold text-muted-foreground">
                           Método de pago
@@ -721,7 +704,6 @@ export default function ReservasPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Diálogo de Confirmación de Cancelación */}
       <Dialog
         open={cancelTarget !== null}
         onOpenChange={(open) => !open && setCancelTarget(null)}
