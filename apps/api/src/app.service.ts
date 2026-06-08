@@ -11,6 +11,15 @@ export class AppService {
   }
 
   renderStatusPage(): string {
+    const uptimeSeconds = process.uptime();
+    const startedAt = new Date(Date.now() - uptimeSeconds * 1000);
+    const seconds = Math.floor(uptimeSeconds % 60);
+    const minutes = Math.floor((uptimeSeconds / 60) % 60);
+    const hours = Math.floor(uptimeSeconds / 3600);
+    const uptime = `${hours}h ${minutes}m ${seconds}s`;
+    const startedAtText = startedAt.toLocaleString('es-PE');
+    const nowText = new Date().toLocaleString('es-PE');
+
     return `<!doctype html>
 <html lang="es">
 <head>
@@ -26,7 +35,6 @@ export class AppService {
       --muted: #94a3b8;
       --sky: #0ea5e9;
       --green: #22c55e;
-      --red: #ef4444;
     }
     * { box-sizing: border-box; }
     body {
@@ -72,19 +80,17 @@ export class AppService {
       border-radius: 999px;
       font-size: 14px;
       font-weight: 600;
-      border: 1px solid var(--border);
       background: #0b1220;
+      color: var(--green);
+      border: 1px solid rgba(34, 197, 94, 0.35);
     }
     .badge .pulse {
       width: 10px;
       height: 10px;
       border-radius: 999px;
-      background: var(--muted);
+      background: var(--green);
+      box-shadow: 0 0 12px rgba(34, 197, 94, 0.8);
     }
-    .badge.ok { color: var(--green); border-color: rgba(34, 197, 94, 0.35); }
-    .badge.ok .pulse { background: var(--green); box-shadow: 0 0 12px rgba(34, 197, 94, 0.8); }
-    .badge.down { color: var(--red); border-color: rgba(239, 68, 68, 0.35); }
-    .badge.down .pulse { background: var(--red); box-shadow: 0 0 12px rgba(239, 68, 68, 0.8); }
     .rows { margin-top: 24px; display: grid; gap: 12px; }
     .row {
       display: flex;
@@ -111,63 +117,28 @@ export class AppService {
       </div>
     </div>
 
-    <div id="badge" class="badge">
+    <div class="badge">
       <span class="pulse"></span>
-      <span id="badge-text">Comprobando…</span>
+      <span>Operativo</span>
     </div>
 
     <div class="rows">
       <div class="row">
-        <span class="label">Tiempo activo</span>
-        <span class="value" id="uptime">—</span>
+        <span class="label">Activo desde</span>
+        <span class="value">${startedAtText}</span>
       </div>
       <div class="row">
-        <span class="label">Última comprobación</span>
-        <span class="value" id="timestamp">—</span>
+        <span class="label">Tiempo activo</span>
+        <span class="value">${uptime}</span>
+      </div>
+      <div class="row">
+        <span class="label">Consultado</span>
+        <span class="value">${nowText}</span>
       </div>
     </div>
 
-    <div class="foot">Se actualiza cada 30 s mientras la pestaña esté activa</div>
+    <div class="foot">Recarga la página para actualizar el estado</div>
   </div>
-
-  <script>
-    function formatUptime(seconds) {
-      var s = Math.floor(seconds % 60);
-      var m = Math.floor((seconds / 60) % 60);
-      var h = Math.floor(seconds / 3600);
-      return h + "h " + m + "m " + s + "s";
-    }
-
-    async function check() {
-      var badge = document.getElementById("badge");
-      var badgeText = document.getElementById("badge-text");
-      try {
-        var res = await fetch("/health", { cache: "no-store" });
-        if (!res.ok) throw new Error("bad status");
-        var data = await res.json();
-        badge.className = "badge ok";
-        badgeText.textContent = "Operativo";
-        document.getElementById("uptime").textContent = formatUptime(data.uptime);
-        document.getElementById("timestamp").textContent =
-          new Date(data.timestamp).toLocaleString("es-PE");
-      } catch (err) {
-        badge.className = "badge down";
-        badgeText.textContent = "Sin conexión";
-        document.getElementById("uptime").textContent = "—";
-        document.getElementById("timestamp").textContent = new Date().toLocaleString("es-PE");
-      }
-    }
-
-    check();
-
-    setInterval(function () {
-      if (!document.hidden) check();
-    }, 30000);
-
-    document.addEventListener("visibilitychange", function () {
-      if (!document.hidden) check();
-    });
-  </script>
 </body>
 </html>`;
   }
