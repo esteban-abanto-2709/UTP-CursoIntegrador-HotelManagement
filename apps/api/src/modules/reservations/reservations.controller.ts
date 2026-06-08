@@ -17,7 +17,7 @@ export class ReservationsController {
 
   @Post()
   @UseGuards(RolesGuard)
-  @Roles('OWNER', 'MANAGER')
+  @Roles('OWNER', 'MANAGER', 'EMPLOYEE')
   create(
     @Body() dto: CreateReservationDto,
     @CurrentUser() user: { id: number },
@@ -37,7 +37,7 @@ export class ReservationsController {
 
   @Patch(':id')
   @UseGuards(RolesGuard)
-  @Roles('OWNER', 'MANAGER')
+  @Roles('OWNER', 'MANAGER', 'EMPLOYEE')
   update(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateReservationDto,
@@ -48,7 +48,7 @@ export class ReservationsController {
 
   @Patch(':id/cancel')
   @UseGuards(RolesGuard)
-  @Roles('OWNER', 'MANAGER')
+  @Roles('OWNER', 'MANAGER', 'EMPLOYEE')
   cancel(
     @Param('id', ParseIntPipe) id: number,
     @CurrentUser() user: { id: number },
@@ -58,7 +58,7 @@ export class ReservationsController {
 
   @Patch(':id/status')
   @UseGuards(RolesGuard)
-  @Roles('OWNER', 'MANAGER')
+  @Roles('OWNER', 'MANAGER', 'EMPLOYEE')
   updateStatus(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateReservationStatusDto,
@@ -68,7 +68,7 @@ export class ReservationsController {
 
   @Patch(':id/checkin')
   @UseGuards(RolesGuard)
-  @Roles('OWNER', 'MANAGER')
+  @Roles('OWNER', 'MANAGER', 'EMPLOYEE')
   checkIn(
     @Param('id', ParseIntPipe) id: number,
     @CurrentUser() user: { id: number },
@@ -78,7 +78,7 @@ export class ReservationsController {
 
   @Patch(':id/checkout')
   @UseGuards(RolesGuard)
-  @Roles('OWNER', 'MANAGER')
+  @Roles('OWNER', 'MANAGER', 'EMPLOYEE')
   checkOut(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: CheckoutReservationDto,
