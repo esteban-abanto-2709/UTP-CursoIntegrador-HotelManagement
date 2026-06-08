@@ -314,7 +314,7 @@ export class ReservationsService {
   async checkIn(id: number, employeeId: number) {
     const reservation = await this.prisma.reservation.findUnique({
       where: { id },
-      include: { room: true },
+      include: { room: { include: { status: true } } },
     });
 
     if (!reservation) {
@@ -327,7 +327,7 @@ export class ReservationsService {
       );
     }
 
-    if (reservation.room.status !== 'AVAILABLE') {
+    if (reservation.room.status?.name !== 'AVAILABLE') {
       throw new BadRequestException(
         `La habitación ${reservation.room.number} no está disponible`,
       );
@@ -342,7 +342,7 @@ export class ReservationsService {
       }),
       this.prisma.room.update({
         where: { id: reservation.roomId },
-        data: { status: 'OCCUPIED' },
+        data: { status: { connect: { name: 'OCCUPIED' } } },
       }),
     ]);
 
@@ -449,7 +449,7 @@ export class ReservationsService {
       }),
       this.prisma.room.update({
         where: { id: reservation.roomId },
-        data: { status: 'CLEANING' },
+        data: { status: { connect: { name: 'CLEANING' } } },
       }),
     ]);
 

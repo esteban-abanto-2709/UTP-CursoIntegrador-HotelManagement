@@ -21,10 +21,20 @@ export class RoomsService {
 
   private readonly roomInclude = {
     type: { select: { name: true } },
+    status: { select: { name: true } },
   } satisfies Prisma.RoomInclude;
 
-  private flattenType<R extends { type: { name: string } | null }>(room: R) {
-    return { ...room, type: room.type?.name ?? null };
+  private flattenRoom<
+    R extends {
+      type: { name: string } | null;
+      status: { name: string } | null;
+    },
+  >(room: R) {
+    return {
+      ...room,
+      type: room.type?.name ?? null,
+      status: room.status?.name ?? null,
+    };
   }
 
   async create(createRoomDto: CreateRoomDto, employeeId: number) {
@@ -38,11 +48,12 @@ export class RoomsService {
       );
     }
 
-    const newRoom = this.flattenType(
+    const newRoom = this.flattenRoom(
       await this.prisma.room.create({
         data: {
           number: createRoomDto.number,
           type: { connect: { name: createRoomDto.type } },
+          status: { connect: { name: 'AVAILABLE' } },
           price: createRoomDto.price,
         },
         include: this.roomInclude,
@@ -69,7 +80,7 @@ export class RoomsService {
       include: this.roomInclude,
       orderBy: { number: 'asc' },
     });
-    return rooms.map((room) => this.flattenType(room));
+    return rooms.map((room) => this.flattenRoom(room));
   }
 
   async findAvailable(query: AvailabilityQueryDto) {
@@ -95,13 +106,13 @@ export class RoomsService {
     const rooms = await this.prisma.room.findMany({
       where: {
         type: { name: query.type },
-        status: { not: 'MAINTENANCE' },
+        status: { name: { not: 'MAINTENANCE' } },
         reservations: { none: overlap },
       },
       include: this.roomInclude,
       orderBy: { number: 'asc' },
     });
-    return rooms.map((room) => this.flattenType(room));
+    return rooms.map((room) => this.flattenRoom(room));
   }
 
   async updateStatus(
@@ -109,16 +120,21 @@ export class RoomsService {
     updateRoomStatusDto: UpdateRoomStatusDto,
     employeeId: number,
   ) {
-    const room = await this.prisma.room.findUnique({ where: { id } });
+    const room = await this.prisma.room.findUnique({
+      where: { id },
+      include: this.roomInclude,
+    });
 
     if (!room) {
       throw new NotFoundException(`No existe una habitación con el ID ${id}`);
     }
 
-    const updated = this.flattenType(
+    const previousStatus = room.status?.name ?? null;
+
+    const updated = this.flattenRoom(
       await this.prisma.room.update({
         where: { id },
-        data: { status: updateRoomStatusDto.status },
+        data: { status: { connect: { name: updateRoomStatusDto.status } } },
         include: this.roomInclude,
       }),
     );
@@ -128,7 +144,7 @@ export class RoomsService {
       'UPDATE',
       'Room',
       id,
-      { status: room.status },
+      { status: previousStatus },
       { status: updated.status },
     );
 
@@ -168,7 +184,7 @@ export class RoomsService {
       data.type = { connect: { name: updateRoomDto.type } };
     }
 
-    const updated = this.flattenType(
+    const updated = this.flattenRoom(
       await this.prisma.room.update({
         where: { id },
         data,
@@ -181,7 +197,7 @@ export class RoomsService {
       'UPDATE',
       'Room',
       id,
-      this.flattenType(room),
+      this.flattenRoom(room),
       updated,
     );
 
