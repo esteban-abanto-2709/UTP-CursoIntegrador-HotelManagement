@@ -127,7 +127,7 @@ export class AppService {
       </div>
     </div>
 
-    <div class="foot">Se actualiza automáticamente cada 5 s</div>
+    <div class="foot">Se actualiza cada 30 s mientras la pestaña esté activa</div>
   </div>
 
   <script>
@@ -159,7 +159,14 @@ export class AppService {
     }
 
     check();
-    setInterval(check, 5000);
+
+    setInterval(function () {
+      if (!document.hidden) check();
+    }, 30000);
+
+    document.addEventListener("visibilitychange", function () {
+      if (!document.hidden) check();
+    });
   </script>
 </body>
 </html>`;

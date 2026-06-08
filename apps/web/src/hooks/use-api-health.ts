@@ -6,6 +6,8 @@ const ATTEMPT_TIMEOUT = 8000;
 const RETRY_INTERVAL = 3000;
 const MAX_WINDOW = 90000;
 
+export const RETRY_INTERVAL_SECONDS = RETRY_INTERVAL / 1000;
+
 export type ApiHealthStatus = "checking" | "healthy" | "failed";
 
 export function useApiHealth() {
