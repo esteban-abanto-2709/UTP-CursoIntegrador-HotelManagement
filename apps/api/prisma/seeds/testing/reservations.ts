@@ -1,4 +1,4 @@
-import { PrismaClient, ReservationStatus } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
 import { createSeedClient } from '../prisma-client';
 
 const reservations = [
@@ -9,7 +9,7 @@ const reservations = [
     checkOut: new Date('2026-06-08T11:00:00Z'),
     actualCheckIn: new Date('2026-06-05T15:20:00Z'),
     actualCheckOut: null as Date | null,
-    status: ReservationStatus.ACTIVE,
+    status: 'ACTIVE',
     pricePerNight: 140,
   },
   {
@@ -19,7 +19,7 @@ const reservations = [
     checkOut: new Date('2026-06-18T11:00:00Z'),
     actualCheckIn: null as Date | null,
     actualCheckOut: null as Date | null,
-    status: ReservationStatus.PENDING,
+    status: 'PENDING',
     pricePerNight: 320,
   },
   {
@@ -29,7 +29,7 @@ const reservations = [
     checkOut: new Date('2026-05-23T11:00:00Z'),
     actualCheckIn: new Date('2026-05-20T15:10:00Z'),
     actualCheckOut: new Date('2026-05-23T10:30:00Z'),
-    status: ReservationStatus.COMPLETED,
+    status: 'COMPLETED',
     pricePerNight: 80,
   },
   {
@@ -39,7 +39,7 @@ const reservations = [
     checkOut: new Date('2026-06-10T11:00:00Z'),
     actualCheckIn: new Date('2026-06-06T16:00:00Z'),
     actualCheckOut: null as Date | null,
-    status: ReservationStatus.ACTIVE,
+    status: 'ACTIVE',
     pricePerNight: 140,
   },
 ];
@@ -67,11 +67,11 @@ export async function seedReservations(prisma: PrismaClient) {
         checkOut: r.checkOut,
         actualCheckIn: r.actualCheckIn,
         actualCheckOut: r.actualCheckOut,
-        status: r.status,
+        status: { connect: { name: r.status } },
         pricePerNight: r.pricePerNight,
-        roomId: room.id,
-        guestId: guest.id,
-        createdBy: manager?.id ?? null,
+        room: { connect: { id: room.id } },
+        guest: { connect: { id: guest.id } },
+        creator: manager ? { connect: { id: manager.id } } : undefined,
       },
     });
     created++;

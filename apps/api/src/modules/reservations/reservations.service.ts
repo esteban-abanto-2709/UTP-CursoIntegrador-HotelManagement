@@ -24,6 +24,7 @@ export class ReservationsService {
 
   private readonly reservationInclude = {
     room: { select: { number: true, type: { select: { name: true } } } },
+    status: { select: { name: true } },
     guest: {
       select: {
         id: true,
@@ -44,12 +45,14 @@ export class ReservationsService {
   private flattenReservation<
     R extends {
       room: { type: { name: string } | null };
+      status: { name: string } | null;
       payment: { paymentMethod: { name: string } | null } | null;
     },
   >(reservation: R) {
     return {
       ...reservation,
       room: { ...reservation.room, type: reservation.room.type?.name ?? null },
+      status: reservation.status?.name ?? null,
       payment: reservation.payment
         ? {
             ...reservation.payment,
@@ -88,13 +91,14 @@ export class ReservationsService {
 
     const created = await this.prisma.reservation.create({
       data: {
-        guestId: guest.id,
+        guest: { connect: { id: guest.id } },
         checkIn,
         checkOut,
-        roomId: dto.roomId,
+        room: { connect: { id: dto.roomId } },
+        status: { connect: { name: 'PENDING' } },
         // Snapshot del precio: si luego cambia la tarifa del cuarto, esta reserva no se altera
         pricePerNight: room.price,
-        createdBy: employeeId,
+        creator: { connect: { id: employeeId } },
       },
       include: this.reservationInclude,
     });
@@ -120,7 +124,7 @@ export class ReservationsService {
     const conflicto = await this.prisma.reservation.findFirst({
       where: {
         roomId,
-        status: { in: ['PENDING', 'ACTIVE'] },
+        status: { name: { in: ['PENDING', 'ACTIVE'] } },
         checkIn: { lt: checkOut },
         checkOut: { gt: checkIn },
         ...(excludeReservationId ? { id: { not: excludeReservationId } } : {}),
@@ -139,7 +143,7 @@ export class ReservationsService {
     const where: Prisma.ReservationWhereInput = {};
 
     if (filters.status) {
-      where.status = filters.status;
+      where.status = { name: filters.status };
     }
     if (filters.roomId) {
       where.roomId = Number(filters.roomId);
@@ -176,13 +180,14 @@ export class ReservationsService {
   async update(id: number, dto: UpdateReservationDto, employeeId: number) {
     const reservation = await this.prisma.reservation.findUnique({
       where: { id },
+      include: { status: true },
     });
 
     if (!reservation) {
       throw new NotFoundException(`Reserva ${id} no encontrada`);
     }
 
-    if (reservation.status !== 'PENDING') {
+    if (reservation.status?.name !== 'PENDING') {
       throw new BadRequestException(
         'Solo se pueden editar reservas pendientes',
       );
@@ -258,13 +263,14 @@ export class ReservationsService {
   async cancel(id: number, employeeId: number) {
     const reservation = await this.prisma.reservation.findUnique({
       where: { id },
+      include: { status: true },
     });
 
     if (!reservation) {
       throw new NotFoundException(`Reserva ${id} no encontrada`);
     }
 
-    if (reservation.status !== 'PENDING') {
+    if (reservation.status?.name !== 'PENDING') {
       throw new BadRequestException(
         'Solo se pueden cancelar reservas pendientes',
       );
@@ -272,7 +278,7 @@ export class ReservationsService {
 
     const updated = await this.prisma.reservation.update({
       where: { id },
-      data: { status: 'CANCELLED' },
+      data: { status: { connect: { name: 'CANCELLED' } } },
       include: this.reservationInclude,
     });
 
@@ -301,7 +307,7 @@ export class ReservationsService {
 
     const updated = await this.prisma.reservation.update({
       where: { id },
-      data: { status: dto.status },
+      data: { status: { connect: { name: dto.status } } },
       include: this.reservationInclude,
     });
 
@@ -314,14 +320,14 @@ export class ReservationsService {
   async checkIn(id: number, employeeId: number) {
     const reservation = await this.prisma.reservation.findUnique({
       where: { id },
-      include: { room: { include: { status: true } } },
+      include: { status: true, room: { include: { status: true } } },
     });
 
     if (!reservation) {
       throw new NotFoundException(`Reserva ${id} no encontrada`);
     }
 
-    if (reservation.status !== 'PENDING') {
+    if (reservation.status?.name !== 'PENDING') {
       throw new BadRequestException(
         'Solo se puede hacer check-in a reservas pendientes',
       );
@@ -337,7 +343,10 @@ export class ReservationsService {
     const [updated] = await this.prisma.$transaction([
       this.prisma.reservation.update({
         where: { id },
-        data: { status: 'ACTIVE', actualCheckIn: new Date() },
+        data: {
+          status: { connect: { name: 'ACTIVE' } },
+          actualCheckIn: new Date(),
+        },
         include: this.reservationInclude,
       }),
       this.prisma.room.update({
@@ -357,14 +366,14 @@ export class ReservationsService {
   async checkOut(id: number, dto: CheckoutReservationDto, employeeId: number) {
     const reservation = await this.prisma.reservation.findUnique({
       where: { id },
-      include: { room: true },
+      include: { status: true, room: true },
     });
 
     if (!reservation) {
       throw new NotFoundException(`Reserva ${id} no encontrada`);
     }
 
-    if (reservation.status !== 'ACTIVE') {
+    if (reservation.status?.name !== 'ACTIVE') {
       throw new BadRequestException(
         'Solo se puede hacer check-out a reservas activas',
       );
@@ -429,7 +438,7 @@ export class ReservationsService {
       this.prisma.reservation.update({
         where: { id },
         data: {
-          status: 'COMPLETED',
+          status: { connect: { name: 'COMPLETED' } },
           actualCheckOut: new Date(),
         },
         include: this.reservationInclude,

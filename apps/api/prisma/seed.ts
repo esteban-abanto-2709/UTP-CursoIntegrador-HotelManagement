@@ -8,6 +8,7 @@ import { seedShifts } from './seeds/shifts';
 import { seedPaymentMethods } from './seeds/payment-methods';
 import { seedRoomTypes } from './seeds/room-types';
 import { seedRoomStatuses } from './seeds/room-statuses';
+import { seedReservationStatuses } from './seeds/reservation-statuses';
 
 async function main() {
   const prisma = createSeedClient();
@@ -21,6 +22,7 @@ async function main() {
     await seedPaymentMethods(prisma);
     await seedRoomTypes(prisma);
     await seedRoomStatuses(prisma);
+    await seedReservationStatuses(prisma);
   } finally {
     await prisma.$disconnect();
   }

@@ -1,7 +1,17 @@
-import { IsEnum } from 'class-validator';
-import { ReservationStatus } from '@prisma/client';
+import { IsIn } from 'class-validator';
+
+export const VALID_RESERVATION_STATUSES = [
+  'PENDING',
+  'ACTIVE',
+  'COMPLETED',
+  'CANCELLED',
+] as const;
+
+export type ReservationStatusName = (typeof VALID_RESERVATION_STATUSES)[number];
 
 export class UpdateReservationStatusDto {
-  @IsEnum(ReservationStatus)
-  status: ReservationStatus;
+  @IsIn(VALID_RESERVATION_STATUSES, {
+    message: 'El estado debe ser PENDING, ACTIVE, COMPLETED o CANCELLED',
+  })
+  status: ReservationStatusName;
 }

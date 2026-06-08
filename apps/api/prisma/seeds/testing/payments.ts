@@ -1,4 +1,4 @@
-import { PrismaClient, Role, ReservationStatus } from '@prisma/client';
+import { PrismaClient, Role } from '@prisma/client';
 import { createSeedClient } from '../prisma-client';
 
 const MS_PER_NIGHT = 1000 * 60 * 60 * 24;
@@ -31,7 +31,7 @@ export async function seedPayments(prisma: PrismaClient) {
   }
 
   const reservations = await prisma.reservation.findMany({
-    where: { status: ReservationStatus.COMPLETED },
+    where: { status: { name: 'COMPLETED' } },
     include: { charges: true },
   });
 

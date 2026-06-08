@@ -94,7 +94,7 @@ export class RoomsService {
     }
 
     const overlap: Prisma.ReservationWhereInput = {
-      status: { in: ['PENDING', 'ACTIVE'] },
+      status: { name: { in: ['PENDING', 'ACTIVE'] } },
       checkIn: { lt: checkOut },
       checkOut: { gt: checkIn },
     };

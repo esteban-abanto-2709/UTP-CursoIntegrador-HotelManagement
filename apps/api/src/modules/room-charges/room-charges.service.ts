@@ -17,13 +17,14 @@ export class RoomChargesService {
   ) {
     const reservation = await this.prisma.reservation.findUnique({
       where: { id: reservationId },
+      include: { status: true },
     });
 
     if (!reservation) {
       throw new NotFoundException(`Reserva ${reservationId} no encontrada`);
     }
 
-    if (reservation.status !== 'ACTIVE') {
+    if (reservation.status?.name !== 'ACTIVE') {
       throw new BadRequestException(
         'Solo se pueden agregar cargos a reservas activas',
       );

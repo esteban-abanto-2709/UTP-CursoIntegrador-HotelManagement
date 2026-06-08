@@ -1,12 +1,13 @@
-import { IsOptional, IsEnum, IsNumberString, IsDateString } from 'class-validator';
-import { ReservationStatus } from '@prisma/client';
+import { IsOptional, IsIn, IsNumberString, IsDateString } from 'class-validator';
+import { VALID_RESERVATION_STATUSES } from './update-reservation-status.dto';
+import type { ReservationStatusName } from './update-reservation-status.dto';
 
 export class FilterReservationsDto {
   @IsOptional()
-  @IsEnum(ReservationStatus, {
+  @IsIn(VALID_RESERVATION_STATUSES, {
     message: 'El estado debe ser PENDING, ACTIVE, COMPLETED o CANCELLED',
   })
-  status?: ReservationStatus;
+  status?: ReservationStatusName;
 
   @IsOptional()
   @IsNumberString({}, { message: 'roomId debe ser numérico' })
