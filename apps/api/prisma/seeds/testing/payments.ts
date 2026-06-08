@@ -41,8 +41,8 @@ export async function seedPayments(prisma: PrismaClient) {
       1,
       Math.round((reservation.checkOut.getTime() - reservation.checkIn.getTime()) / MS_PER_NIGHT),
     );
-    const pricePerNight = Number(reservation.pricePerNight ?? 0);
-    const roomTotal = pricePerNight * nights;
+    const rate = Number(reservation.rateSnapshot ?? 0);
+    const roomTotal = rate * nights;
     const chargesTotal = reservation.charges.reduce((sum, c) => sum + Number(c.amount), 0);
     const subtotal = roomTotal + chargesTotal;
     const discountPct = discount ? Number(discount.percentage) : 0;

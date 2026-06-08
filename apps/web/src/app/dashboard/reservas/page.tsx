@@ -48,7 +48,9 @@ interface Reservation {
   roomId: number;
   room: { number: string; type: string };
   // Facturación (Prisma serializa Decimal como string; null hasta el check-out)
-  pricePerNight: string | null;
+  rateSnapshot: string | null;
+  totalNights: number | null;
+  roomTotal: string | null;
   payment: { grandTotal: string; paymentMethod: PaymentMethod } | null;
   creator: {
     id: number;
@@ -571,8 +573,8 @@ export default function ReservasPage() {
                 checkoutTarget.checkIn,
                 checkoutTarget.checkOut,
               );
-              const pricePerNight = Number(checkoutTarget.pricePerNight ?? 0);
-              const roomTotal = nights * pricePerNight;
+              const rateSnapshot = Number(checkoutTarget.rateSnapshot ?? 0);
+              const roomTotal = nights * rateSnapshot;
               const chargesTotal = checkoutCharges.reduce(
                 (acc, c) => acc + Number(c.amount),
                 0,
@@ -615,7 +617,7 @@ export default function ReservasPage() {
                         <div className="border-t border-border/50 mt-1 pt-2 flex justify-between">
                           <span className="text-muted-foreground">
                             Habitación ({nights} noche{nights > 1 ? "s" : ""} ×
-                            S/. {pricePerNight.toFixed(2)})
+                            S/. {rateSnapshot.toFixed(2)})
                           </span>
                           <span className="font-semibold text-foreground">
                             S/. {roomTotal.toFixed(2)}

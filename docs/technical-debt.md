@@ -68,3 +68,11 @@ Registro de atajos, decisiones pendientes y riesgos a futuro de este proyecto.
 - **Problema:** `ProtectedRoute` solo valida que exista token, no el rol. La restricción por rol depende únicamente de ocultar el enlace en el sidebar (`allowedRoles`) y del guard del backend (`@Roles('OWNER')` en `/audit-logs`, etc.). Un usuario no-OWNER que navegue directo a `/dashboard/auditoria` ve el cascarón de la página; la data falla con 403 (tabla vacía + toast de error), pero la UI no lo redirige.
 - **Impacto futuro:** No es un hueco de seguridad real (el backend protege los datos), pero es una fuga de UX: páginas visibles para roles que no deberían acceder. Mejora: extender `ProtectedRoute` con prop `allowedRoles` y envolver las páginas sensibles (auditoría, rooms, staff) para redirigir a `/dashboard` cuando el rol no coincide.
 - **Fecha:** 2026-06-07 · **Estado:** Abierto
+
+## [TD-009] `Reservation.totalNights`/`roomTotal` denormalizados duplican el cálculo de `Payment`
+
+- **Ubicación:** `apps/api/prisma/schema.prisma` (modelo `Reservation`: `totalNights`, `roomTotal`), `apps/api/src/modules/reservations/reservations.service.ts` (`create`, `update`, `checkOut`)
+- **Riesgo:** 3/10
+- **Problema:** T033 agregó `totalNights` y `roomTotal` a `Reservation` por fidelidad con el modelo del profesor, pero ese mismo total ya lo calcula y persiste `Payment` (`Payment.roomTotal`) en el check-out. Hay dos fuentes para el mismo dato: el `roomTotal` de la reserva (tarifa snapshot × noches, poblado al crear/editar) y el del pago (recalculado en `checkOut`).
+- **Impacto futuro:** Si la lógica de cobro cambia (p. ej. tarifas variables por noche, redondeos, impuestos), ambos cálculos pueden divergir y el `roomTotal` de la reserva quedar desincronizado del que realmente se cobró. Es deuda consciente: se eligió denormalizar para igualar el modelo del profesor. La fuente de verdad del cobro sigue siendo `Payment`.
+- **Fecha:** 2026-06-08 · **Estado:** Abierto

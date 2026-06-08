@@ -42,6 +42,15 @@ export class ReservationsService {
     },
   } satisfies Prisma.ReservationInclude;
 
+  // Noches reservadas entre dos fechas (mínimo 1)
+  private calcNights(checkIn: Date, checkOut: Date) {
+    const MS_PER_DAY = 1000 * 60 * 60 * 24;
+    return Math.max(
+      1,
+      Math.ceil((checkOut.getTime() - checkIn.getTime()) / MS_PER_DAY),
+    );
+  }
+
   private flattenReservation<
     R extends {
       room: { type: { name: string } | null };
@@ -89,6 +98,8 @@ export class ReservationsService {
       phone: dto.phone,
     });
 
+    const nights = this.calcNights(checkIn, checkOut);
+
     const created = await this.prisma.reservation.create({
       data: {
         guest: { connect: { id: guest.id } },
@@ -97,7 +108,9 @@ export class ReservationsService {
         room: { connect: { id: dto.roomId } },
         status: { connect: { name: 'PENDING' } },
         // Snapshot del precio: si luego cambia la tarifa del cuarto, esta reserva no se altera
-        pricePerNight: room.price,
+        rateSnapshot: room.price,
+        totalNights: nights,
+        roomTotal: new Prisma.Decimal(room.price).mul(nights),
         creator: { connect: { id: employeeId } },
       },
       include: this.reservationInclude,
@@ -224,6 +237,7 @@ export class ReservationsService {
       data.guest = { connect: { id: guest.id } };
     }
 
+    let effectiveRate: Prisma.Decimal | null = reservation.rateSnapshot;
     if (roomChanged) {
       const newRoom = await this.prisma.room.findUnique({
         where: { id: dto.roomId },
@@ -232,10 +246,17 @@ export class ReservationsService {
         throw new NotFoundException(`Habitación ${dto.roomId} no encontrada`);
       }
       data.room = { connect: { id: dto.roomId } };
-      data.pricePerNight = newRoom.price;
+      data.rateSnapshot = newRoom.price;
+      effectiveRate = newRoom.price;
     }
 
     if (roomChanged || datesChanged) {
+      const nights = this.calcNights(checkIn, checkOut);
+      data.totalNights = nights;
+      data.roomTotal =
+        effectiveRate != null
+          ? new Prisma.Decimal(effectiveRate).mul(nights)
+          : null;
       await this.assertNoOverlap(roomId, checkIn, checkOut, id);
     }
 
@@ -409,23 +430,16 @@ export class ReservationsService {
     }
 
     // Cálculo del cobro: noches reservadas × tarifa (mínimo 1 noche)
-    const MS_PER_DAY = 1000 * 60 * 60 * 24;
-    const nights = Math.max(
-      1,
-      Math.ceil(
-        (reservation.checkOut.getTime() - reservation.checkIn.getTime()) /
-          MS_PER_DAY,
-      ),
-    );
-    // pricePerNight se guarda al crear; fallback al precio actual del cuarto por si es null
-    const pricePerNight = reservation.pricePerNight ?? reservation.room.price;
+    const nights = this.calcNights(reservation.checkIn, reservation.checkOut);
+    // rateSnapshot se guarda al crear; fallback al precio actual del cuarto por si es null
+    const rate = reservation.rateSnapshot ?? reservation.room.price;
 
     const chargesAgg = await this.prisma.roomCharge.aggregate({
       where: { reservationId: id },
       _sum: { amount: true },
     });
 
-    const roomTotal = new Prisma.Decimal(pricePerNight).mul(nights);
+    const roomTotal = new Prisma.Decimal(rate).mul(nights);
     const chargesTotal = chargesAgg._sum.amount ?? new Prisma.Decimal(0);
     const subtotal = roomTotal.add(chargesTotal);
     const discountAmount = discount

@@ -10,7 +10,7 @@ const reservations = [
     actualCheckIn: new Date('2026-06-05T15:20:00Z'),
     actualCheckOut: null as Date | null,
     status: 'ACTIVE',
-    pricePerNight: 140,
+    rateSnapshot: 140,
   },
   {
     roomNumber: '301',
@@ -20,7 +20,7 @@ const reservations = [
     actualCheckIn: null as Date | null,
     actualCheckOut: null as Date | null,
     status: 'PENDING',
-    pricePerNight: 320,
+    rateSnapshot: 320,
   },
   {
     roomNumber: '101',
@@ -30,7 +30,7 @@ const reservations = [
     actualCheckIn: new Date('2026-05-20T15:10:00Z'),
     actualCheckOut: new Date('2026-05-23T10:30:00Z'),
     status: 'COMPLETED',
-    pricePerNight: 80,
+    rateSnapshot: 80,
   },
   {
     roomNumber: '201',
@@ -40,7 +40,7 @@ const reservations = [
     actualCheckIn: new Date('2026-06-06T16:00:00Z'),
     actualCheckOut: null as Date | null,
     status: 'ACTIVE',
-    pricePerNight: 140,
+    rateSnapshot: 140,
   },
 ];
 
@@ -61,6 +61,10 @@ export async function seedReservations(prisma: PrismaClient) {
       console.warn(`Reserva omitida: falta room ${r.roomNumber} o guest ${r.guestNationalId}.`);
       continue;
     }
+    const nights = Math.max(
+      1,
+      Math.ceil((r.checkOut.getTime() - r.checkIn.getTime()) / 86400000),
+    );
     await prisma.reservation.create({
       data: {
         checkIn: r.checkIn,
@@ -68,7 +72,9 @@ export async function seedReservations(prisma: PrismaClient) {
         actualCheckIn: r.actualCheckIn,
         actualCheckOut: r.actualCheckOut,
         status: { connect: { name: r.status } },
-        pricePerNight: r.pricePerNight,
+        rateSnapshot: r.rateSnapshot,
+        totalNights: nights,
+        roomTotal: r.rateSnapshot * nights,
         room: { connect: { id: room.id } },
         guest: { connect: { id: guest.id } },
         creator: manager ? { connect: { id: manager.id } } : undefined,
