@@ -17,6 +17,7 @@ export const routes = {
 
   // Rutas de la API (NestJS)
   api: {
+    health: () => "/health",
     auth: {
       login: () => "/auth/login",
       profile: () => "/auth/profile",
