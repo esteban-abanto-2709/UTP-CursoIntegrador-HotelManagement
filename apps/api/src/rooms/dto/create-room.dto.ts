@@ -1,12 +1,15 @@
 import {
-  IsEnum,
+  IsIn,
   IsNotEmpty,
   IsNumber,
   IsString,
   Matches,
   Min,
 } from 'class-validator';
-import { RoomType } from '@prisma/client';
+
+export const VALID_ROOM_TYPES = ['SINGLE', 'DOUBLE', 'SUITE'] as const;
+
+export type RoomTypeName = (typeof VALID_ROOM_TYPES)[number];
 
 export class CreateRoomDto {
   @IsString({ message: 'El número de habitación debe ser una cadena de texto' })
@@ -16,11 +19,11 @@ export class CreateRoomDto {
   })
   number: string;
 
-  @IsEnum(RoomType, {
+  @IsIn(VALID_ROOM_TYPES, {
     message: 'El tipo de habitación debe ser SINGLE, DOUBLE o SUITE',
   })
   @IsNotEmpty({ message: 'El tipo de habitación es obligatorio' })
-  type: RoomType;
+  type: RoomTypeName;
 
   @IsNumber(
     { maxDecimalPlaces: 2 },

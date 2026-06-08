@@ -52,12 +52,6 @@ model Shift {
   employees Employee[]
 }
 
-enum RoomType {
-  SINGLE
-  DOUBLE
-  SUITE
-}
-
 enum RoomStatus {
   AVAILABLE
   OCCUPIED
@@ -68,12 +62,21 @@ enum RoomStatus {
 model Room {
   id           Int           @id @default(autoincrement())
   number       String        @unique
-  type         RoomType
+  typeId       Int?
+  type         RoomType?     @relation(fields: [typeId], references: [id])
   status       RoomStatus    @default(AVAILABLE)
   price        Decimal       @db.Decimal(10, 2)
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
   reservations Reservation[]
+
+  @@index([typeId])
+}
+
+model RoomType {
+  id    Int    @id @default(autoincrement())
+  name  String @unique
+  rooms Room[]
 }
 
 model Guest {

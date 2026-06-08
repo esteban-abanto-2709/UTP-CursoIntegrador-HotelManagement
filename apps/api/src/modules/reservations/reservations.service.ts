@@ -23,7 +23,7 @@ export class ReservationsService {
   ) {}
 
   private readonly reservationInclude = {
-    room: { select: { number: true, type: true } },
+    room: { select: { number: true, type: { select: { name: true } } } },
     guest: {
       select: {
         id: true,
@@ -38,13 +38,15 @@ export class ReservationsService {
     },
   } satisfies Prisma.ReservationInclude;
 
-  private flattenPayment<
+  private flattenReservation<
     R extends {
+      room: { type: { name: string } | null };
       payment: { paymentMethod: { name: string } | null } | null;
     },
   >(reservation: R) {
     return {
       ...reservation,
+      room: { ...reservation.room, type: reservation.room.type?.name ?? null },
       payment: reservation.payment
         ? {
             ...reservation.payment,
@@ -102,7 +104,7 @@ export class ReservationsService {
       created,
     );
 
-    return this.flattenPayment(created);
+    return this.flattenReservation(created);
   }
 
   private async assertNoOverlap(
@@ -151,7 +153,7 @@ export class ReservationsService {
       orderBy: { checkIn: 'asc' },
     });
 
-    return reservations.map((r) => this.flattenPayment(r));
+    return reservations.map((r) => this.flattenReservation(r));
   }
 
   async findOne(id: number) {
@@ -164,7 +166,7 @@ export class ReservationsService {
       throw new NotFoundException(`Reserva ${id} no encontrada`);
     }
 
-    return this.flattenPayment(reservation);
+    return this.flattenReservation(reservation);
   }
 
   async update(id: number, dto: UpdateReservationDto, employeeId: number) {
@@ -245,7 +247,7 @@ export class ReservationsService {
 
     return {
       message: 'Reserva actualizada',
-      reservation: this.flattenPayment(updated),
+      reservation: this.flattenReservation(updated),
     };
   }
 
@@ -280,7 +282,7 @@ export class ReservationsService {
 
     return {
       message: 'Reserva cancelada',
-      reservation: this.flattenPayment(updated),
+      reservation: this.flattenReservation(updated),
     };
   }
 
@@ -301,7 +303,7 @@ export class ReservationsService {
 
     return {
       message: 'Estado de reserva actualizado',
-      reservation: this.flattenPayment(updated),
+      reservation: this.flattenReservation(updated),
     };
   }
 
@@ -344,7 +346,7 @@ export class ReservationsService {
 
     return {
       message: 'Check-in realizado',
-      reservation: this.flattenPayment(updated),
+      reservation: this.flattenReservation(updated),
     };
   }
 
@@ -451,7 +453,7 @@ export class ReservationsService {
 
     return {
       message: 'Check-out realizado',
-      reservation: this.flattenPayment(updated),
+      reservation: this.flattenReservation(updated),
       payment,
     };
   }

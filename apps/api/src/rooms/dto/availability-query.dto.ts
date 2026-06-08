@@ -1,11 +1,12 @@
 import {
   IsDateString,
-  IsEnum,
+  IsIn,
   IsNotEmpty,
   IsOptional,
   IsNumberString,
 } from 'class-validator';
-import { RoomType } from '@prisma/client';
+import { VALID_ROOM_TYPES } from './create-room.dto';
+import type { RoomTypeName } from './create-room.dto';
 
 export class AvailabilityQueryDto {
   @IsDateString(
@@ -20,11 +21,11 @@ export class AvailabilityQueryDto {
   )
   checkOut: string;
 
-  @IsEnum(RoomType, {
+  @IsIn(VALID_ROOM_TYPES, {
     message: 'El tipo de habitación debe ser SINGLE, DOUBLE o SUITE',
   })
   @IsNotEmpty({ message: 'El tipo de habitación es obligatorio' })
-  type: RoomType;
+  type: RoomTypeName;
 
   @IsOptional()
   @IsNumberString({}, { message: 'excludeReservationId debe ser numérico' })

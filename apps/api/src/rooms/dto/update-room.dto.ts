@@ -1,12 +1,13 @@
 import {
-  IsEnum,
+  IsIn,
   IsNumber,
   IsOptional,
   IsString,
   Matches,
   Min,
 } from 'class-validator';
-import { RoomType } from '@prisma/client';
+import { VALID_ROOM_TYPES } from './create-room.dto';
+import type { RoomTypeName } from './create-room.dto';
 
 export class UpdateRoomDto {
   @IsOptional()
@@ -17,10 +18,10 @@ export class UpdateRoomDto {
   number?: string;
 
   @IsOptional()
-  @IsEnum(RoomType, {
+  @IsIn(VALID_ROOM_TYPES, {
     message: 'El tipo de habitación debe ser SINGLE, DOUBLE o SUITE',
   })
-  type?: RoomType;
+  type?: RoomTypeName;
 
   @IsOptional()
   @IsNumber(

@@ -6,6 +6,7 @@ import { seedAuditActions } from './seeds/audit-actions';
 import { seedJobPositions } from './seeds/job-positions';
 import { seedShifts } from './seeds/shifts';
 import { seedPaymentMethods } from './seeds/payment-methods';
+import { seedRoomTypes } from './seeds/room-types';
 
 async function main() {
   const prisma = createSeedClient();
@@ -17,6 +18,7 @@ async function main() {
     await seedJobPositions(prisma);
     await seedShifts(prisma);
     await seedPaymentMethods(prisma);
+    await seedRoomTypes(prisma);
   } finally {
     await prisma.$disconnect();
   }
