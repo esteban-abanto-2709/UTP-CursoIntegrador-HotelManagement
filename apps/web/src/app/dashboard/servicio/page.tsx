@@ -50,7 +50,7 @@ export default function ServicioHabitacionPage() {
     try {
       const [roomsRes, reservationsRes] = await Promise.all([
         api.get(routes.api.rooms.list()),
-        api.get(routes.api.reservations.list("ACTIVE")),
+        api.get(routes.api.reservations.list({ status: "ACTIVE" })),
       ]);
       setRooms(roomsRes.data);
       setActiveReservations(reservationsRes.data);

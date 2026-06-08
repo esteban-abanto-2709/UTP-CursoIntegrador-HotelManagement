@@ -6,7 +6,7 @@ import { routes } from "@/lib/routes";
 import { formatDate } from "@/lib/date";
 import { calcNights } from "@/lib/pricing";
 import { toast } from "sonner";
-import { Search, Plus, Loader2, LogIn, LogOut, Pencil, Ban } from "lucide-react";
+import { Search, Plus, Loader2, LogIn, LogOut, Pencil, Ban, X } from "lucide-react";
 
 import {
   Table,
@@ -50,6 +50,12 @@ interface Reservation {
   // Facturación (Prisma serializa Decimal como string; null hasta el check-out)
   pricePerNight: string | null;
   payment: { grandTotal: string; paymentMethod: PaymentMethod } | null;
+  creator: {
+    id: number;
+    username: string;
+    firstName: string | null;
+    lastName: string | null;
+  } | null;
 }
 
 interface Discount {
@@ -61,6 +67,12 @@ interface Discount {
 interface RoomCharge {
   id: number;
   amount: string;
+}
+
+interface RoomOption {
+  id: number;
+  number: string;
+  type: string;
 }
 
 // Noches reservadas, mínimo 1 — debe coincidir con el cálculo del backend
@@ -87,11 +99,22 @@ function getRoomTypeLabel(type: string) {
   return labels[type] ?? type;
 }
 
+function getCreatorName(creator: Reservation["creator"]) {
+  if (!creator) return "—";
+  const name = [creator.firstName, creator.lastName].filter(Boolean).join(" ");
+  return name || creator.username;
+}
+
 export default function ReservasPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<"ALL" | ReservationStatus>(
     "ALL",
   );
+  // Filtros server-side combinables con el estado
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
+  const [roomFilter, setRoomFilter] = useState("");
+  const [rooms, setRooms] = useState<RoomOption[]>([]);
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -113,23 +136,46 @@ export default function ReservasPage() {
   const [isLoadingCheckout, setIsLoadingCheckout] = useState(false);
 
   const fetchReservations = useCallback(async () => {
+    setIsLoading(true);
     try {
-      const res = await api.get(routes.api.reservations.list());
+      const res = await api.get(
+        routes.api.reservations.list({
+          status: statusFilter !== "ALL" ? statusFilter : undefined,
+          from: fromDate || undefined,
+          to: toDate || undefined,
+          roomId: roomFilter ? Number(roomFilter) : undefined,
+        }),
+      );
       setReservations(res.data);
     } catch {
       toast.error("Error al cargar las reservas");
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [statusFilter, fromDate, toDate, roomFilter]);
 
   useEffect(() => {
     fetchReservations();
   }, [fetchReservations]);
 
+  useEffect(() => {
+    api
+      .get(routes.api.rooms.list())
+      .then((res) => setRooms(res.data))
+      .catch(() => toast.error("Error al cargar las habitaciones"));
+  }, []);
+
   const handleNew = () => {
     setEditingReservation(null);
     setIsFormOpen(true);
+  };
+
+  const clearFilters = () => {
+    setSearchTerm("");
+    setStatusFilter("ALL");
+    setFromDate("");
+    setToDate("");
+    setRoomFilter("");
   };
 
   const handleEdit = (res: Reservation) => {
@@ -220,13 +266,19 @@ export default function ReservasPage() {
     }
   };
 
-  const filteredReservations = reservations.filter((r) => {
-    const matchesSearch =
+  // El estado/fecha/habitación se filtran server-side; aquí solo la búsqueda por texto
+  const filteredReservations = reservations.filter(
+    (r) =>
       r.guest.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      r.guest.nationalId.includes(searchTerm);
-    const matchesStatus = statusFilter === "ALL" || r.status === statusFilter;
-    return matchesSearch && matchesStatus;
-  });
+      r.guest.nationalId.includes(searchTerm),
+  );
+
+  const hasActiveFilters =
+    searchTerm !== "" ||
+    statusFilter !== "ALL" ||
+    fromDate !== "" ||
+    toDate !== "" ||
+    roomFilter !== "";
 
   const getStatusBadge = (status: ReservationStatus) => {
     switch (status) {
@@ -286,10 +338,10 @@ export default function ReservasPage() {
         reservation={editingReservation}
       />
 
-      {/* Buscador + Filtro */}
-      <div className="bg-card p-4 rounded-2xl border border-border/50 shadow-sm flex flex-col md:flex-row gap-4 justify-between">
-        <div className="relative w-full max-w-md">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+      {/* Buscador + Filtros */}
+      <div className="bg-card p-4 rounded-2xl border border-border/50 shadow-sm flex flex-col gap-4">
+        <div className="relative w-full">
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
           <input
             type="text"
             placeholder="Buscar reserva por Documento o Nombre..."
@@ -298,19 +350,60 @@ export default function ReservasPage() {
             className="w-full h-11 pl-10 pr-4 rounded-xl border border-border/50 bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 focus:bg-muted transition-all font-medium text-foreground"
           />
         </div>
-        <select
-          value={statusFilter}
-          onChange={(e) =>
-            setStatusFilter(e.target.value as "ALL" | ReservationStatus)
-          }
-          className="h-11 px-4 rounded-xl border border-border/50 bg-background text-foreground font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all cursor-pointer"
-        >
-          {STATUS_FILTERS.map((f) => (
-            <option key={f.value} value={f.value}>
-              {f.label}
-            </option>
-          ))}
-        </select>
+        <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-3">
+          <select
+            value={statusFilter}
+            onChange={(e) =>
+              setStatusFilter(e.target.value as "ALL" | ReservationStatus)
+            }
+            className="h-11 px-4 rounded-xl border border-border/50 bg-background text-foreground font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all cursor-pointer"
+          >
+            {STATUS_FILTERS.map((f) => (
+              <option key={f.value} value={f.value}>
+                {f.label}
+              </option>
+            ))}
+          </select>
+          <select
+            value={roomFilter}
+            onChange={(e) => setRoomFilter(e.target.value)}
+            className="h-11 px-4 rounded-xl border border-border/50 bg-background text-foreground font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all cursor-pointer"
+          >
+            <option value="">Todas las habitaciones</option>
+            {rooms.map((room) => (
+              <option key={room.id} value={room.id}>
+                Cto. {room.number} — {getRoomTypeLabel(room.type)}
+              </option>
+            ))}
+          </select>
+          <label className="flex items-center gap-2 h-11 px-3 rounded-xl border border-border/50 bg-background text-muted-foreground font-medium">
+            <span className="text-sm whitespace-nowrap">Desde</span>
+            <input
+              type="date"
+              value={fromDate}
+              onChange={(e) => setFromDate(e.target.value)}
+              className="bg-transparent text-foreground focus:outline-none cursor-pointer"
+            />
+          </label>
+          <label className="flex items-center gap-2 h-11 px-3 rounded-xl border border-border/50 bg-background text-muted-foreground font-medium">
+            <span className="text-sm whitespace-nowrap">Hasta</span>
+            <input
+              type="date"
+              value={toDate}
+              onChange={(e) => setToDate(e.target.value)}
+              className="bg-transparent text-foreground focus:outline-none cursor-pointer"
+            />
+          </label>
+          {hasActiveFilters && (
+            <button
+              onClick={clearFilters}
+              className="flex items-center justify-center gap-1.5 h-11 px-4 rounded-xl border border-border/50 bg-background text-muted-foreground font-medium hover:bg-muted hover:text-foreground transition-all active:scale-95 sm:ml-auto"
+            >
+              <X className="w-4 h-4" />
+              Limpiar filtros
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Tabla */}
@@ -334,6 +427,9 @@ export default function ReservasPage() {
                 Fechas (In → Out)
               </TableHead>
               <TableHead className="font-semibold text-muted-foreground">
+                Creada por
+              </TableHead>
+              <TableHead className="font-semibold text-muted-foreground">
                 Estado
               </TableHead>
               <TableHead className="font-semibold text-muted-foreground text-right pr-6">
@@ -344,7 +440,7 @@ export default function ReservasPage() {
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={7} className="h-32 text-center text-muted-foreground">
+                <TableCell colSpan={8} className="h-32 text-center text-muted-foreground">
                   <div className="flex flex-col items-center justify-center gap-2">
                     <Loader2 className="h-6 w-6 animate-spin text-primary" />
                     <span>Cargando reservas...</span>
@@ -353,8 +449,8 @@ export default function ReservasPage() {
               </TableRow>
             ) : filteredReservations.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="h-32 text-center text-muted-foreground">
-                  {searchTerm || statusFilter !== "ALL" ? (
+                <TableCell colSpan={8} className="h-32 text-center text-muted-foreground">
+                  {hasActiveFilters ? (
                     "No se encontraron reservas con esos criterios."
                   ) : (
                     "No hay reservas registradas aún."
@@ -385,6 +481,9 @@ export default function ReservasPage() {
                     {formatDate(res.checkIn)}{" "}
                     <span className="opacity-50">→</span>{" "}
                     {formatDate(res.checkOut)}
+                  </TableCell>
+                  <TableCell className="text-muted-foreground">
+                    {getCreatorName(res.creator)}
                   </TableCell>
                   <TableCell>{getStatusBadge(res.status)}</TableCell>
                   <TableCell className="text-right pr-6">

@@ -50,8 +50,21 @@ export const routes = {
       update: (id: number) => `/rooms/${id}`,
     },
     reservations: {
-      list: (status?: string) =>
-        status ? `/reservations?status=${status}` : "/reservations",
+      list: (filters?: {
+        status?: string;
+        from?: string;
+        to?: string;
+        roomId?: number;
+      }) => {
+        if (!filters) return "/reservations";
+        const q = new URLSearchParams();
+        if (filters.status) q.set("status", filters.status);
+        if (filters.from) q.set("from", filters.from);
+        if (filters.to) q.set("to", filters.to);
+        if (filters.roomId != null) q.set("roomId", String(filters.roomId));
+        const qs = q.toString();
+        return qs ? `/reservations?${qs}` : "/reservations";
+      },
       create: () => "/reservations",
       getOne: (id: number) => `/reservations/${id}`,
       update: (id: number) => `/reservations/${id}`,

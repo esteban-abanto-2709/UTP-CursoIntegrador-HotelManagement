@@ -15,6 +15,7 @@
 - **M2 Room Charges** (T008–T010): `ExpenseCategory` + `RoomCharge`, módulo `room-charges`, panel de cargos en `/dashboard/servicio`.
 - **M3 Payment + Descuentos** (T011–T014): `Discount` + `Payment` desacoplado con desglose (`Prisma.Decimal`), `checkOut` refactorizado, diálogo de checkout con desglose. Eliminados `totalAmount`/`paymentMethod`/`paidAt` de `Reservation`. Sistema de seeds reejecutable introducido aquí.
 - **M4 Audit Log** (T015–T019): `AuditAction` + `AuditLog`, `AuditService` `@Global()`, instrumentación en reservas/empleados/habitaciones, `GET /audit-logs` (`@Roles('OWNER')`), página `/dashboard/auditoria`.
+- **M5 Pulido y filtros** (T020–T023): `createdBy` (FK → Employee, nullable, sin backfill, `ON DELETE SET NULL`) en `Reservation` vía `add_reservation_created_by`; `POST /reservations` guarda el empleado del JWT (`@CurrentUser()`); `reservationInclude`/`flattenReservation` exponen `creator` y la página `/dashboard/reservas` muestra la columna «Creada por»; filtros server-side `from`/`to`/`roomId` + estado combinados (`routes.ts` `reservations.list({...})` + selector de habitación desde `GET /rooms`, búsqueda por texto sigue client-side). Seed de prueba asigna `createdBy` al manager. **T024 (constraint anti doble-reserva, TD-001) sigue pendiente.**
 - **M6/T025 JobPosition**: `position: String?` → tabla `JobPosition` en una sola migración; contrato `cargo` por nombre intacto.
 - **M6/T026 Shift**: `enum Shift` → tabla `Shift` (`add_shift_table`) con rename del enum viejo a `Shift_old` para liberar el nombre, backfill y `DROP TYPE`; servicio mapea por nombre (`TURNO_TO_SHIFT_NAME`), contrato `turno` (MAÑANA/TARDE/NOCHE) intacto. Seed reejecutable `seeds/shifts.ts`.
 - **M6/T027 PaymentMethod**: `enum PaymentMethod` → tabla `PaymentMethod` (`add_payment_method_table`) con rename del enum viejo a `PaymentMethod_old`, backfill y `DROP TYPE`; `checkOut` resuelve nombre→id antes de la transacción y usa `paymentMethodId` escalar; `flattenPayment` aplana `payment.paymentMethod` a string en todos los retornos, contrato del front intacto (CASH/CARD/TRANSFER). Seed reejecutable `seeds/payment-methods.ts`.
@@ -24,10 +25,10 @@
 
 ## Milestone 5 — Pulido y filtros *(opcional)*
 
-- **[T020]** `schema.prisma`: agregar `createdBy` (FK → Employee) a `Reservation`. Migración `add_reservation_created_by`.
-- **[T021]** `POST /reservations`: leer `employeeId` del JWT (`@CurrentUser()`) y guardarlo en `createdBy`.
-- **[T022]** Filtros fecha/cuarto en `/dashboard/reservas` (input desde/hasta + selector de habitación desde `GET /rooms`), combinados con el filtro de estado. Query params `from`/`to`/`roomId` en `routes.ts`.
-- **[T023]** Columna opcional con el empleado creador de la reserva (`include` de `createdBy`).
+- ✅ **[T020]** `schema.prisma`: agregar `createdBy` (FK → Employee) a `Reservation`. Migración `add_reservation_created_by`.
+- ✅ **[T021]** `POST /reservations`: leer `employeeId` del JWT (`@CurrentUser()`) y guardarlo en `createdBy`.
+- ✅ **[T022]** Filtros fecha/cuarto en `/dashboard/reservas` (input desde/hasta + selector de habitación desde `GET /rooms`), combinados con el filtro de estado. Query params `from`/`to`/`roomId` en `routes.ts`.
+- ✅ **[T023]** Columna opcional con el empleado creador de la reserva (`include` de `createdBy`).
 - **[T024]** *(si hay tiempo, TD-001)* Constraint anti doble-reserva en PostgreSQL: `btree_gist` + `EXCLUDE USING gist` sobre `(roomId, tsrange("checkIn","checkOut",'[)'))`.
 
 ---
