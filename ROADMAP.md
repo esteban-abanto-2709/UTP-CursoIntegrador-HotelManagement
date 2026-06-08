@@ -1,4 +1,5 @@
 # Roadmap — Lumina Resort PMS
+
 **Proyecto:** Lumina Resort PMS — Curso Integrador UTP  
 **Stack:** NestJS + Prisma + PostgreSQL · Next.js 16 + TailwindCSS  
 **Infraestructura:** Render (API) · Vercel (Web) · Supabase (BD)
@@ -71,7 +72,7 @@ campos permiten actualizar datos del huésped antes de confirmar la reserva.
 
 **Workflow:** Desde `/dashboard/servicio`, el empleado ve las reservas con estado
 ACTIVE. Selecciona una y puede agregar cargos adicionales (categoría + descripción
-+ monto). Los cargos quedan asociados a la reserva y se acumulan hasta el check-out.
+- monto). Los cargos quedan asociados a la reserva y se acumulan hasta el check-out.
 Cualquier empleado con sesión activa puede registrar cargos.
 
 ### Prisma / BD
@@ -165,6 +166,72 @@ cambiar estado de habitación.
 
 ---
 
+## Milestone 6 — Normalización de enums a tablas relacionales *(opcional, confirmado con el profesor)*
+
+> El modelo del profesor representa como **tablas relacionales con FK** varios atributos
+> que hoy resolvemos con `enum` de Prisma (o un `String?` libre). La migración quedó
+> **aplazada y confirmada como opcional con el profesor**: el sistema es completamente
+> funcional con los enums actuales. Este milestone existe para documentar el camino
+> exacto de cada conversión cuando el tiempo lo permita.
+>
+> **Patrón común a todas las tareas** (idéntico al usado en el Guest, T001–T003):
+> crear la tabla catálogo + seed → agregar la FK nullable → backfill desde el enum/string
+> actual → poner la FK `NOT NULL` y eliminar el enum/columna vieja → actualizar API
+> (DTOs, services, `include`) → actualizar frontend (selectores poblados desde el catálogo,
+> lectura del objeto anidado). Las siete son **independientes entre sí**; se pueden hacer
+> en cualquier orden o cortar en cualquier punto. Van de menos a más compleja por blast radius.
+
+### [T025] JOB_POSITION — `position: String?` → tabla `JobPosition`
+
+- **[T025]** *(La más simple: hoy es texto libre.)* **Enfoque de una sola migración** (a diferencia del patrón de dos migraciones del resto del milestone): se crea la tabla, se backfillea y se elimina la columna vieja todo de una. Modificar `schema.prisma`: agregar modelo `JobPosition` (`id`, `name @unique`), agregar campo `positionId` (FK → JobPosition, **nullable** — el owner sembrado no tiene puesto, un `NOT NULL` rompería el backfill) en `Employee` y **eliminar** el campo `position: String?`. → **Tú corres:** `pnpm prisma migrate dev --create-only --name add_job_position_table` → Claude Code ajusta el `migration.sql` para que, en esa única migración: cree la tabla `JobPosition`, agregue `positionId`, siembre los puestos (`Manager`, `Recepcionista`, `Botones`, `Limpieza`), backfillee `positionId` desde el texto actual de `position` y **recién entonces** haga `DROP COLUMN position` → **Tú aplicas.** Como **no se contempla CRUD de puestos en API/UI**, el catálogo se mantiene vía seed (`prisma/seeds/job-positions.ts`, registrado en `seed.ts`). **Normalización interna, contrato intacto:** el endpoint sigue recibiendo y devolviendo `cargo` por **nombre** — solo cambia el almacenamiento en `employees.service` (resuelve nombre→`positionId` al escribir, lee `jobPosition.name` al leer). No se agrega endpoint nuevo ni se toca el formulario del front; `CARGO_TO_ROLE` y todo el RBAC quedan igual.
+
+### [T026] SHIFT — `enum Shift` → tabla `Shift`
+
+- **[T026]** *(Enum solo-label en `Employee`, sin lógica asociada.)* Modificar `schema.prisma`: agregar modelo catálogo de turnos (`id`, `name @unique`; valores MORNING/AFTERNOON/NIGHT) y campo `shiftId` (FK, nullable) en `Employee`. → **Tú corres:** `npx prisma migrate dev --create-only --name add_shift_table` → Claude Code revisa y ajusta el `migration.sql` (seed de turnos + backfill de `shiftId` desde el enum `shift`) → **Tú aplicas.** Segunda migración `drop_shift_enum`: eliminar el campo `shift Shift?` y el `enum Shift`. Actualizar DTO/servicio de empleados (`shiftId`) y el selector del formulario (`GET /shifts`).
+
+### [T027] PAYMENT_METHOD — `enum PaymentMethod` → tabla `PaymentMethod`
+
+- **[T027]** *(Enum usado solo en el flujo de checkout/`Payment`, pocos consumidores.)* Modificar `schema.prisma`: agregar modelo catálogo de métodos de pago (`id`, `name @unique`; valores CASH/CARD/TRANSFER) y campo `paymentMethodId` (FK, nullable) en `Payment`. → **Tú corres:** `npx prisma migrate dev --create-only --name add_payment_method_table` → Claude Code revisa y ajusta el `migration.sql` (seed + backfill de `paymentMethodId` desde `paymentMethod`) → **Tú aplicas.** Segunda migración `drop_payment_method_enum`: eliminar el campo `paymentMethod PaymentMethod` y el `enum PaymentMethod`. Actualizar el `checkOut` (recibe `paymentMethodId`), el `include` del `Payment` en las queries de reservas, y el selector de método de pago en el diálogo de checkout (`GET /payment-methods`).
+
+### [T028] ROOM_TYPE — `enum RoomType` → tabla `RoomType`
+
+- **[T028]** *(Enum en `Room` presente en selectores y display; sin transiciones de estado.)* Modificar `schema.prisma`: agregar modelo catálogo de tipos de habitación (`id`, `name @unique`; valores SINGLE/DOUBLE/SUITE) y campo `typeId` (FK, nullable) en `Room`. → **Tú corres:** `npx prisma migrate dev --create-only --name add_room_type_table` → Claude Code revisa y ajusta el `migration.sql` (seed + backfill de `typeId` desde `type`) → **Tú aplicas.** Segunda migración `drop_room_type_enum`: eliminar el campo `type RoomType` y el `enum RoomType`. Actualizar DTO/servicio de habitaciones (`typeId`), el `include` del `type` en las queries, y el selector del formulario de habitación (`GET /room-types`).
+
+### [T029] ROOM_STATUS — `enum RoomStatus` → tabla `RoomStatus`
+
+- **[T029]** *(Más complejo: el estado físico alimenta el dashboard de housekeeping, los colores semánticos de `globals.css` y las transiciones de check-in/check-out.)* Modificar `schema.prisma`: agregar modelo catálogo de estados físicos (`id`, `name @unique`; valores AVAILABLE/OCCUPIED/CLEANING/MAINTENANCE) y campo `statusId` (FK, nullable) en `Room`. → **Tú corres:** `npx prisma migrate dev --create-only --name add_room_status_table` → Claude Code revisa y ajusta el `migration.sql` (seed + backfill de `statusId` desde `status`) → **Tú aplicas.** Segunda migración `drop_room_status_enum`: eliminar el campo `status RoomStatus` y el `enum RoomStatus`. Actualizar el servicio de habitaciones (lectura/escritura de estado, transiciones de check-in/out que tocan el estado de la habitación), el `include` del estado, y el dashboard/housekeeping del front (los colores semánticos deben mapearse por `name` del catálogo, no por el enum).
+
+### [T030] RESERVATION_STATUS — `enum ReservationStatus` → tabla `ReservationStatus`
+
+- **[T030]** *(Alto acoplamiento: el estado gobierna todo el ciclo de vida — PENDING→ACTIVE→COMPLETED/CANCELLED —, los filtros de la UI, la validación de overbooking y check-in/check-out.)* Modificar `schema.prisma`: agregar modelo catálogo de estados de reserva (`id`, `name @unique`; valores PENDING/ACTIVE/COMPLETED/CANCELLED) y campo `statusId` (FK, nullable) en `Reservation`. → **Tú corres:** `npx prisma migrate dev --create-only --name add_reservation_status_table` → Claude Code revisa y ajusta el `migration.sql` (seed + backfill de `statusId` desde `status`) → **Tú aplicas.** Segunda migración `drop_reservation_status_enum`: eliminar el campo `status ReservationStatus` y el `enum ReservationStatus`. **Riesgo:** cada comparación `status === 'ACTIVE'` / `'PENDING'` en services, guards de transición, filtro `?status=` y UI debe pasar a comparar contra el `name` del catálogo (o resolver el `statusId` por nombre). Conviene un mapa de constantes nombre→id cargado al arrancar para no romper la lógica.
+
+### [T031] ROLE — `enum Role` → tabla `Role`
+
+- **[T031]** *(La de mayor blast radius: el rol atraviesa todo el RBAC — `@Roles()`, `RolesGuard`, payload del JWT, `useAuthStore` y los `allowedRoles` del sidebar/`ProtectedRoute`.)* Modificar `schema.prisma`: agregar modelo catálogo de roles (`id`, `name @unique`; valores OWNER/MANAGER/EMPLOYEE) y campo `roleId` (FK, nullable) en `Employee`. → **Tú corres:** `npx prisma migrate dev --create-only --name add_role_table` → Claude Code revisa y ajusta el `migration.sql` (seed + backfill de `roleId` desde `role`) → **Tú aplicas.** Segunda migración `drop_role_enum`: eliminar el campo `role Role` y el `enum Role`. **Riesgo:** el JWT y el `@CurrentUser()` deben seguir exponiendo el nombre del rol (string) para que `@Roles('OWNER', …)`, `RolesGuard` y los chequeos del frontend no cambien su contrato; internamente se resuelve el `roleId` por nombre. Hacer esta tarea al final, cuando el resto ya esté estable.
+
+---
+
+## Milestone 7 — Fidelidad final con el modelo del profesor *(opcional)*
+
+> Tres huecos sueltos detectados al contrastar el schema actual contra el modelo ER
+> del profesor. Ninguno justifica un milestone propio, pero comparten el mismo motivo:
+> **igualar exactamente las entidades del profesor**. Se agrupan aquí como milestone de
+> cierre. Las tres tareas son **independientes entre sí** y de cualquier otro milestone.
+
+### [T032] createdBy en Room
+
+- **[T032]** *(Paralelo a `createdBy` en `Reservation` —T020/T021/T023—: el modelo del profesor exige registrar qué empleado creó la habitación.)* Modificar `schema.prisma`: agregar campo `createdBy` (FK → Employee, **nullable** — las habitaciones existentes no tienen creador, no hace falta backfill) al modelo `Room`. → **Tú corres:** `npx prisma migrate dev --create-only --name add_room_created_by` → Claude Code revisa y ajusta el `migration.sql` → **Tú aplicas.** Actualizar `POST /rooms`: leer `employeeId` del JWT con `@CurrentUser()` y guardarlo en `createdBy`. En el front, mostrar el nombre del empleado creador como columna opcional en la tabla de habitaciones (leer del `include` de `createdBy`).
+
+### [T033] Reservation — fidelidad de campos
+
+- **[T033]** *(Ajustar los campos de `Reservation` a los nombres/forma del modelo del profesor.)* Modificar `schema.prisma`: renombrar `pricePerNight` → `rateSnapshot` (snapshot de tarifa al momento de reservar), agregar `totalNights` (Int, noches calculadas) y `roomTotal` (`Decimal(10,2)`, `rateSnapshot × totalNights`). → **Tú corres:** `npx prisma migrate dev --create-only --name reservation_field_fidelity` → Claude Code revisa y ajusta el `migration.sql` (rename de columna preservando datos + backfill de `totalNights`/`roomTotal` desde las reservas existentes) → **Tú aplicas.** Actualizar el `checkOut` y demás queries que hoy leen `pricePerNight` para usar `rateSnapshot`; poblar `totalNights`/`roomTotal` al crear/confirmar la reserva. **Riesgo / decisión pendiente:** `roomTotal` y `totalNights` **duplican** lo que `Payment` ya calcula en el check-out (`roomTotal`, noches). El modelo del profesor los quiere denormalizados en `Reservation`; antes de implementar, decidir entre (a) aceptar la denormalización como en el modelo del profesor o (b) dejarlos como campos derivados calculados on-read. Registrar la decisión en `docs/technical-debt.md` cuando se ataque la tarea.
+
+### [T034] DISCOUNT_TYPE — tabla `DiscountType` + `typeId` en `Discount`
+
+- **[T034]** *(Mismo patrón de tabla-catálogo del Milestone 6: el modelo del profesor exige que los descuentos tengan un tipo, y `Discount` aún no lo tiene. Sin pantalla propia.)* Modificar `schema.prisma`: agregar modelo `DiscountType` (`id`, `name @unique`), agregar a `Discount` el campo `typeId` (FK → DiscountType, nullable) y `createdAt` (`@default(now())`). → **Tú corres:** `npx prisma migrate dev --create-only --name add_discount_type_table` → Claude Code revisa y ajusta el `migration.sql` (seed de tipos —p. ej. SEASONAL, LOYALTY, PROMOTIONAL, CORPORATE— + backfill de `typeId` para los descuentos existentes) → **Tú aplicas.** Segunda migración `discount_type_not_null`: poner `typeId` `NOT NULL` una vez backfilleado. Actualizar el seed/servicio de descuentos para incluir `typeId`; el `GET /discounts` devuelve el `type` con `include`. No requiere pantalla nueva.
+
+---
+
 ## Mapa de dependencias
 
 ```
@@ -185,6 +252,14 @@ Milestone 1 — Guest
                 │
                 ▼
           Milestone 5 — Pulido y filtros (opcional)
+                │
+                ▼
+          Milestone 6 — Normalización de enums a tablas (opcional)
+          (7 tareas independientes T025–T031, en cualquier orden)
+                │
+                ▼
+          Milestone 7 — Fidelidad final con el modelo del profesor (opcional)
+          (3 tareas independientes T032–T034: createdBy Room, campos Reservation, DiscountType)
 ```
 
 Cualquier milestone es un punto de corte válido.

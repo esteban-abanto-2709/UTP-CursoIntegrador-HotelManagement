@@ -28,7 +28,8 @@ model Employee {
   lastName       String?
   secondLastName String?
   birthDate      DateTime?
-  position       String?
+  positionId     Int?
+  jobPosition    JobPosition? @relation(fields: [positionId], references: [id])
   shift          Shift?
   hireDate       DateTime?
   phone          String?
@@ -39,6 +40,14 @@ model Employee {
   roomCharges    RoomCharge[]
   payments       Payment[]
   auditLogs      AuditLog[]
+
+  @@index([positionId])
+}
+
+model JobPosition {
+  id        Int        @id @default(autoincrement())
+  name      String     @unique
+  employees Employee[]
 }
 
 enum RoomType {
