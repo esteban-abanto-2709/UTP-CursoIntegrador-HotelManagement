@@ -30,14 +30,19 @@ const SHIFT_TO_TURNO: Record<Shift, Turno> = {
   NIGHT: 'NOCHE',
 };
 
-function toSpanishShape(employee: Employee) {
+type EmployeeWithPosition = Employee & {
+  jobPosition: { name: string } | null;
+};
+
+function toSpanishShape(employee: EmployeeWithPosition) {
   const {
     password,
     firstName,
     lastName,
     secondLastName,
     birthDate,
-    position,
+    positionId,
+    jobPosition,
     shift,
     hireDate,
     phone,
@@ -50,7 +55,7 @@ function toSpanishShape(employee: Employee) {
     apellidoPaterno: lastName,
     apellidoMaterno: secondLastName,
     fechaNacimiento: birthDate,
-    cargo: position,
+    cargo: jobPosition?.name ?? null,
     turno: shift ? SHIFT_TO_TURNO[shift] : null,
     fechaInicio: hireDate,
     telefono: phone,
@@ -108,13 +113,14 @@ export class EmployeesService {
         lastName: data.apellidoPaterno,
         secondLastName: data.apellidoMaterno,
         birthDate: new Date(data.fechaNacimiento),
-        position: data.cargo,
+        jobPosition: { connect: { name: data.cargo } },
         shift: TURNO_TO_SHIFT[data.turno],
         hireDate: new Date(data.fechaInicio),
         phone: data.telefono,
         email: data.email,
         address: data.direccion,
       },
+      include: { jobPosition: true },
     });
 
     const result = toSpanishShape(employee);
@@ -132,7 +138,10 @@ export class EmployeesService {
   }
 
   async findOne(id: number, currentUser: any) {
-    const employee = await this.prisma.employee.findUnique({ where: { id } });
+    const employee = await this.prisma.employee.findUnique({
+      where: { id },
+      include: { jobPosition: true },
+    });
 
     if (!employee) {
       throw new NotFoundException(`No existe un empleado con el ID ${id}`);
@@ -148,7 +157,10 @@ export class EmployeesService {
   }
 
   async update(id: number, data: UpdateEmployeeDto, currentUser: any) {
-    const employee = await this.prisma.employee.findUnique({ where: { id } });
+    const employee = await this.prisma.employee.findUnique({
+      where: { id },
+      include: { jobPosition: true },
+    });
 
     if (!employee) {
       throw new NotFoundException(`No existe un empleado con el ID ${id}`);
@@ -208,7 +220,9 @@ export class EmployeesService {
         birthDate: data.fechaNacimiento
           ? new Date(data.fechaNacimiento)
           : undefined,
-        position: data.cargo,
+        jobPosition: data.cargo
+          ? { connect: { name: data.cargo } }
+          : undefined,
         shift: data.turno ? TURNO_TO_SHIFT[data.turno] : undefined,
         hireDate: data.fechaInicio ? new Date(data.fechaInicio) : undefined,
         phone: data.telefono,
@@ -218,6 +232,7 @@ export class EmployeesService {
           ? await bcrypt.hash(data.password, 10)
           : undefined,
       },
+      include: { jobPosition: true },
     });
 
     const result = toSpanishShape(updated);
@@ -247,7 +262,7 @@ export class EmployeesService {
         firstName: true,
         lastName: true,
         secondLastName: true,
-        position: true,
+        jobPosition: { select: { name: true } },
         shift: true,
         createdAt: true,
       },
@@ -261,7 +276,7 @@ export class EmployeesService {
       nombres: e.firstName,
       apellidoPaterno: e.lastName,
       apellidoMaterno: e.secondLastName,
-      cargo: e.position,
+      cargo: e.jobPosition?.name ?? null,
       turno: e.shift ? SHIFT_TO_TURNO[e.shift] : null,
       createdAt: e.createdAt,
     }));
