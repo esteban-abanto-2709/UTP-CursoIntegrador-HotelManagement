@@ -1,6 +1,26 @@
 name: hotel-management
 
 services:
+  db:
+    container_name: hotel-management-db
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-hotel}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-hotel}
+      POSTGRES_DB: ${POSTGRES_DB:-hotel_db}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - hotel-db-data:/var/lib/postgresql/data
+    networks:
+      - hotel-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-hotel} -d ${POSTGRES_DB:-hotel_db}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
   api:
     container_name: hotel-management-api
     restart: unless-stopped
@@ -13,3 +33,17 @@ services:
       - .env
     environment:
       - NODE_ENV=production
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-hotel}:${POSTGRES_PASSWORD:-hotel}@db:5432/${POSTGRES_DB:-hotel_db}
+      - DIRECT_URL=postgresql://${POSTGRES_USER:-hotel}:${POSTGRES_PASSWORD:-hotel}@db:5432/${POSTGRES_DB:-hotel_db}
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - hotel-net
+
+networks:
+  hotel-net:
+    driver: bridge
+
+volumes:
+  hotel-db-data:
