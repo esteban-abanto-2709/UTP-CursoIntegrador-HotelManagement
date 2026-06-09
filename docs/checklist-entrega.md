@@ -16,8 +16,8 @@
 - [ ] **Marco Teórico:**
   - [ ] Herramientas para la gestión de la configuración.
   - [ ] Herramienta de evaluación de rendimiento.
-- [ ] **Diagrama de Casos de Uso** (completo).
-- [ ] **Diagrama de Clases** (completo).
+- [x] **Diagrama de Casos de Uso** (completo).
+- [x] **Diagrama de Clases** (completo).
 - [ ] **Diagramas de Secuencia** (nuevos).
 - [x] **Diagrama de Componentes.**
 - [x] **Modelo de datos** (corregido).
