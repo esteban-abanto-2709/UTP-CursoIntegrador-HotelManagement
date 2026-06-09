@@ -21,7 +21,7 @@
 - [x] **Diagramas de Secuencia** (nuevos).
 - [x] **Diagrama de Componentes.**
 - [x] **Modelo de datos** (corregido).
-- [ ] **Reporte de Rendimiento** usando un software (JMeter u otro).
+- [x] **Reporte de Rendimiento** usando un software (k6) → `docs/reporte-rendimiento.md`.
 - [ ] **Conclusiones** tomando como input los resultados de la encuesta elaborada.
 - [ ] **Ejecución del sistema** cubriendo los nuevos requerimientos.
 
@@ -30,7 +30,7 @@
 ## Pruebas de rendimiento (detalle)
 
 Para el reporte de rendimiento, probar los **dos endpoints más solicitados** del sistema
-(uno `GET` y uno `POST`) con **Apache JMeter**:
+(uno `GET` y uno `POST`) con **k6** (herramienta script-based, ver `apps/api/perf/`):
 
 - [x] Identificar el endpoint `GET` más solicitado y el `POST` más solicitado.
 
@@ -57,14 +57,16 @@ habitación, ejecuta el chequeo de solapamiento de fechas (*range query*), hace
 auditoría. Mide el camino crítico de **escritura/validación bajo carga** y es
 donde antes aparecerían cuellos de botella o condiciones de carrera.
 
-> **Info (no es lo que pediste, solo dato):** si más adelante quisieras que yo
-> configure las pruebas directamente sin GUI, **k6** o **Artillery** son script-based
-> (se versionan en el repo y corren por CLI), y podría dejarlos listos sin tu
-> intervención. Para esta entrega seguimos con **JMeter** como indica el checklist.
+### Ejecución con k6
 
-- [ ] Crear un Test Plan en JMeter con un Thread Group por cada escenario de carga.
-- [ ] Ejecutar cada endpoint con **250**, **500** y **1000** peticiones (número de hilos/loops).
-- [ ] Para el `POST`: configurar el HTTP Header Manager con `Authorization: Bearer <token>` y el body JSON.
-- [ ] Agregar listeners (Summary Report / Aggregate Report) y registrar los resultados
-      (throughput, tiempo medio, percentiles 90/95/99, % de error).
+El harness está en `apps/api/perf/` (script `reservations.js` + runner `run-all.ps1`).
+Cada escenario usa `vus = N` con 1 loop → **N hilos × 1 loop = N peticiones** (análogo a un
+Thread Group de JMeter).
+
+- [x] Script de carga con un escenario por cada nivel (250 / 500 / 1000).
+- [x] Login automático en `setup()` → token `Bearer` inyectado en todas las peticiones.
+- [x] `POST` con body JSON y **datos únicos por petición** (evita `409` por solapamiento).
+- [x] Reporte con throughput, media, percentiles p90/p95/p99 y % de error.
+- [x] Ejecutar `run-all.ps1` con el stack local arriba y BD sembrada.
+- [x] Resultados consolidados en `results/summary.md` y analizados en `docs/reporte-rendimiento.md`.
 - [ ] Exportar/captura de los reportes para incluirlos en la presentación.

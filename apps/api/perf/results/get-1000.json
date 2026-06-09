@@ -1,0 +1,13 @@
+{
+  "endpoint": "GET",
+  "requests": 1000,
+  "total_requests": 1002,
+  "throughput_rps": 1512.23,
+  "avg_ms": 88.88,
+  "med_ms": 0,
+  "p90_ms": 395.92,
+  "p95_ms": 489.06,
+  "p99_ms": 563.55,
+  "max_ms": 579.49,
+  "error_rate_pct": 71.36
+}

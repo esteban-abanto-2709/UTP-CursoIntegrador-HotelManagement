@@ -1,0 +1,13 @@
+{
+  "endpoint": "POST",
+  "requests": 500,
+  "total_requests": 502,
+  "throughput_rps": 1532.14,
+  "avg_ms": 74.92,
+  "med_ms": 36.57,
+  "p90_ms": 212.05,
+  "p95_ms": 230.74,
+  "p99_ms": 249.04,
+  "max_ms": 253.54,
+  "error_rate_pct": 99.6
+}
