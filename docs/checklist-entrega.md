@@ -18,7 +18,7 @@
   - [ ] Herramienta de evaluación de rendimiento.
 - [x] **Diagrama de Casos de Uso** (completo).
 - [x] **Diagrama de Clases** (completo).
-- [ ] **Diagramas de Secuencia** (nuevos).
+- [x] **Diagramas de Secuencia** (nuevos).
 - [x] **Diagrama de Componentes.**
 - [x] **Modelo de datos** (corregido).
 - [ ] **Reporte de Rendimiento** usando un software (JMeter u otro).
