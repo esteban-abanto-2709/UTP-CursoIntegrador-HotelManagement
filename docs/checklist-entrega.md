@@ -19,8 +19,8 @@
 - [ ] **Diagrama de Casos de Uso** (completo).
 - [ ] **Diagrama de Clases** (completo).
 - [ ] **Diagramas de Secuencia** (nuevos).
-- [ ] **Diagrama de Componentes.**
-- [ ] **Modelo de datos** (corregido).
+- [x] **Diagrama de Componentes.**
+- [x] **Modelo de datos** (corregido).
 - [ ] **Reporte de Rendimiento** usando un software (JMeter u otro).
 - [ ] **Conclusiones** tomando como input los resultados de la encuesta elaborada.
 - [ ] **Ejecución del sistema** cubriendo los nuevos requerimientos.
