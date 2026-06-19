@@ -87,20 +87,12 @@ Al terminar una tarea se mueve al changelog y se borra de aquí.
 
 ### Reportería para el Owner
 
-## [RM-037] Utilidad mensual y anual visible para el Owner
-
-- **Objetivo:** Que el rol `OWNER` pueda ver la **utilidad** (ingresos − egresos) agregada por mes y por año.
-- **Contexto:** Hoy existe el dato de ingresos disperso en `Payment` (montos, descuentos) y `RoomCharge` (consumos), pero no hay ninguna vista ni endpoint que los agregue temporalmente. No hay modelo de **costos/egresos** todavía: la "utilidad" real exige decidir qué cuenta como egreso (¿planilla de empleados? ¿costos operativos fijos?). **Decisión de negocio a fijar antes de implementar** (registrar en `technical-debt.md` si se difiere): qué compone el egreso; si no hay fuente de costos, el primer alcance puede ser **ingreso bruto** mensual/anual y dejar la utilidad neta para una segunda iteración.
-- **Hecho cuando:** Existe un endpoint OWNER-only (`@Roles('OWNER')`) que devuelve series mensuales y anuales de ingresos (y egresos/utilidad si se define la fuente), y una página del dashboard que las muestra. Los montos se **derivan on-read** desde `Payment`/`RoomCharge` (no se denormaliza un acumulado; respeta BD 100% normalizada).
-- **Nota:** comparte módulo de agregación con [[RM-040]].
-- **Fecha:** 2026-06-19 · **Estado:** Abierto
-
 ## [RM-040] Panel de analítica con gráficos para auditoría/gestión (Owner)
 
 - **Objetivo:** Dar al `OWNER` gráficos útiles para tomar decisiones: habitaciones más usadas, empleados más destacados (p. ej. por reservas/cobros procesados), ocupación en el tiempo, etc.
 - **Contexto:** La página `/dashboard/auditoria` (`apps/web/src/app/dashboard/auditoria/page.tsx`) hoy es un **log de eventos** (tabla quién/qué/cuándo desde `AuditLog`), no analítica. Esto es una capa nueva de BI sobre los datos existentes (`Reservation`, `Payment`, `RoomCharge`, `Employee`, `Room`). Cuidado con [[TD-006]]: los `Payment` migrados antes de RM-011 tienen `processedBy` placeholder, así que cualquier ranking de empleados por cobros debe excluirlos o anotarlo.
 - **Hecho cuando:** Hay endpoints OWNER-only de agregación (top habitaciones por reservas/noches, ranking de empleados, ocupación por periodo) y una página con gráficos. Métricas **derivadas on-read**; sin tablas de acumulados.
-- **Nota:** elegir librería de charts (no instalada aún); verificar con context7 antes de fijarla. Comparte agregación con [[RM-037]].
+- **Nota:** la base ya existe tras [[RM-037]]: módulo backend OWNER-only `apps/api/src/modules/analytics/` (extensible: sumar ahí `getTopRooms`/`getEmployeeRanking`/`getOccupancy`) y **recharts** ya instalado en `apps/web`. Falta agregar los endpoints y la página/gráficos de analítica.
 - **Fecha:** 2026-06-19 · **Estado:** Abierto
 
 ### Comprobante de pago e historial

@@ -11,9 +11,10 @@ import { RoomChargesModule } from './modules/room-charges/room-charges.module';
 import { DiscountsModule } from './modules/discounts/discounts.module';
 import { PaymentsModule } from './modules/payments/payments.module';
 import { AuditModule } from './modules/audit/audit.module';
+import { AnalyticsModule } from './modules/analytics/analytics.module';
 
 @Module({
-  imports: [PrismaModule, EmployeesModule, AuthModule, RoomsModule, ReservationsModule, GuestsModule, RoomChargesModule, DiscountsModule, PaymentsModule, AuditModule],
+  imports: [PrismaModule, EmployeesModule, AuthModule, RoomsModule, ReservationsModule, GuestsModule, RoomChargesModule, DiscountsModule, PaymentsModule, AuditModule, AnalyticsModule],
   controllers: [AppController],
   providers: [AppService],
 })

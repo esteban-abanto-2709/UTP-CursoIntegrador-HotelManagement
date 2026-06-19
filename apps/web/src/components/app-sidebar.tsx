@@ -9,6 +9,7 @@ import {
   Bed,
   Contact,
   ScrollText,
+  TrendingUp,
   ChevronsUpDown,
 } from "lucide-react";
 import { useAuthStore } from "@/store/authStore";
@@ -63,6 +64,12 @@ const items = [
     title: "Auditoría",
     url: routes.dashboard.auditoria(),
     icon: ScrollText,
+    allowedRoles: ["OWNER"],
+  },
+  {
+    title: "Reportes",
+    url: routes.dashboard.reportes(),
+    icon: TrendingUp,
     allowedRoles: ["OWNER"],
   },
 ];

@@ -16,6 +16,9 @@ Resumen en ≤2 líneas de lo que se hizo.
 
 ---
 
+## [RM-037] Utilidad (ingreso bruto) mensual y anual para el Owner (2026-06-19 18:50)
+Nuevo módulo backend OWNER-only `analytics` (`GET /analytics/revenue/monthly?year` y `/annual`) que agrega ingreso bruto on-read desde `Payment` con SQL (sin denormalizar), y página `/dashboard/reportes` con KPIs + gráficos recharts (barras mensuales, línea anual). Alcance = ingreso bruto; utilidad neta diferida (no hay fuente de egresos) → [[TD-019]]. Módulo dejado extensible para [[RM-040]]. Builds verdes.
+
 ## [TD-016] `PrismaService` ya no traga el fallo de conexión al arrancar (2026-06-19 18:33)
 Quitado el try/catch de `onModuleInit` en `apps/api/src/providers/prisma/prisma.service.ts`; ahora `$connect()` propaga el error y el arranque aborta (fail-fast) si la BD está caída o mal configurada, en vez de levantar la app y fallar tarde en cada query.
 

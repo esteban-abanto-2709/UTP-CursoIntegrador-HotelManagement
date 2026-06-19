@@ -110,6 +110,22 @@ changelog y se borra de aquí.
 - **Impacto futuro:** La protección contra payloads con campos extra depende de que cada service mapee campos a mano (hoy lo hace, pero es frágil ante futuros `create`/`update` que confíen en el DTO). Solución: habilitar `whitelist`, `forbidNonWhitelisted` y `transform` en el pipe global.
 - **Fecha:** 2026-06-19 · **Estado:** Abierto
 
+## [TD-020] `pnpm lint` rojo repo-wide por `react-hooks/set-state-in-effect`
+
+- **Ubicación:** `apps/web/src/app/dashboard/{auditoria,calendario,reservas,rooms,servicio,staff,reportes}/page.tsx` y `reservas/ReservationFormDialog.tsx`
+- **Riesgo:** 3/10
+- **Problema:** La regla `react-hooks/set-state-in-effect` (error) marca el patrón establecido `useEffect(() => { fetchX(); }, [fetchX])` —donde `fetchX` hace `setState`— en todas las páginas del dashboard. `pnpm lint` falla con ~12 errores; `next build` (que solo corre TypeScript) sí pasa.
+- **Impacto futuro:** El lint no puede usarse como gate en CI hasta resolverlo. Es transversal: cualquier página nueva que siga el patrón hereda el error. Solución: o ajustar el patrón de fetching (p. ej. effect que sincroniza sin setState directo / mover loading a la data), o relajar/configurar la regla a `warn` de forma deliberada.
+- **Fecha:** 2026-06-19 · **Estado:** Abierto
+
+## [TD-019] Reportería muestra solo ingreso bruto (utilidad neta diferida)
+
+- **Ubicación:** `apps/api/src/modules/analytics/analytics.service.ts`, `apps/web/src/app/dashboard/reportes/page.tsx`
+- **Riesgo:** 2/10
+- **Problema:** RM-037 pedía "utilidad" (ingresos − egresos), pero la BD no tiene ninguna fuente de egresos/costos (empleados sin sueldo, habitaciones sin costo). La primera iteración entrega solo **ingreso bruto** mensual/anual derivado de `Payment`; no hay cálculo de utilidad neta real.
+- **Impacto futuro:** El Owner ve ingresos, no rentabilidad. Para la utilidad neta hay que modelar costos primero (planilla con sueldos y/o costos operativos fijos), conectarlos a la agregación y reetiquetar la página. Mientras no exista esa fuente, "utilidad neta" sigue siendo inderivable.
+- **Fecha:** 2026-06-19 · **Estado:** Abierto
+
 ## [TD-018] Uso extendido de `any` en la frontera de auth
 
 - **Ubicación:** `apps/api/src/modules/auth/auth.service.ts` (`validateUser`, `login`), `auth/jwt.strategy.ts:18` (`validate`), `auth/auth.controller.ts:37` (`getProfile`), `modules/employees/employees.controller.ts` (`currentUser: any`)

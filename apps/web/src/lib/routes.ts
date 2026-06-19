@@ -13,6 +13,7 @@ export const routes = {
     servicio: () => "/dashboard/servicio",
     huespedes: () => "/dashboard/huespedes",
     auditoria: () => "/dashboard/auditoria",
+    reportes: () => "/dashboard/reportes",
   },
 
   // Rutas de la API (NestJS)
@@ -91,6 +92,13 @@ export const routes = {
     },
     payments: {
       getByReservation: (reservationId: number) => `/payments/${reservationId}`,
+    },
+    analytics: {
+      monthlyRevenue: (year?: number) =>
+        year
+          ? `/analytics/revenue/monthly?year=${year}`
+          : "/analytics/revenue/monthly",
+      annualRevenue: () => "/analytics/revenue/annual",
     },
     auditLogs: {
       list: (filters?: {

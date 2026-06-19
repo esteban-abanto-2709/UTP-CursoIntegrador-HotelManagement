@@ -47,6 +47,10 @@ const PAGE_META: Record<string, PageMeta> = {
     title: "Auditoría",
     subtitle: "Registro de actividad del sistema",
   },
+  "/dashboard/reportes": {
+    title: "Reportes",
+    subtitle: "Ingresos mensuales y anuales del hotel",
+  },
 };
 
 const DEFAULT_META: PageMeta = {
