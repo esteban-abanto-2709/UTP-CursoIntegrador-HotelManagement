@@ -16,6 +16,9 @@ Resumen en ≤2 líneas de lo que se hizo.
 
 ---
 
+## [TD-016] `PrismaService` ya no traga el fallo de conexión al arrancar (2026-06-19 18:33)
+Quitado el try/catch de `onModuleInit` en `apps/api/src/providers/prisma/prisma.service.ts`; ahora `$connect()` propaga el error y el arranque aborta (fail-fast) si la BD está caída o mal configurada, en vez de levantar la app y fallar tarde en cada query.
+
 ## [TD-014] Quitar el fallback hardcodeado de `JWT_SECRET` (2026-06-19 17:05)
 Centralizado el secreto en `apps/api/src/modules/auth/jwt.constants.ts`, que lee `process.env.JWT_SECRET` y **lanza al arrancar** si falta (ya no usa `'super-secret-key-123'`). `auth.module.ts` y `jwt.strategy.ts` importan `JWT_SECRET` de ahí (fuente única). `.env.example` pasó a placeholder vacío con instrucción. Build del API verde.
 

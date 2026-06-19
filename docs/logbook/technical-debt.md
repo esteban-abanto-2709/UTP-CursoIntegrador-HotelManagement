@@ -102,14 +102,6 @@ changelog y se borra de aquí.
 - **Impacto futuro:** Si se siembra sin editar, queda una cuenta de máximo privilegio trivialmente adivinable en cualquier entorno (incluida la BD remota/Docker). Solución: tomar las credenciales del owner desde variables de entorno y/o forzar cambio de contraseña en el primer login.
 - **Fecha:** 2026-06-19 · **Estado:** Abierto
 
-## [TD-016] `PrismaService` traga el fallo de conexión al arrancar
-
-- **Ubicación:** `apps/api/src/providers/prisma/prisma.service.ts:24`
-- **Riesgo:** 5/10
-- **Problema:** `onModuleInit` envuelve `$connect()` en try/catch y ante un error solo hace `console.error`. El módulo se inicializa "ok" aunque la base de datos esté caída o mal configurada.
-- **Impacto futuro:** La app levanta y el `/health` puede pasar, pero cada query falla en runtime con errores tardíos y confusos en vez de fallar rápido al boot. Solución: re-lanzar el error (o no atraparlo) para que el arranque aborte si no hay BD.
-- **Fecha:** 2026-06-19 · **Estado:** Abierto
-
 ## [TD-017] `ValidationPipe` global sin whitelist ni transform
 
 - **Ubicación:** `apps/api/src/main.ts:7`
