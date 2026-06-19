@@ -16,6 +16,9 @@ Resumen en ≤2 líneas de lo que se hizo.
 
 ---
 
+## [RM-032] Eliminar `createdBy` de la reserva (2026-06-19 16:48)
+Revertido el «Creada por» de RM-020/021/023 a nivel UI + API + BD (Nivel 3): quitada la columna y el campo `creator` del front, de `reservationInclude` y de `create()`, y eliminada la columna `createdBy` (+FK e índice) vía migración `drop_reservation_created_by`. La trazabilidad sigue en `AuditLog` (intacto).
+
 ## Milestone 7 — Fidelidad de campos [RM-033]
 - **RM-033 Reservation — rename de tarifa** *(parcial)*: renombrado `pricePerNight` → `rateSnapshot` (migración `reservation_field_fidelity` + `drop_reservation_derived_fields`).
 **Por qué / qué se descartó:** la tarea originalmente proponía agregar `totalNights` y `roomTotal` denormalizados "por fidelidad con el modelo del profesor", pero esa premisa venía de un diagrama generado por IA, **no** de un requisito real (el profesor exige BD **100% normalizada**). Ambos campos eran derivables (`totalNights` de `checkIn`/`checkOut`; `roomTotal` de `rateSnapshot × noches` y ya presente en `Payment`), así que se revirtieron. El total se deriva on-read en `checkOut` y se persiste solo en `Payment`. Sobrevive solo el rename, que es un *snapshot* legítimo (no reconstruible desde `Room.price` actual) y mejor nombre.

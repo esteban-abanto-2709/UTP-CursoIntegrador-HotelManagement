@@ -37,9 +37,6 @@ export class ReservationsService {
     payment: {
       select: { grandTotal: true, paymentMethod: { select: { name: true } } },
     },
-    creator: {
-      select: { id: true, username: true, firstName: true, lastName: true },
-    },
   } satisfies Prisma.ReservationInclude;
 
   private calcNights(checkIn: Date, checkOut: Date) {
@@ -105,7 +102,6 @@ export class ReservationsService {
         room: { connect: { id: dto.roomId } },
         status: { connect: { name: 'PENDING' } },
         rateSnapshot: room.price,
-        creator: { connect: { id: employeeId } },
       },
       include: this.reservationInclude,
     });

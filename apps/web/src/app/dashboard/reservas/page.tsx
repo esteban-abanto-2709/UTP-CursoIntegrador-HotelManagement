@@ -49,12 +49,6 @@ interface Reservation {
   room: { number: string; type: string };
   rateSnapshot: string | null;
   payment: { grandTotal: string; paymentMethod: PaymentMethod } | null;
-  creator: {
-    id: number;
-    username: string;
-    firstName: string | null;
-    lastName: string | null;
-  } | null;
 }
 
 interface Discount {
@@ -95,12 +89,6 @@ function getRoomTypeLabel(type: string) {
     SUITE: "Suite",
   };
   return labels[type] ?? type;
-}
-
-function getCreatorName(creator: Reservation["creator"]) {
-  if (!creator) return "—";
-  const name = [creator.firstName, creator.lastName].filter(Boolean).join(" ");
-  return name || creator.username;
 }
 
 export default function ReservasPage() {
@@ -416,9 +404,6 @@ export default function ReservasPage() {
                 Fechas (In → Out)
               </TableHead>
               <TableHead className="font-semibold text-muted-foreground">
-                Creada por
-              </TableHead>
-              <TableHead className="font-semibold text-muted-foreground">
                 Estado
               </TableHead>
               <TableHead className="font-semibold text-muted-foreground text-right pr-6">
@@ -429,7 +414,7 @@ export default function ReservasPage() {
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={8} className="h-32 text-center text-muted-foreground">
+                <TableCell colSpan={7} className="h-32 text-center text-muted-foreground">
                   <div className="flex flex-col items-center justify-center gap-2">
                     <Loader2 className="h-6 w-6 animate-spin text-primary" />
                     <span>Cargando reservas...</span>
@@ -438,7 +423,7 @@ export default function ReservasPage() {
               </TableRow>
             ) : filteredReservations.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={8} className="h-32 text-center text-muted-foreground">
+                <TableCell colSpan={7} className="h-32 text-center text-muted-foreground">
                   {hasActiveFilters ? (
                     "No se encontraron reservas con esos criterios."
                   ) : (
@@ -470,9 +455,6 @@ export default function ReservasPage() {
                     {formatDate(res.checkIn)}{" "}
                     <span className="opacity-50">→</span>{" "}
                     {formatDate(res.checkOut)}
-                  </TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {getCreatorName(res.creator)}
                   </TableCell>
                   <TableCell>{getStatusBadge(res.status)}</TableCell>
                   <TableCell className="text-right pr-6">
