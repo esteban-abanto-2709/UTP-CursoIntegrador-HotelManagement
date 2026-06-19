@@ -1,0 +1,52 @@
+# Changelog
+
+Registro permanente de todo el trabajo terminado. Indexado por código de tarea
+(`TD-`, `RM-`, `WL-`). Orden inverso: lo más nuevo arriba.
+
+**Formato de cada entrada:**
+
+```
+## [CÓDIGO] Título (YYYY-MM-DD HH:MM)
+Resumen en ≤2 líneas de lo que se hizo.
+```
+
+> Las entradas históricas migradas desde el `CHANGELOG.md` original venían
+> agrupadas por milestone y sin fecha; se conservan así (sin fecha, no se
+> consulta git para inventarla). Cada milestone lista los códigos `RM` que cubre.
+
+---
+
+## Milestone 7 — Fidelidad de campos [RM-033]
+- **RM-033 Reservation — rename de tarifa** *(parcial)*: renombrado `pricePerNight` → `rateSnapshot` (migración `reservation_field_fidelity` + `drop_reservation_derived_fields`).
+**Por qué / qué se descartó:** la tarea originalmente proponía agregar `totalNights` y `roomTotal` denormalizados "por fidelidad con el modelo del profesor", pero esa premisa venía de un diagrama generado por IA, **no** de un requisito real (el profesor exige BD **100% normalizada**). Ambos campos eran derivables (`totalNights` de `checkIn`/`checkOut`; `roomTotal` de `rateSnapshot × noches` y ya presente en `Payment`), así que se revirtieron. El total se deriva on-read en `checkOut` y se persiste solo en `Payment`. Sobrevive solo el rename, que es un *snapshot* legítimo (no reconstruible desde `Room.price` actual) y mejor nombre.
+
+## Milestone 6 — Normalización de enums a tablas [RM-025 – RM-030]
+Patrón único de migración (crear catálogo → sembrar → FK nullable → backfill → drop del enum/columna), con seed reejecutable por catálogo:
+- **RM-025 JobPosition** — `position: String?` → tabla `JobPosition`; contrato `cargo` por nombre intacto.
+- **RM-026 Shift** — `enum Shift` → tabla `Shift` (`add_shift_table`); mapeo por nombre (`TURNO_TO_SHIFT_NAME`), contrato `turno` (MAÑANA/TARDE/NOCHE) intacto.
+- **RM-027 PaymentMethod** — `enum PaymentMethod` → tabla `PaymentMethod`; `checkOut` resuelve nombre→id, `flattenPayment` aplana a string, contrato (CASH/CARD/TRANSFER) intacto.
+- **RM-028 RoomType** — `enum RoomType` → tabla `RoomType`; DTOs con `@IsIn`, servicio resuelve por `connect`, `flattenType` aplana a string. Contrato (SINGLE/DOUBLE/SUITE) intacto.
+- **RM-029 RoomStatus** — `enum RoomStatus` → tabla `RoomStatus`; transiciones check-in/out por `connect`, colores del front mapeados por `name`. Contrato intacto.
+- **RM-030 ReservationStatus** — `enum ReservationStatus` → tabla `ReservationStatus`; cada `status === '...'` pasa a comparar por `name`, `create` fija `PENDING`, filtro y anti-solapamiento por `{ name }`. `create` pasó a `connect` de relaciones. Contrato intacto.
+
+**Por qué:** convertir atributos resueltos con `enum` en tablas-catálogo con FK (confirmado con el profesor como parte de la normalización), manteniendo el contrato HTTP por nombre para no romper el front.
+
+## Milestone 5 — Pulido y filtros [RM-020 – RM-023]
+`createdBy` (FK → Employee, nullable, `ON DELETE SET NULL`) en `Reservation` vía `add_reservation_created_by`; `POST /reservations` guarda el empleado del JWT; `reservationInclude`/`flattenReservation` exponen `creator` y `/dashboard/reservas` mostró la columna «Creada por». Filtros server-side `from`/`to`/`roomId` + estado combinados (selector de habitación desde `GET /rooms`; búsqueda por texto sigue client-side).
+**Por qué:** registrar autoría de la reserva y dar filtros operativos. **Nota:** la columna «Creada por» se revertirá en RM-032 (redundante con `AuditLog` y no debe verla el personal).
+
+## Milestone 4 — Audit Log [RM-015 – RM-019]
+`AuditAction` + `AuditLog`, `AuditService` `@Global()`, instrumentación en reservas/empleados/habitaciones, `GET /audit-logs` (`@Roles('OWNER')`) y página `/dashboard/auditoria`.
+**Por qué:** trazabilidad central de quién hizo qué (CREATE/UPDATE/CANCEL/CHECKIN/CHECKOUT) con el empleado que ejecutó la acción.
+
+## Milestone 3 — Payment + Descuentos [RM-011 – RM-014]
+`Discount` + `Payment` desacoplado con desglose (`Prisma.Decimal`), `checkOut` refactorizado, diálogo de checkout con desglose. Eliminados `totalAmount`/`paymentMethod`/`paidAt` de `Reservation`. Aquí se introdujo el sistema de seeds reejecutable.
+**Por qué:** el cobro es un hecho con vida propia (método, montos, quién y cuándo); sacarlo de `Reservation` lo normaliza y permite el desglose histórico.
+
+## Milestone 2 — Room Charges [RM-008 – RM-010]
+`ExpenseCategory` + `RoomCharge`, módulo `room-charges` y panel de cargos en `/dashboard/servicio`.
+**Por qué:** registrar consumos extra por reserva (no solo la habitación) como entidad propia, clasificados por categoría.
+
+## Milestone 1 — Guest [RM-001 – RM-007]
+`Guest` como entidad propia con `nationalId`. Backfill y `guestId NOT NULL` consolidados en la migración `add_guest_normalize_reservation`. Módulo `guests`, formulario de reserva con buscar-por-DNI y página `/dashboard/huespedes`.
+**Por qué:** normalizar los datos del huésped fuera de `Reservation` (antes iban inline), evitando duplicación y permitiendo reusar al huésped entre reservas.

@@ -1,14 +1,15 @@
 # Deuda Técnica
 
 Registro de atajos, decisiones pendientes y riesgos a futuro de este proyecto.
+Código `TD-###` (nunca se reutiliza). Al resolverse, la entrada se mueve al
+changelog y se borra de aquí.
 
 **Formato de cada entrada:**
-
 - **Ubicación:** `archivo:línea` afectado.
 - **Riesgo:** del 1 al 10 (1-3 cosmético · 4-6 ralentiza/moderado · 7-9 bug latente o seguridad · 10 crítico).
 - **Problema:** qué está mal, sintetizado.
 - **Impacto futuro:** qué puede causar si no se atiende.
-- **Fecha** y **Estado** (Abierto / Resuelto).
+- **Fecha** y **Estado** (Abierto / En progreso).
 
 ---
 
@@ -17,7 +18,7 @@ Registro de atajos, decisiones pendientes y riesgos a futuro de este proyecto.
 - **Ubicación:** `apps/api/src/modules/reservations/reservations.service.ts:34`
 - **Riesgo:** 5/10
 - **Problema:** La validación de solapamiento (`findFirst`) y el `create` de la reserva son dos operaciones separadas. Dos peticiones simultáneas para el mismo cuarto y fechas pueden pasar ambas el chequeo antes de que cualquiera inserte, generando doble reserva.
-- **Impacto futuro:** Overbooking real bajo concurrencia. La validación en código cubre el flujo normal, pero no la carrera. Solución planificada en Fase 5 del roadmap: constraint a nivel de BD `EXCLUDE USING gist` con `tsrange` sobre `(roomId, [checkIn, checkOut))` (requiere extensión `btree_gist`).
+- **Impacto futuro:** Overbooking real bajo concurrencia. La validación en código cubre el flujo normal, pero no la carrera. Solución planificada en RM-024: constraint a nivel de BD `EXCLUDE USING gist` con `tsrange` sobre `(roomId, [checkIn, checkOut))` (requiere extensión `btree_gist`).
 - **Fecha:** 2026-05-30 · **Estado:** Abierto
 
 ## [TD-002] Contrato HTTP de Employee aún en español (capa de mapeo temporal)
@@ -40,7 +41,7 @@ Registro de atajos, decisiones pendientes y riesgos a futuro de este proyecto.
 
 - **Ubicación:** `apps/web/src/app/dashboard/staff/EmployeeFormDialog.tsx`, `apps/web/src/app/dashboard/staff/page.tsx`, `apps/web/src/store/authStore.ts`, `apps/web/src/components/app-sidebar.tsx`
 - **Riesgo:** 2/10
-- **Problema:** El frontend envía/lee campos en español (`nombres`, `apellidoPaterno`, `cargo`, `turno`) y los valores de turno `MAÑANA/TARDE/NOCHE`. Es lo que obliga a mantener la capa de mapeo de [TD-002].
+- **Problema:** El frontend envía/lee campos en español (`nombres`, `apellidoPaterno`, `cargo`, `turno`) y los valores de turno `MAÑANA/TARDE/NOCHE`. Es lo que obliga a mantener la capa de mapeo de [[TD-002]].
 - **Impacto futuro:** Mientras siga así, el backend no puede ser 100% inglés en su frontera. Migrarlo es el paso que cierra TD-002 (mover el contrato a inglés y eliminar el mapeo del service).
 - **Fecha:** 2026-05-31 · **Estado:** Abierto
 
@@ -48,8 +49,8 @@ Registro de atajos, decisiones pendientes y riesgos a futuro de este proyecto.
 
 - **Ubicación:** `apps/api/prisma/migrations/20260607155007_add_payment_model/migration.sql:50` (bloque DataMigration)
 - **Riesgo:** 3/10
-- **Problema:** El modelo viejo (`Reservation.totalAmount/paymentMethod/paidAt`) no registraba qué empleado procesó el cobro. Al normalizar a `Payment` (T011), el backfill asigna `processedBy = primer empleado existente` como placeholder para no perder el resto del cobro. Ese dato no refleja quién cobró realmente esas reservas históricas.
-- **Impacto futuro:** Cualquier reporte o auditoría que agrupe pagos por empleado contará esos `Payment` migrados bajo un empleado que no los procesó. Solo afecta a las reservas pagadas antes de T011; los cobros nuevos (T013) guardan el empleado real vía `@CurrentUser()`. No hay forma de recuperar el dato original.
+- **Problema:** El modelo viejo (`Reservation.totalAmount/paymentMethod/paidAt`) no registraba qué empleado procesó el cobro. Al normalizar a `Payment` (RM-011), el backfill asigna `processedBy = primer empleado existente` como placeholder para no perder el resto del cobro. Ese dato no refleja quién cobró realmente esas reservas históricas.
+- **Impacto futuro:** Cualquier reporte o auditoría que agrupe pagos por empleado contará esos `Payment` migrados bajo un empleado que no los procesó. Solo afecta a las reservas pagadas antes de RM-011; los cobros nuevos (RM-013) guardan el empleado real vía `@CurrentUser()`. No hay forma de recuperar el dato original.
 - **Fecha:** 2026-06-07 · **Estado:** Abierto
 
 ## [TD-007] Data de prueba template (`seeds/testing/`) es desechable

@@ -59,5 +59,5 @@ guards (`JwtAuthGuard`, `RolesGuard`) y el decorador `@Roles()`.
 
 ## Estado y pendientes
 
-El roadmap vivo con lo que falta está en [`../ROADMAP.md`](../ROADMAP.md).
-La deuda técnica registrada está en [`technical-debt.md`](technical-debt.md).
+El roadmap vivo con lo que falta está en [`logbook/roadmap.md`](logbook/roadmap.md).
+La deuda técnica registrada está en [`logbook/technical-debt.md`](logbook/technical-debt.md).

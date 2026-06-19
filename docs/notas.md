@@ -8,7 +8,7 @@ Apuntes de implementación pendiente para retomar más adelante.
 
 **Objetivo:** sembrar datos base (categorías de gasto, usuario OWNER, descuentos) fuera
 de las migraciones, de forma reejecutable y selectiva. Reemplaza el `INSERT` hardcodeado
-dentro del `migration.sql` (ver [TD-005] en `technical-debt.md`).
+dentro del `migration.sql` (ver TD-005, ya resuelto, en `logbook/technical-debt.md`).
 
 Prisma solo permite **un** comando de seed (`prisma db seed` apunta a un único script),
 pero ese script puede orquestar varios archivos. Así se obtiene "correr todo" y
@@ -77,7 +77,7 @@ exige extensiones `.js` en imports relativos y rompe ts-node).
 Para agregar un descuento/categoría nuevo o cambiar al owner: editar el archivo
 correspondiente en `seeds/` y correr solo ese script.
 
-### Limpieza pendiente (ligada a TD-005)
+### Limpieza pendiente (ligada a TD-005, ya resuelto)
 
 No tocar todavía el `migration.sql` de `add_room_charges`: la migración ya está aplicada
 y editarla rompe el próximo `migrate dev` (drift por checksum). En el **reset final** del
