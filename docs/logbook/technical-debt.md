@@ -69,3 +69,83 @@ changelog y se borra de aquí.
 - **Problema:** `ProtectedRoute` solo valida que exista token, no el rol. La restricción por rol depende únicamente de ocultar el enlace en el sidebar (`allowedRoles`) y del guard del backend (`@Roles('OWNER')` en `/audit-logs`, etc.). Un usuario no-OWNER que navegue directo a `/dashboard/auditoria` ve el cascarón de la página; la data falla con 403 (tabla vacía + toast de error), pero la UI no lo redirige.
 - **Impacto futuro:** No es un hueco de seguridad real (el backend protege los datos), pero es una fuga de UX: páginas visibles para roles que no deberían acceder. Mejora: extender `ProtectedRoute` con prop `allowedRoles` y envolver las páginas sensibles (auditoría, rooms, staff) para redirigir a `/dashboard` cuando el rol no coincide.
 - **Fecha:** 2026-06-07 · **Estado:** Abierto
+
+## [TD-009] Página de scratch `temporal/` huérfana y pública
+
+- **Ubicación:** `apps/web/src/app/temporal/page.tsx`, `apps/web/src/app/temporal/Cronograma.tsx`
+- **Riesgo:** 4/10
+- **Problema:** `/temporal` es un Gantt del cronograma académico del proyecto, sobrante de las primeras maquetas. No está envuelta en `ProtectedRoute` ni enlazada desde el sidebar, pero la ruta sigue compilando y queda accesible públicamente en producción. Es código muerto navegable.
+- **Impacto futuro:** Ruta pública sin sentido en un PMS, ensucia el bundle y el árbol de rutas, y a diferencia de las demás páginas del dashboard no pasa por el guard de auth (relacionado con [[TD-008]]). Solución: borrar la carpeta `apps/web/src/app/temporal/`.
+- **Fecha:** 2026-06-19 · **Estado:** Abierto
+
+## [TD-010] Mapeo de tipo de habitación duplicado en 6 archivos
+
+- **Ubicación:** `apps/web/src/app/dashboard/reservas/page.tsx`, `huespedes/page.tsx`, `servicio/page.tsx`, `reservas/ReservationFormDialog.tsx`, `rooms/page.tsx`, `dashboard/page.tsx`
+- **Riesgo:** 3/10
+- **Problema:** La traducción `SINGLE/DOUBLE/SUITE → Sencilla/Doble/Suite` está copiada en seis sitios como `getRoomTypeLabel` / `getTypeTranslation` / `getTypeLabel`. No hay fuente única de verdad.
+- **Impacto futuro:** Agregar o renombrar un tipo de habitación obliga a editar los seis archivos de forma coordinada; es fácil dejar uno desincronizado. Solución: extraer un helper único (p. ej. `lib/room.ts`) y reusarlo.
+- **Fecha:** 2026-06-19 · **Estado:** Abierto
+
+## [TD-011] Extracción del mensaje de error de Axios duplicada en ~6 sitios
+
+- **Ubicación:** `apps/web/src/app/login/page.tsx`, `dashboard/rooms/page.tsx`, `dashboard/reservas/page.tsx` (handleCheckIn, confirmCheckOut, confirmCancel), `dashboard/reservas/ReservationFormDialog.tsx`
+- **Riesgo:** 3/10
+- **Problema:** En cada `catch` se repite el mismo bloque: castear `error as { response?: { data?: { message?: string | string[] } } }` y resolver `Array.isArray(raw) ? raw[0] : raw ?? fallback`. Lógica idéntica copiada en ~6 lugares.
+- **Impacto futuro:** Cualquier cambio en el formato de error del backend (o querer mostrar todos los mensajes del array, no solo el primero) hay que replicarlo en todos los sitios. Solución: helper `getApiErrorMessage(error, fallback)` en `lib/`.
+- **Fecha:** 2026-06-19 · **Estado:** Abierto
+
+## [TD-012] `lib/mocks.ts` es código muerto
+
+- **Ubicación:** `apps/web/src/lib/mocks.ts`
+- **Riesgo:** 2/10
+- **Problema:** Exporta `mockRooms`, `mockReservations` y sus tipos (en español: `disponible`, `ocupada`…), sobrante de las primeras maquetas. Ningún archivo de la app lo importa.
+- **Impacto futuro:** Confunde (tipos en español que ya no reflejan el contrato real) y aparece en búsquedas como si fuera código vivo. Solución: borrar el archivo.
+- **Fecha:** 2026-06-19 · **Estado:** Abierto
+
+## [TD-013] Badge de estado de reserva duplicado entre dos páginas
+
+- **Ubicación:** `apps/web/src/app/dashboard/reservas/page.tsx:263` (`getStatusBadge`), `apps/web/src/app/dashboard/huespedes/page.tsx:66` (`getStatusBadge`)
+- **Riesgo:** 2/10
+- **Problema:** El mapeo de `PENDING/ACTIVE/COMPLETED/CANCELLED` a clases de color + etiqueta está implementado por separado en ambas páginas, con labels y estilos que ya divergen (p. ej. "Próximos a llegar" vs "Próxima").
+- **Impacto futuro:** Los estados se ven distintos según la página y agregar/renombrar un estado exige tocar ambos. Relacionado con [[TD-010]] (mismo patrón de mapeo duplicado). Solución: componente/helper compartido para el badge de estado.
+- **Fecha:** 2026-06-19 · **Estado:** Abierto
+
+## [TD-014] `JWT_SECRET` con fallback hardcodeado y predecible
+
+- **Ubicación:** `apps/api/src/modules/auth/jwt.strategy.ts:11`, `apps/api/src/modules/auth/auth.module.ts:13`
+- **Riesgo:** 7/10
+- **Problema:** Tanto al firmar (`JwtModule.register`) como al validar (`JwtStrategy`) el secreto es `process.env.JWT_SECRET || 'super-secret-key-123'`. Si la variable de entorno falta, la app arranca sin error usando un secreto público y predecible (está en el repo).
+- **Impacto futuro:** Con ese secreto cualquiera puede firmar JWTs válidos con `role: 'OWNER'` y obtener bypass total de auth/RBAC. El fallback silencioso hace que un despliegue mal configurado parezca funcionar. Solución: leer `JWT_SECRET` sin fallback y abortar el arranque si no está definido.
+- **Fecha:** 2026-06-19 · **Estado:** Abierto
+
+## [TD-015] Seed real del owner con credenciales por defecto `admin/admin`
+
+- **Ubicación:** `apps/api/prisma/seeds/owner.ts:9`
+- **Riesgo:** 6/10
+- **Problema:** El seed de producción (`seed.ts` → `seedOwner`, distinto del de [[TD-007]] en `seeds/testing/`) crea la cuenta OWNER con `username: 'admin'` / `password: 'admin'`. La única salvaguarda es un comentario que pide editar el archivo antes de sembrar.
+- **Impacto futuro:** Si se siembra sin editar, queda una cuenta de máximo privilegio trivialmente adivinable en cualquier entorno (incluida la BD remota/Docker). Solución: tomar las credenciales del owner desde variables de entorno y/o forzar cambio de contraseña en el primer login.
+- **Fecha:** 2026-06-19 · **Estado:** Abierto
+
+## [TD-016] `PrismaService` traga el fallo de conexión al arrancar
+
+- **Ubicación:** `apps/api/src/providers/prisma/prisma.service.ts:24`
+- **Riesgo:** 5/10
+- **Problema:** `onModuleInit` envuelve `$connect()` en try/catch y ante un error solo hace `console.error`. El módulo se inicializa "ok" aunque la base de datos esté caída o mal configurada.
+- **Impacto futuro:** La app levanta y el `/health` puede pasar, pero cada query falla en runtime con errores tardíos y confusos en vez de fallar rápido al boot. Solución: re-lanzar el error (o no atraparlo) para que el arranque aborte si no hay BD.
+- **Fecha:** 2026-06-19 · **Estado:** Abierto
+
+## [TD-017] `ValidationPipe` global sin whitelist ni transform
+
+- **Ubicación:** `apps/api/src/main.ts:7`
+- **Riesgo:** 4/10
+- **Problema:** Se registra `new ValidationPipe()` sin `whitelist: true`, `forbidNonWhitelisted: true` ni `transform: true`. Las propiedades no declaradas en los DTOs no se filtran ni se rechazan, y no hay coerción de tipos automática.
+- **Impacto futuro:** La protección contra payloads con campos extra depende de que cada service mapee campos a mano (hoy lo hace, pero es frágil ante futuros `create`/`update` que confíen en el DTO). Solución: habilitar `whitelist`, `forbidNonWhitelisted` y `transform` en el pipe global.
+- **Fecha:** 2026-06-19 · **Estado:** Abierto
+
+## [TD-018] Uso extendido de `any` en la frontera de auth
+
+- **Ubicación:** `apps/api/src/modules/auth/auth.service.ts` (`validateUser`, `login`), `auth/jwt.strategy.ts:18` (`validate`), `auth/auth.controller.ts:37` (`getProfile`), `modules/employees/employees.controller.ts` (`currentUser: any`)
+- **Riesgo:** 3/10
+- **Problema:** El payload del JWT, el usuario actual y el objeto de login se tipan como `any` en toda la cadena de autenticación/autorización.
+- **Impacto futuro:** Se pierde el chequeo de tipos justo donde vive el modelo de seguridad; un typo en `user.role`/`user.id` no lo detecta el compilador. Solución: definir una interfaz `AuthUser`/`JwtPayload` y usarla en strategy, decorador `@CurrentUser` y services.
+- **Fecha:** 2026-06-19 · **Estado:** Abierto
