@@ -1,25 +1,15 @@
 "use client";
 
 import {
-  Sidebar,
-  SidebarContent,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-} from "@/components/ui/sidebar";
-import {
   Calendar,
   CalendarRange,
   Home,
   BedDouble,
-  LogOut,
   Users,
   Bed,
   Contact,
   ScrollText,
+  ChevronsUpDown,
 } from "lucide-react";
 import { useAuthStore } from "@/store/authStore";
 import { useRouter, usePathname } from "next/navigation";
@@ -113,62 +103,96 @@ export function AppSidebar() {
   });
 
   return (
-    <Sidebar>
-      <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupLabel className="h-auto flex items-center gap-3 p-3 mb-4 rounded-xl bg-muted/40 border border-border/50">
-            <div className="w-11 h-11 rounded-full bg-linear-to-tr from-cyan-300 via-blue-500 to-indigo-600 shadow-md shadow-primary/20 shrink-0 flex items-center justify-center text-white text-sm font-bold">
-              {getInitials(displayName)}
-            </div>
-            <div className="flex flex-col leading-tight min-w-0">
-              <span className="text-sm font-bold text-foreground capitalize truncate">
-                {displayName}
-              </span>
-              <span className="text-xs font-medium text-sky-400">
-                {roleLabel}
-              </span>
-            </div>
-          </SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu className="gap-1">
-              {filteredItems.map((item) => {
-                const isActive = pathname === item.url;
-                return (
-                  <SidebarMenuItem key={item.title}>
-                    <Link href={item.url} className="w-full">
-                      <SidebarMenuButton
-                        isActive={isActive}
-                        className={`transition-all active:scale-95 py-6 ${
-                          isActive
-                            ? "bg-primary/10 text-primary font-semibold border border-primary/20"
-                            : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                        }`}
-                      >
-                        <item.icon className="w-5 h-5 mr-3" />
-                        <span className="text-base">{item.title}</span>
-                      </SidebarMenuButton>
-                    </Link>
-                  </SidebarMenuItem>
-                );
-              })}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+    <aside
+      className="relative flex w-[248px] flex-none flex-col overflow-hidden"
+      style={{ background: "linear-gradient(180deg,#173021 0%,#102017 100%)" }}
+    >
+      <svg
+        viewBox="0 0 248 260"
+        preserveAspectRatio="none"
+        className="pointer-events-none absolute bottom-0 left-0 h-[300px] w-full opacity-[0.16]"
+      >
+        <g fill="none" stroke="#C2683E" strokeWidth="1.2">
+          <path d="M-20,210 C40,170 90,250 150,200 C200,160 240,210 280,180" />
+          <path d="M-20,235 C40,195 90,275 150,225 C200,185 240,235 280,205" />
+          <path d="M-20,185 C40,145 90,225 150,175 C200,135 240,185 280,155" />
+        </g>
+        <g fill="none" stroke="#7FA88A" strokeWidth="1">
+          <path d="M-20,160 C40,120 90,200 150,150 C200,110 240,160 280,130" />
+          <path d="M-20,135 C40,95 90,175 150,125 C200,85 240,135 280,105" />
+        </g>
+      </svg>
 
-        <SidebarGroup className="mt-auto">
-          <SidebarGroupContent>
-            <div className="border-t border-border/50 pt-3">
-              <button
-                onClick={handleLogout}
-                className="w-full flex items-center justify-center gap-2 h-11 rounded-xl border border-red-500/20 bg-red-500/5 text-red-500 font-semibold text-sm transition-all hover:bg-red-500/10 hover:border-red-500/40 active:scale-95"
-              >
-                <LogOut className="w-4 h-4" />
-                Cerrar sesión
-              </button>
+      <div className="flex items-center gap-[11px] px-[22px] pb-[18px] pt-[22px]">
+        <div
+          className="flex h-[38px] w-[38px] flex-none items-center justify-center rounded-[11px]"
+          style={{
+            background: "linear-gradient(150deg,#C2683E,#A8552F)",
+            boxShadow: "0 4px 12px rgba(168,85,47,0.35)",
+          }}
+        >
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+            <circle cx="16.5" cy="7" r="2.6" fill="#F6E2C8" />
+            <path d="M2 19 L8.5 9 L13 15.5 L16 11 L22 19 Z" fill="#FBF6ED" />
+          </svg>
+        </div>
+        <div>
+          <div
+            className="text-[19px] font-extrabold leading-none tracking-[-0.02em] text-[#FBF6ED]"
+            style={{ fontFamily: "var(--font-bricolage), 'Bricolage Grotesque', sans-serif" }}
+          >
+            Mirador
+          </div>
+          <div className="mt-[3px] text-[10.5px] uppercase tracking-[0.16em] text-[#7E9683]">
+            Hotel Suite
+          </div>
+        </div>
+      </div>
+
+      <div className="mx-2 mb-2 mt-2 px-[14px] pt-[6px] text-[10.5px] font-semibold uppercase tracking-[0.14em] text-[#5E7563]">
+        Operación
+      </div>
+
+      <nav className="relative z-[1] flex flex-col gap-[3px] px-[14px]">
+        {filteredItems.map((item) => {
+          const isActive = pathname === item.url;
+          return (
+            <Link
+              key={item.title}
+              href={item.url}
+              className={`flex w-full items-center gap-[12px] rounded-[11px] px-[13px] py-[10px] text-[14px] font-semibold transition-colors ${
+                isActive
+                  ? "bg-[#25402E] text-[#FBF6ED]"
+                  : "text-[#9DB0A1] hover:bg-[#1c3324] hover:text-[#FBF6ED]"
+              }`}
+            >
+              <item.icon width={18} height={18} strokeWidth={1.9} />
+              <span>{item.title}</span>
+            </Link>
+          );
+        })}
+      </nav>
+
+      <div className="relative z-[2] mt-auto p-[14px]">
+        <button
+          onClick={handleLogout}
+          className="flex w-full items-center gap-[11px] rounded-[14px] border border-white/[0.08] bg-white/[0.06] p-[11px] text-left transition-colors hover:bg-white/[0.1]"
+        >
+          <div
+            className="flex h-[36px] w-[36px] flex-none items-center justify-center rounded-[10px] text-[14px] font-bold text-white"
+            style={{ background: "#3C7A8A" }}
+          >
+            {getInitials(displayName)}
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="truncate text-[13.5px] font-semibold capitalize text-[#EFE9DC]">
+              {displayName}
             </div>
-          </SidebarGroupContent>
-        </SidebarGroup>
-      </SidebarContent>
-    </Sidebar>
+            <div className="text-[11.5px] text-[#7E9683]">{roleLabel}</div>
+          </div>
+          <ChevronsUpDown width={16} height={16} strokeWidth={2} color="#7E9683" />
+        </button>
+      </div>
+    </aside>
   );
 }
