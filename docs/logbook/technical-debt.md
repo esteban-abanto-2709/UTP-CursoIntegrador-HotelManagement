@@ -70,14 +70,6 @@ changelog y se borra de aquí.
 - **Impacto futuro:** No es un hueco de seguridad real (el backend protege los datos), pero es una fuga de UX: páginas visibles para roles que no deberían acceder. Mejora: extender `ProtectedRoute` con prop `allowedRoles` y envolver las páginas sensibles (auditoría, rooms, staff) para redirigir a `/dashboard` cuando el rol no coincide.
 - **Fecha:** 2026-06-07 · **Estado:** Abierto
 
-## [TD-009] Página de scratch `temporal/` huérfana y pública
-
-- **Ubicación:** `apps/web/src/app/temporal/page.tsx`, `apps/web/src/app/temporal/Cronograma.tsx`
-- **Riesgo:** 4/10
-- **Problema:** `/temporal` es un Gantt del cronograma académico del proyecto, sobrante de las primeras maquetas. No está envuelta en `ProtectedRoute` ni enlazada desde el sidebar, pero la ruta sigue compilando y queda accesible públicamente en producción. Es código muerto navegable.
-- **Impacto futuro:** Ruta pública sin sentido en un PMS, ensucia el bundle y el árbol de rutas, y a diferencia de las demás páginas del dashboard no pasa por el guard de auth (relacionado con [[TD-008]]). Solución: borrar la carpeta `apps/web/src/app/temporal/`.
-- **Fecha:** 2026-06-19 · **Estado:** Abierto
-
 ## [TD-010] Mapeo de tipo de habitación duplicado en 6 archivos
 
 - **Ubicación:** `apps/web/src/app/dashboard/reservas/page.tsx`, `huespedes/page.tsx`, `servicio/page.tsx`, `reservas/ReservationFormDialog.tsx`, `rooms/page.tsx`, `dashboard/page.tsx`

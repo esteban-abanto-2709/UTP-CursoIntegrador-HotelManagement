@@ -16,6 +16,9 @@ Resumen en ≤2 líneas de lo que se hizo.
 
 ---
 
+## [TD-009] Eliminar la ruta huérfana `app/temporal/` (2026-06-19 16:57)
+Borrada la carpeta `apps/web/src/app/temporal/` (Gantt del cronograma académico, `page.tsx` + `Cronograma.tsx`), ruta pública sin guard de auth y sin enlace desde el sidebar. Verificado sin referencias antes de eliminar; saca una ruta innecesaria del árbol y del bundle.
+
 ## [TD-012] Eliminar `lib/mocks.ts` (código muerto) (2026-06-19 16:55)
 Borrado `apps/web/src/lib/mocks.ts` (mocks/tipos en español sobrantes de las primeras maquetas). Verificado sin referencias en `apps/web/src` antes de eliminar; no afecta build ni rutas.
 
