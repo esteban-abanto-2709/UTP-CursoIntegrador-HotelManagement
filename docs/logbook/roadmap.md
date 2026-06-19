@@ -70,6 +70,17 @@ Al terminar una tarea se mueve al changelog y se borra de aquí.
 
 ---
 
+## Rediseño UI (Mirador)
+
+## [RM-036] Cablear los controles del header de Mirador
+
+- **Objetivo:** Conectar a features reales los controles del `DashboardHeader` que hoy van solo como UI. **Contexto:** el header (cream, estilo Mirador) ya renderiza buscador, pastilla de fecha, notificaciones y botón "Nueva reserva", pero detrás de un objeto `HEADER_FEATURES` en `apps/web/src/components/dashboard-header.tsx`; cada control se oculta poniendo su flag en `false` si no se llega con el feature.
+- **Estado actual de cada control:** buscador (input local sin búsqueda real), fecha (dinámica, ya funciona), notificaciones (botón sin panel ni datos), "Nueva reserva" (navega a `/dashboard/reservas`, sin abrir el diálogo de creación).
+- **Hecho cuando:** buscador filtra/navega a resultados reales, notificaciones muestra eventos reales, y "Nueva reserva" abre el flujo de creación; o bien el flag correspondiente queda en `false` de forma deliberada.
+- **Fecha:** 2026-06-19 · **Estado:** Abierto
+
+---
+
 ## Dependencias
 
 Milestones M1–M6 ya resueltos (ver `changelog.md`). Pendientes independientes: **RM-024** (M5), **RM-031** (M6), **RM-034 / RM-035** (M7). Cualquiera es punto de corte válido.

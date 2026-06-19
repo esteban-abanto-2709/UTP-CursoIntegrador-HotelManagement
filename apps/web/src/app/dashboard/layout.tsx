@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { AppSidebar } from "@/components/app-sidebar";
+import { DashboardHeader } from "@/components/dashboard-header";
 import { ProtectedRoute } from "@/components/protected-route";
 
 export const metadata: Metadata = {
@@ -17,11 +18,7 @@ export default function DashboardLayout({
       <div className="flex h-screen w-full overflow-hidden">
         <AppSidebar />
         <main className="flex-1 w-full flex flex-col overflow-hidden">
-          <div className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b border-border/50 bg-background/80 backdrop-blur-xl px-6 shadow-none">
-            <h1 className="font-bold text-xl tracking-tight text-foreground">
-              Dashboard
-            </h1>
-          </div>
+          <DashboardHeader />
           <div className="flex-1 overflow-auto p-6 md:p-8">{children}</div>
         </main>
       </div>
