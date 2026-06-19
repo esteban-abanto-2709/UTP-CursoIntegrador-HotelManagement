@@ -16,6 +16,9 @@ Resumen en ≤2 líneas de lo que se hizo.
 
 ---
 
+## [TD-012] Eliminar `lib/mocks.ts` (código muerto) (2026-06-19 16:55)
+Borrado `apps/web/src/lib/mocks.ts` (mocks/tipos en español sobrantes de las primeras maquetas). Verificado sin referencias en `apps/web/src` antes de eliminar; no afecta build ni rutas.
+
 ## [RM-032] Eliminar `createdBy` de la reserva (2026-06-19 16:48)
 Revertido el «Creada por» de RM-020/021/023 a nivel UI + API + BD (Nivel 3): quitada la columna y el campo `creator` del front, de `reservationInclude` y de `create()`, y eliminada la columna `createdBy` (+FK e índice) vía migración `drop_reservation_created_by`. La trazabilidad sigue en `AuditLog` (intacto).
 

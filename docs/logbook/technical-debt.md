@@ -94,14 +94,6 @@ changelog y se borra de aquí.
 - **Impacto futuro:** Cualquier cambio en el formato de error del backend (o querer mostrar todos los mensajes del array, no solo el primero) hay que replicarlo en todos los sitios. Solución: helper `getApiErrorMessage(error, fallback)` en `lib/`.
 - **Fecha:** 2026-06-19 · **Estado:** Abierto
 
-## [TD-012] `lib/mocks.ts` es código muerto
-
-- **Ubicación:** `apps/web/src/lib/mocks.ts`
-- **Riesgo:** 2/10
-- **Problema:** Exporta `mockRooms`, `mockReservations` y sus tipos (en español: `disponible`, `ocupada`…), sobrante de las primeras maquetas. Ningún archivo de la app lo importa.
-- **Impacto futuro:** Confunde (tipos en español que ya no reflejan el contrato real) y aparece en búsquedas como si fuera código vivo. Solución: borrar el archivo.
-- **Fecha:** 2026-06-19 · **Estado:** Abierto
-
 ## [TD-013] Badge de estado de reserva duplicado entre dos páginas
 
 - **Ubicación:** `apps/web/src/app/dashboard/reservas/page.tsx:263` (`getStatusBadge`), `apps/web/src/app/dashboard/huespedes/page.tsx:66` (`getStatusBadge`)

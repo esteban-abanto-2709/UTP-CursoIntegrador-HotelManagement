@@ -81,6 +81,83 @@ Al terminar una tarea se mueve al changelog y se borra de aquí.
 
 ---
 
+## Recomendaciones del profesor / curso (revisión de cierre)
+
+> Lote levantado de la retroalimentación del profesor y del curso (2026-06-19). Todas comprometidas. Agrupadas por tema; los códigos no implican orden de ejecución.
+
+### Reportería para el Owner
+
+## [RM-037] Utilidad mensual y anual visible para el Owner
+
+- **Objetivo:** Que el rol `OWNER` pueda ver la **utilidad** (ingresos − egresos) agregada por mes y por año.
+- **Contexto:** Hoy existe el dato de ingresos disperso en `Payment` (montos, descuentos) y `RoomCharge` (consumos), pero no hay ninguna vista ni endpoint que los agregue temporalmente. No hay modelo de **costos/egresos** todavía: la "utilidad" real exige decidir qué cuenta como egreso (¿planilla de empleados? ¿costos operativos fijos?). **Decisión de negocio a fijar antes de implementar** (registrar en `technical-debt.md` si se difiere): qué compone el egreso; si no hay fuente de costos, el primer alcance puede ser **ingreso bruto** mensual/anual y dejar la utilidad neta para una segunda iteración.
+- **Hecho cuando:** Existe un endpoint OWNER-only (`@Roles('OWNER')`) que devuelve series mensuales y anuales de ingresos (y egresos/utilidad si se define la fuente), y una página del dashboard que las muestra. Los montos se **derivan on-read** desde `Payment`/`RoomCharge` (no se denormaliza un acumulado; respeta BD 100% normalizada).
+- **Nota:** comparte módulo de agregación con [[RM-040]].
+- **Fecha:** 2026-06-19 · **Estado:** Abierto
+
+## [RM-040] Panel de analítica con gráficos para auditoría/gestión (Owner)
+
+- **Objetivo:** Dar al `OWNER` gráficos útiles para tomar decisiones: habitaciones más usadas, empleados más destacados (p. ej. por reservas/cobros procesados), ocupación en el tiempo, etc.
+- **Contexto:** La página `/dashboard/auditoria` (`apps/web/src/app/dashboard/auditoria/page.tsx`) hoy es un **log de eventos** (tabla quién/qué/cuándo desde `AuditLog`), no analítica. Esto es una capa nueva de BI sobre los datos existentes (`Reservation`, `Payment`, `RoomCharge`, `Employee`, `Room`). Cuidado con [[TD-006]]: los `Payment` migrados antes de RM-011 tienen `processedBy` placeholder, así que cualquier ranking de empleados por cobros debe excluirlos o anotarlo.
+- **Hecho cuando:** Hay endpoints OWNER-only de agregación (top habitaciones por reservas/noches, ranking de empleados, ocupación por periodo) y una página con gráficos. Métricas **derivadas on-read**; sin tablas de acumulados.
+- **Nota:** elegir librería de charts (no instalada aún); verificar con context7 antes de fijarla. Comparte agregación con [[RM-037]].
+- **Fecha:** 2026-06-19 · **Estado:** Abierto
+
+### Comprobante de pago e historial
+
+## [RM-041] Generar comprobante/boucher de pago con el desglose del huésped
+
+- **Objetivo:** Emitir un comprobante imprimible/descargable que liste **todos los gastos** del huésped en una reserva: noches de habitación (tarifa × noches), cargos extra por categoría, descuentos aplicados y total cobrado, con método de pago y datos del huésped.
+- **Contexto:** El dato ya existe y está normalizado: `Reservation` → `Guest`, `RoomCharge` (consumos por categoría), `Payment` con su desglose y descuentos (ver RM-011–RM-014 y, si entra, los descuentos múltiples de [[RM-035]]). Falta la **presentación**: componer todo en un documento. El comprobante es una **vista derivada**, no una entidad nueva (no persistir un PDF/snapshot salvo que se exija valor legal).
+- **Hecho cuando:** Desde una reserva con pago se puede generar el comprobante con el desglose completo y total cuadrado contra `Payment`, listo para imprimir/exportar. Los textos de cara al huésped en español (ver [[RM-044]]).
+- **Nota:** prerequisito de [[RM-042]] (el historial reutiliza este generador).
+- **Fecha:** 2026-06-19 · **Estado:** Abierto
+
+## [RM-042] Historial de reservas con reimpresión del comprobante
+
+- **Objetivo:** Un historial donde el personal pueda volver a abrir reservas pasadas, revisar los consumos del huésped y **regenerar** el comprobante de [[RM-041]].
+- **Contexto:** Las reservas `COMPLETED`/`CANCELLED` ya viven en BD; `/dashboard/reservas` lista pero está orientado a operación, no a consulta histórica. Relacionado con [[WL-002]] (tabla de huéspedes hospedados ahora) — son vistas complementarias: una es "quién está", esta es "qué pasó". Reutiliza el generador de comprobante; no duplica lógica de armado del desglose.
+- **Hecho cuando:** Existe una vista de historial filtrable (por fecha/huésped/estado) que abre el detalle de consumos de cualquier reserva pasada y permite regenerar su comprobante.
+- **Nota:** depende de [[RM-041]].
+- **Fecha:** 2026-06-19 · **Estado:** Abierto
+
+### UX / UI
+
+## [RM-038] Filtros en el calendario de ocupación para escalar con muchas habitaciones
+
+- **Objetivo:** Que el calendario siga siendo usable cuando el número de habitaciones crezca.
+- **Contexto:** `apps/web/src/app/dashboard/calendario/page.tsx` hace `GET /rooms` + `GET /reservations` **sin filtros** y `OccupancyTimeline` pinta **una fila por cada cuarto**; con muchas habitaciones la vista se vuelve inmanejable y la carga, pesada. No hay filtro por tipo/estado/piso ni paginación, ni acotación por rango de fechas en la query.
+- **Hecho cuando:** El calendario permite filtrar/acotar las filas visibles (p. ej. por tipo de habitación, estado o búsqueda) y/o por rango de fechas, manteniendo el rendimiento con un catálogo grande de cuartos. Reusar el patrón de filtros server-side ya existente de reservas (RM-020–RM-023) donde aplique.
+- **Fecha:** 2026-06-19 · **Estado:** Abierto
+
+## [RM-039] Cambiar el ícono "de personitas" del root (favicon / identidad)
+
+- **Objetivo:** Reemplazar el ícono genérico de la pestaña/raíz por uno acorde a la identidad "Mirador · Hotel Suite".
+- **Contexto:** El favicon vive en `apps/web/public/favicon.ico` y no está declarado en `metadata.icons` de `apps/web/src/app/layout.tsx` (Next lo toma por convención). El sidebar ya tiene una marca propia (logo SVG + "Mirador / Hotel Suite" en `app-sidebar.tsx`); el favicon quedó desalineado con esa identidad. *(Nota: el ícono `Users` de lucide en el sidebar es el del item «Personal»; si la observación apuntaba a ese, ajustar el icono de ese nav-item; confirmar cuál es "las personitas en el root" antes de tocar.)*
+- **Hecho cuando:** El ícono del root/pestaña refleja la marca del PMS y reemplaza al placeholder actual.
+- **Fecha:** 2026-06-19 · **Estado:** Abierto
+
+## [RM-043] Pase general de rediseño de la app (Claude Design)
+
+- **Objetivo:** Mejorar el diseño general de la aplicación apoyándose en Claude Design, dándole consistencia visual a todas las páginas.
+- **Contexto:** El rediseño "Mirador" ya empezó en el sidebar/header (ver [[RM-036]] y commits recientes), pero las páginas internas (rooms, staff, reservas, servicio, huéspedes, auditoría, calendario) conviven con estilos previos. Esto es el paraguas que unifica el lenguaje visual; [[RM-036]] (cablear controles del header) es un sub-pendiente concreto dentro de este esfuerzo.
+- **Hecho cuando:** Las páginas del dashboard comparten un lenguaje visual coherente (tipografías Bricolage/Hanken ya cargadas, paleta, tarjetas, espaciados) y la UI luce terminada y consistente.
+- **Fecha:** 2026-06-19 · **Estado:** Abierto
+
+### Estandarización de idioma
+
+## [RM-044] Estandarizar idioma: BD/API en inglés, UI en español *(cierra [[TD-002]] [[TD-003]] [[TD-004]])*
+
+- **Objetivo:** Dejar la estructura (BD + API: nombres de campos, valores, contrato HTTP) **en inglés por defecto** y reservar el español únicamente para lo que ve el usuario en la web.
+- **Contexto:** La BD/Prisma ya está en inglés, pero el contrato HTTP de `Employee` sigue en español (`nombres`, `apellidoPaterno`, `cargo`, `turno` con valores `MAÑANA/TARDE/NOCHE`), sostenido por una capa de mapeo temporal en el service ([[TD-002]]), datos en español persistidos en `position` ([[TD-003]]) y un frontend que aún habla español en el contrato ([[TD-004]]). El español debe vivir en una **capa de presentación** (labels/i18n) del front, no en el API.
+- **Hecho cuando:** El contrato HTTP de Employee (y cualquier otro residuo) está en inglés con DTOs *passthrough* (sin los mapas `TURNO_TO_SHIFT`/`toSpanishShape`), los valores de `position`/turno migrados o traducidos, y la web traduce a español solo en la vista. Quedan cerradas TD-002, TD-003 y TD-004.
+- **Nota:** TD-003 implica migrar datos existentes de `position`; planificar como migración coordinada (front + `CARGO_TO_ROLE`). Mantiene BD 100% normalizada.
+- **Fecha:** 2026-06-19 · **Estado:** Abierto
+
+---
+
 ## Dependencias
 
 Milestones M1–M6 ya resueltos (ver `changelog.md`). Pendientes independientes: **RM-024** (M5), **RM-031** (M6), **RM-034 / RM-035** (M7). Cualquiera es punto de corte válido.
+
+**Recomendaciones del profesor:** **RM-037/RM-040** comparten módulo de agregación (reportería). **RM-041 → RM-042** (el historial reusa el generador de comprobante). **RM-044** cierra TD-002/003/004 y conviene antes de mostrar más textos al usuario. **RM-038/RM-039/RM-043** (UX/UI) son independientes; RM-043 engloba a [[RM-036]].
