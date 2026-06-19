@@ -16,6 +16,9 @@ Resumen en ≤2 líneas de lo que se hizo.
 
 ---
 
+## [TD-014] Quitar el fallback hardcodeado de `JWT_SECRET` (2026-06-19 17:05)
+Centralizado el secreto en `apps/api/src/modules/auth/jwt.constants.ts`, que lee `process.env.JWT_SECRET` y **lanza al arrancar** si falta (ya no usa `'super-secret-key-123'`). `auth.module.ts` y `jwt.strategy.ts` importan `JWT_SECRET` de ahí (fuente única). `.env.example` pasó a placeholder vacío con instrucción. Build del API verde.
+
 ## [TD-009] Eliminar la ruta huérfana `app/temporal/` (2026-06-19 16:57)
 Borrada la carpeta `apps/web/src/app/temporal/` (Gantt del cronograma académico, `page.tsx` + `Cronograma.tsx`), ruta pública sin guard de auth y sin enlace desde el sidebar. Verificado sin referencias antes de eliminar; saca una ruta innecesaria del árbol y del bundle.
 

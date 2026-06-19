@@ -94,14 +94,6 @@ changelog y se borra de aquí.
 - **Impacto futuro:** Los estados se ven distintos según la página y agregar/renombrar un estado exige tocar ambos. Relacionado con [[TD-010]] (mismo patrón de mapeo duplicado). Solución: componente/helper compartido para el badge de estado.
 - **Fecha:** 2026-06-19 · **Estado:** Abierto
 
-## [TD-014] `JWT_SECRET` con fallback hardcodeado y predecible
-
-- **Ubicación:** `apps/api/src/modules/auth/jwt.strategy.ts:11`, `apps/api/src/modules/auth/auth.module.ts:13`
-- **Riesgo:** 7/10
-- **Problema:** Tanto al firmar (`JwtModule.register`) como al validar (`JwtStrategy`) el secreto es `process.env.JWT_SECRET || 'super-secret-key-123'`. Si la variable de entorno falta, la app arranca sin error usando un secreto público y predecible (está en el repo).
-- **Impacto futuro:** Con ese secreto cualquiera puede firmar JWTs válidos con `role: 'OWNER'` y obtener bypass total de auth/RBAC. El fallback silencioso hace que un despliegue mal configurado parezca funcionar. Solución: leer `JWT_SECRET` sin fallback y abortar el arranque si no está definido.
-- **Fecha:** 2026-06-19 · **Estado:** Abierto
-
 ## [TD-015] Seed real del owner con credenciales por defecto `admin/admin`
 
 - **Ubicación:** `apps/api/prisma/seeds/owner.ts:9`

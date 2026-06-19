@@ -5,12 +5,13 @@ import { EmployeesModule } from '@/modules/employees/employees.module';
 import { JwtModule } from '@nestjs/jwt';
 
 import { JwtStrategy } from './jwt.strategy';
+import { JWT_SECRET } from './jwt.constants';
 
 @Module({
   imports: [
     EmployeesModule,
     JwtModule.register({
-      secret: process.env.JWT_SECRET || 'super-secret-key-123', // En producción debe venir del .env
+      secret: JWT_SECRET,
       signOptions: { expiresIn: '12h' }, // El token expirará en 12 horas
     }),
   ],
