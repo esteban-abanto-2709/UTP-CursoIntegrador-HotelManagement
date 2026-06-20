@@ -29,10 +29,14 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
+import { PaginationControls } from "@/components/ui/pagination-controls";
+
 import ReservationFormDialog, {
   ReservationForEdit,
 } from "./ReservationFormDialog";
 import ReservationDetailDialog from "./ReservationDetailDialog";
+
+const PAGE_SIZE = 20;
 
 type PaymentMethod = "CASH" | "CARD" | "TRANSFER";
 
@@ -95,6 +99,11 @@ export default function ReservasPage() {
   const [roomFilter, setRoomFilter] = useState("");
   const [rooms, setRooms] = useState<RoomOption[]>([]);
   const [reservations, setReservations] = useState<Reservation[]>([]);
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [cursorStack, setCursorStack] = useState<(number | null)[]>([null]);
+  const [total, setTotal] = useState(0);
+  const [nextCursor, setNextCursor] = useState<number | null>(null);
+  const [hasNext, setHasNext] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingReservation, setEditingReservation] =
@@ -111,6 +120,8 @@ export default function ReservasPage() {
   const [isLoadingCheckout, setIsLoadingCheckout] = useState(false);
   const [detailTarget, setDetailTarget] = useState<Reservation | null>(null);
 
+  const cursor = cursorStack[cursorStack.length - 1];
+
   const fetchReservations = useCallback(async () => {
     setIsLoading(true);
     try {
@@ -120,24 +131,49 @@ export default function ReservasPage() {
           from: fromDate || undefined,
           to: toDate || undefined,
           roomId: roomFilter ? Number(roomFilter) : undefined,
+          search: debouncedSearch || undefined,
+          cursor: cursor ?? undefined,
+          take: PAGE_SIZE,
         }),
       );
-      setReservations(res.data);
+      setReservations(res.data.data);
+      setTotal(res.data.total);
+      setNextCursor(res.data.nextCursor);
+      setHasNext(res.data.hasNext);
     } catch {
       toast.error("Error al cargar las reservas");
     } finally {
       setIsLoading(false);
     }
-  }, [statusFilter, fromDate, toDate, roomFilter]);
+  }, [statusFilter, fromDate, toDate, roomFilter, debouncedSearch, cursor]);
 
   useEffect(() => {
     fetchReservations();
   }, [fetchReservations]);
 
   useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(searchTerm.trim()), 300);
+    return () => clearTimeout(t);
+  }, [searchTerm]);
+
+  useEffect(() => {
+    setCursorStack([null]);
+  }, [statusFilter, fromDate, toDate, roomFilter, debouncedSearch]);
+
+  const handleNextPage = () => {
+    if (hasNext && nextCursor != null) {
+      setCursorStack((s) => [...s, nextCursor]);
+    }
+  };
+
+  const handlePrevPage = () => {
+    setCursorStack((s) => (s.length > 1 ? s.slice(0, -1) : s));
+  };
+
+  useEffect(() => {
     api
       .get(routes.api.rooms.list())
-      .then((res) => setRooms(res.data))
+      .then((res) => setRooms(res.data.data))
       .catch(() => toast.error("Error al cargar las habitaciones"));
   }, []);
 
@@ -232,12 +268,6 @@ export default function ReservasPage() {
       setActioningId(null);
     }
   };
-
-  const filteredReservations = reservations.filter(
-    (r) =>
-      r.guest.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      r.guest.nationalId.includes(searchTerm),
-  );
 
   const hasActiveFilters =
     searchTerm !== "" ||
@@ -383,7 +413,7 @@ export default function ReservasPage() {
                   </div>
                 </TableCell>
               </TableRow>
-            ) : filteredReservations.length === 0 ? (
+            ) : reservations.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={7} className="h-32 text-center text-muted-foreground">
                   {hasActiveFilters ? (
@@ -394,7 +424,7 @@ export default function ReservasPage() {
                 </TableCell>
               </TableRow>
             ) : (
-              filteredReservations.map((res) => (
+              reservations.map((res) => (
                 <TableRow
                   key={res.id}
                   className="transition-colors hover:bg-muted/50 group"
@@ -500,6 +530,18 @@ export default function ReservasPage() {
             )}
           </TableBody>
         </Table>
+        {!isLoading && total > 0 && (
+          <div className="px-6 py-4 border-t border-border/50">
+            <PaginationControls
+              total={total}
+              hasPrev={cursorStack.length > 1}
+              hasNext={hasNext}
+              onPrev={handlePrevPage}
+              onNext={handleNextPage}
+              disabled={isLoading}
+            />
+          </div>
+        )}
       </div>
 
       <Dialog

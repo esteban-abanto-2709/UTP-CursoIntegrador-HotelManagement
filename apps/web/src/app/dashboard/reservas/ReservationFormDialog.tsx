@@ -169,8 +169,8 @@ export default function ReservationFormDialog({
 
     setIsSearchingGuest(true);
     try {
-      const res = await api.get(routes.api.guests.list(query));
-      const guests = res.data as {
+      const res = await api.get(routes.api.guests.list({ search: query }));
+      const guests = res.data.data as {
         nationalId: string;
         fullName: string;
         email: string | null;

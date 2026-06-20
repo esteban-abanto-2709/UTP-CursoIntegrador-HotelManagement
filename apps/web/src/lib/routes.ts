@@ -25,13 +25,25 @@ export const routes = {
     },
     employees: {
       create: () => "/employees",
-      list: () => "/employees",
+      list: (page?: { cursor?: number; take?: number }) => {
+        const q = new URLSearchParams();
+        if (page?.cursor != null) q.set("cursor", String(page.cursor));
+        if (page?.take != null) q.set("take", String(page.take));
+        const qs = q.toString();
+        return qs ? `/employees?${qs}` : "/employees";
+      },
       getOne: (id: number) => `/employees/${id}`,
       update: (id: number) => `/employees/${id}`,
     },
     rooms: {
       create: () => "/rooms",
-      list: () => "/rooms",
+      list: (page?: { cursor?: number; take?: number }) => {
+        const q = new URLSearchParams();
+        if (page?.cursor != null) q.set("cursor", String(page.cursor));
+        if (page?.take != null) q.set("take", String(page.take));
+        const qs = q.toString();
+        return qs ? `/rooms?${qs}` : "/rooms";
+      },
       availability: (params: {
         checkIn: string;
         checkOut: string;
@@ -57,6 +69,9 @@ export const routes = {
         from?: string;
         to?: string;
         roomId?: number;
+        search?: string;
+        cursor?: number;
+        take?: number;
       }) => {
         if (!filters) return "/reservations";
         const q = new URLSearchParams();
@@ -64,6 +79,9 @@ export const routes = {
         if (filters.from) q.set("from", filters.from);
         if (filters.to) q.set("to", filters.to);
         if (filters.roomId != null) q.set("roomId", String(filters.roomId));
+        if (filters.search) q.set("search", filters.search);
+        if (filters.cursor != null) q.set("cursor", String(filters.cursor));
+        if (filters.take != null) q.set("take", String(filters.take));
         const qs = q.toString();
         return qs ? `/reservations?${qs}` : "/reservations";
       },
@@ -80,8 +98,14 @@ export const routes = {
       list: () => "/expense-categories",
     },
     guests: {
-      list: (search?: string) =>
-        search ? `/guests?search=${encodeURIComponent(search)}` : "/guests",
+      list: (filters?: { search?: string; cursor?: number; take?: number }) => {
+        const q = new URLSearchParams();
+        if (filters?.search) q.set("search", filters.search);
+        if (filters?.cursor != null) q.set("cursor", String(filters.cursor));
+        if (filters?.take != null) q.set("take", String(filters.take));
+        const qs = q.toString();
+        return qs ? `/guests?${qs}` : "/guests";
+      },
       getOne: (id: number) => `/guests/${id}`,
       create: () => "/guests",
       update: (id: number) => `/guests/${id}`,
@@ -110,6 +134,8 @@ export const routes = {
         employeeId?: number;
         from?: string;
         to?: string;
+        cursor?: number;
+        take?: number;
       }) => {
         if (!filters) return "/audit-logs";
         const q = new URLSearchParams();
@@ -119,6 +145,8 @@ export const routes = {
         }
         if (filters.from) q.set("from", filters.from);
         if (filters.to) q.set("to", filters.to);
+        if (filters.cursor != null) q.set("cursor", String(filters.cursor));
+        if (filters.take != null) q.set("take", String(filters.take));
         const qs = q.toString();
         return qs ? `/audit-logs?${qs}` : "/audit-logs";
       },

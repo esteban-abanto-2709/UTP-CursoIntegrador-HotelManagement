@@ -44,8 +44,8 @@ export default function ServicioHabitacionPage() {
         api.get(routes.api.rooms.list()),
         api.get(routes.api.reservations.list({ status: "ACTIVE" })),
       ]);
-      setRooms(roomsRes.data);
-      setActiveReservations(reservationsRes.data);
+      setRooms(roomsRes.data.data);
+      setActiveReservations(reservationsRes.data.data);
     } catch {
       toast.error("Error al cargar la información de servicio");
     } finally {

@@ -18,7 +18,11 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
+import { PaginationControls } from "@/components/ui/pagination-controls";
+
 import { EmployeeFormDialog, EmployeeDetail } from "./EmployeeFormDialog";
+
+const PAGE_SIZE = 20;
 
 interface EmployeeData {
   id: number;
@@ -35,6 +39,10 @@ interface EmployeeData {
 export default function StaffPage() {
   const currentUser = useAuthStore((state) => state.user);
   const [employees, setEmployees] = useState<EmployeeData[]>([]);
+  const [cursorStack, setCursorStack] = useState<(number | null)[]>([null]);
+  const [total, setTotal] = useState(0);
+  const [nextCursor, setNextCursor] = useState<number | null>(null);
+  const [hasNext, setHasNext] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState<EmployeeDetail | null>(
@@ -42,22 +50,42 @@ export default function StaffPage() {
   );
   const [loadingDetailId, setLoadingDetailId] = useState<number | null>(null);
 
+  const cursor = cursorStack[cursorStack.length - 1];
+
   const fetchEmployees = useCallback(async () => {
     try {
       setIsLoading(true);
-      const response = await api.get(routes.api.employees.list());
-      setEmployees(response.data);
+      const response = await api.get(
+        routes.api.employees.list({
+          cursor: cursor ?? undefined,
+          take: PAGE_SIZE,
+        }),
+      );
+      setEmployees(response.data.data);
+      setTotal(response.data.total);
+      setNextCursor(response.data.nextCursor);
+      setHasNext(response.data.hasNext);
     } catch (error) {
       console.error(error);
       toast.error("Error al cargar la lista de personal.");
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [cursor]);
 
   useEffect(() => {
     fetchEmployees();
   }, [fetchEmployees]);
+
+  const handleNextPage = () => {
+    if (hasNext && nextCursor != null) {
+      setCursorStack((s) => [...s, nextCursor]);
+    }
+  };
+
+  const handlePrevPage = () => {
+    setCursorStack((s) => (s.length > 1 ? s.slice(0, -1) : s));
+  };
 
   // Un MANAGER solo puede editar EMPLEADOS; el OWNER puede editar a cualquiera
   const canEdit = (role: string) =>
@@ -230,6 +258,18 @@ export default function StaffPage() {
             )}
           </TableBody>
         </Table>
+        {!isLoading && total > 0 && (
+          <div className="px-6 py-4 border-t border-border/50">
+            <PaginationControls
+              total={total}
+              hasPrev={cursorStack.length > 1}
+              hasNext={hasNext}
+              onPrev={handlePrevPage}
+              onNext={handleNextPage}
+              disabled={isLoading}
+            />
+          </div>
+        )}
       </div>
     </div>
   );

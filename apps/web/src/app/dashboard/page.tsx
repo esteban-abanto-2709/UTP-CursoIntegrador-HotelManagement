@@ -46,7 +46,7 @@ export default function DashboardPage() {
     const fetchRooms = async () => {
       try {
         const response = await api.get(routes.api.rooms.list());
-        setRooms(response.data);
+        setRooms(response.data.data);
       } catch (error) {
         console.error("Error fetching rooms", error);
         toast.error("Error al cargar las habitaciones");

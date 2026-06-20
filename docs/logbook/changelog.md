@@ -16,6 +16,9 @@ Resumen en ≤2 líneas de lo que se hizo.
 
 ---
 
+## [RM-046] Paginación server-side (cursor) en los listados del dashboard (2026-06-20 13:18)
+Paginación por cursor en los 5 listados (reservas, huéspedes, staff, auditoría, habitaciones): nuevo `common/pagination/` (DTO + helpers `cursorArgs`/`buildPage`, técnica take+1, ventana opt-in vía `take`) reusado por los services, que ahora devuelven `{ data, total, nextCursor, hasNext }` con `orderBy` desempatado por `id`. Front: componente compartido `PaginationControls` (Anterior/Siguiente + total) y pila de cursores local por página; búsqueda de reservas movida a la API (`search` en `FilterReservationsDto`). Consumidores no paginados (dashboard home, calendario, servicio, autocomplete de huéspedes, dropdown de empleados, dropdown de habitaciones de reservas) adaptados a `.data`. Sin migración de BD. Builds api/web verdes.
+
 ## [RM-043] Pase de rediseño del dashboard — estado de un vistazo (2026-06-20 10:31)
 Dashboard (`dashboard/page.tsx`) ahora muestra los 4 estados en el resumen superior: se agregó la tarjeta KPI **Mantenimiento** (reusando estilo y colores `status-maintenance-*`) y la grilla pasó a `sm:grid-cols-2 lg:grid-cols-4`. El rediseño visual general se sigue afinando vía **Claude Design** (diseño mapeado por el usuario, fuera del repo). Build web verde.
 

@@ -45,6 +45,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { PaginationControls } from "@/components/ui/pagination-controls";
+
+const PAGE_SIZE = 20;
 
 const formSchema = z.object({
   number: z
@@ -76,6 +79,10 @@ export default function RoomsPage() {
   const [isOpen, setIsOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [rooms, setRooms] = useState<RoomData[]>([]);
+  const [cursorStack, setCursorStack] = useState<(number | null)[]>([null]);
+  const [total, setTotal] = useState(0);
+  const [nextCursor, setNextCursor] = useState<number | null>(null);
+  const [hasNext, setHasNext] = useState(false);
   const [isLoadingRooms, setIsLoadingRooms] = useState(true);
   // Habitación en edición; null = el diálogo está en modo "crear"
   const [editingRoom, setEditingRoom] = useState<RoomData | null>(null);
@@ -83,22 +90,39 @@ export default function RoomsPage() {
   const canCreateRooms =
     currentUser?.role === "OWNER" || currentUser?.role === "MANAGER";
 
+  const cursor = cursorStack[cursorStack.length - 1];
+
   const fetchRooms = useCallback(async () => {
     try {
       setIsLoadingRooms(true);
-      const response = await api.get(routes.api.rooms.list());
-      setRooms(response.data);
+      const response = await api.get(
+        routes.api.rooms.list({ cursor: cursor ?? undefined, take: PAGE_SIZE }),
+      );
+      setRooms(response.data.data);
+      setTotal(response.data.total);
+      setNextCursor(response.data.nextCursor);
+      setHasNext(response.data.hasNext);
     } catch (error) {
       console.error(error);
       toast.error("Error al cargar el inventario de habitaciones.");
     } finally {
       setIsLoadingRooms(false);
     }
-  }, []);
+  }, [cursor]);
 
   useEffect(() => {
     fetchRooms();
   }, [fetchRooms]);
+
+  const handleNextPage = () => {
+    if (hasNext && nextCursor != null) {
+      setCursorStack((s) => [...s, nextCursor]);
+    }
+  };
+
+  const handlePrevPage = () => {
+    setCursorStack((s) => (s.length > 1 ? s.slice(0, -1) : s));
+  };
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -419,6 +443,18 @@ export default function RoomsPage() {
             )}
           </TableBody>
         </Table>
+        {!isLoadingRooms && total > 0 && (
+          <div className="px-6 py-4 border-t border-border">
+            <PaginationControls
+              total={total}
+              hasPrev={cursorStack.length > 1}
+              hasNext={hasNext}
+              onPrev={handlePrevPage}
+              onNext={handleNextPage}
+              disabled={isLoadingRooms}
+            />
+          </div>
+        )}
       </div>
     </div>
   );

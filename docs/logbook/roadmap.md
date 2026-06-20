@@ -87,14 +87,6 @@ Al terminar una tarea se mueve al changelog y se borra de aquí.
 
 ### UX / UI
 
-## [RM-046] Paginar las tablas (frontend + API) para que no traigan todo de golpe
-
-- **Objetivo:** Que las tablas con potencial de crecer (reservas, huéspedes, personal, auditoría, etc.) se paginen, de modo que la web muestre páginas y la API sirva solo el bloque pedido, sin traer todo el dataset en una sola petición.
-- **Contexto:** Hoy las páginas del dashboard hacen `GET` sin paginación y pintan la lista completa (p. ej. `/dashboard/reservas`, `/dashboard/huespedes`, `/dashboard/staff`, y la tabla de auditoría en `/dashboard/analiticas`). Con muchos registros la respuesta del API y el render se vuelven pesados. Falta un patrón de paginación server-side (limit/offset o cursor) en los endpoints y su control de páginas en el front.
-- **Hecho cuando:** Los endpoints de listado aceptan parámetros de paginación (p. ej. `page`/`pageSize` o `limit`/`offset`) y devuelven el bloque + metadatos (total/hasNext), y las tablas del front muestran controles de página consumiendo ese contrato. Reusar el patrón de filtros server-side de reservas (RM-020–RM-023) donde aplique, manteniendo la BD normalizada.
-- **Nota:** complementa a [[RM-038]] (acotar filas del calendario) — misma motivación de escalar listas grandes.
-- **Fecha:** 2026-06-19 · **Estado:** Abierto
-
 ## [RM-038] Filtros en el calendario de ocupación para escalar con muchas habitaciones
 
 - **Objetivo:** Que el calendario siga siendo usable cuando el número de habitaciones crezca.

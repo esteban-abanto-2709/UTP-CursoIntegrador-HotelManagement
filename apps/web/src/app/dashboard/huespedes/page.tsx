@@ -27,6 +27,10 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
+import { PaginationControls } from "@/components/ui/pagination-controls";
+
+const PAGE_SIZE = 20;
+
 interface GuestRow {
   id: number;
   nationalId: string;
@@ -50,28 +54,63 @@ interface GuestDetail extends GuestRow {
 
 export default function HuespedesPage() {
   const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [guests, setGuests] = useState<GuestRow[]>([]);
+  const [cursorStack, setCursorStack] = useState<(number | null)[]>([null]);
+  const [total, setTotal] = useState(0);
+  const [nextCursor, setNextCursor] = useState<number | null>(null);
+  const [hasNext, setHasNext] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [detail, setDetail] = useState<GuestDetail | null>(null);
   const [isDetailLoading, setIsDetailLoading] = useState(false);
 
-  const fetchGuests = useCallback(async (search: string) => {
+  const cursor = cursorStack[cursorStack.length - 1];
+
+  const fetchGuests = useCallback(async () => {
+    setIsLoading(true);
     try {
-      const res = await api.get(routes.api.guests.list(search.trim()));
-      setGuests(res.data);
+      const res = await api.get(
+        routes.api.guests.list({
+          search: debouncedSearch || undefined,
+          cursor: cursor ?? undefined,
+          take: PAGE_SIZE,
+        }),
+      );
+      setGuests(res.data.data);
+      setTotal(res.data.total);
+      setNextCursor(res.data.nextCursor);
+      setHasNext(res.data.hasNext);
     } catch {
       toast.error("Error al cargar los huéspedes");
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [debouncedSearch, cursor]);
+
+  useEffect(() => {
+    fetchGuests();
+  }, [fetchGuests]);
 
   useEffect(() => {
     const handle = setTimeout(() => {
-      fetchGuests(searchTerm);
+      setDebouncedSearch(searchTerm.trim());
     }, 300);
     return () => clearTimeout(handle);
-  }, [searchTerm, fetchGuests]);
+  }, [searchTerm]);
+
+  useEffect(() => {
+    setCursorStack([null]);
+  }, [debouncedSearch]);
+
+  const handleNextPage = () => {
+    if (hasNext && nextCursor != null) {
+      setCursorStack((s) => [...s, nextCursor]);
+    }
+  };
+
+  const handlePrevPage = () => {
+    setCursorStack((s) => (s.length > 1 ? s.slice(0, -1) : s));
+  };
 
   const openDetail = async (id: number) => {
     setIsDetailLoading(true);
@@ -191,6 +230,18 @@ export default function HuespedesPage() {
             )}
           </TableBody>
         </Table>
+        {!isLoading && total > 0 && (
+          <div className="px-6 py-4 border-t border-border/50">
+            <PaginationControls
+              total={total}
+              hasPrev={cursorStack.length > 1}
+              hasNext={hasNext}
+              onPrev={handlePrevPage}
+              onNext={handleNextPage}
+              disabled={isLoading}
+            />
+          </div>
+        )}
       </div>
 
       {/* Diálogo de Historial */}

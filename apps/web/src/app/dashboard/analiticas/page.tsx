@@ -37,6 +37,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { PaginationControls } from "@/components/ui/pagination-controls";
 import {
   ACCENT,
   GRID,
@@ -48,6 +49,8 @@ import {
   getApiErrorMessage,
   ChartFrame,
 } from "@/lib/analytics-ui";
+
+const LOGS_PAGE_SIZE = 20;
 
 // ---------- Métricas operativas ----------
 
@@ -190,6 +193,12 @@ export default function AnaliticasPage() {
   const [isLoadingOccupancy, setIsLoadingOccupancy] = useState(true);
 
   const [logs, setLogs] = useState<AuditLogRow[]>([]);
+  const [logsCursorStack, setLogsCursorStack] = useState<(number | null)[]>([
+    null,
+  ]);
+  const [logsTotal, setLogsTotal] = useState(0);
+  const [logsNextCursor, setLogsNextCursor] = useState<number | null>(null);
+  const [logsHasNext, setLogsHasNext] = useState(false);
   const [employees, setEmployees] = useState<EmployeeOption[]>([]);
   const [isLoadingLogs, setIsLoadingLogs] = useState(true);
   const [detail, setDetail] = useState<AuditLogRow | null>(null);
@@ -242,6 +251,8 @@ export default function AnaliticasPage() {
     }
   }, []);
 
+  const logsCursor = logsCursorStack[logsCursorStack.length - 1];
+
   const fetchLogs = useCallback(async () => {
     setIsLoadingLogs(true);
     try {
@@ -251,15 +262,20 @@ export default function AnaliticasPage() {
           employeeId: employeeId ? Number(employeeId) : undefined,
           from: from || undefined,
           to: to || undefined,
+          cursor: logsCursor ?? undefined,
+          take: LOGS_PAGE_SIZE,
         }),
       );
-      setLogs(res.data);
+      setLogs(res.data.data);
+      setLogsTotal(res.data.total);
+      setLogsNextCursor(res.data.nextCursor);
+      setLogsHasNext(res.data.hasNext);
     } catch {
       toast.error("Error al cargar el registro de auditoría");
     } finally {
       setIsLoadingLogs(false);
     }
-  }, [tableName, employeeId, from, to]);
+  }, [tableName, employeeId, from, to, logsCursor]);
 
   useEffect(() => {
     fetchTopRooms();
@@ -278,9 +294,23 @@ export default function AnaliticasPage() {
   }, [fetchLogs]);
 
   useEffect(() => {
+    setLogsCursorStack([null]);
+  }, [tableName, employeeId, from, to]);
+
+  const handleLogsNextPage = () => {
+    if (logsHasNext && logsNextCursor != null) {
+      setLogsCursorStack((s) => [...s, logsNextCursor]);
+    }
+  };
+
+  const handleLogsPrevPage = () => {
+    setLogsCursorStack((s) => (s.length > 1 ? s.slice(0, -1) : s));
+  };
+
+  useEffect(() => {
     api
       .get(routes.api.employees.list())
-      .then((res) => setEmployees(res.data))
+      .then((res) => setEmployees(res.data.data))
       .catch(() => toast.error("Error al cargar la lista de empleados"));
   }, []);
 
@@ -641,6 +671,18 @@ export default function AnaliticasPage() {
               )}
             </TableBody>
           </Table>
+          {!isLoadingLogs && logsTotal > 0 && (
+            <div className="px-6 py-4 border-t border-[#E6E0D1]">
+              <PaginationControls
+                total={logsTotal}
+                hasPrev={logsCursorStack.length > 1}
+                hasNext={logsHasNext}
+                onPrev={handleLogsPrevPage}
+                onNext={handleLogsNextPage}
+                disabled={isLoadingLogs}
+              />
+            </div>
+          )}
         </div>
       </div>
 

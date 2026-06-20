@@ -33,8 +33,8 @@ export default function CalendarioPage() {
         api.get(routes.api.rooms.list()),
         api.get(routes.api.reservations.list()),
       ]);
-      setRooms(roomsRes.data);
-      setReservations(reservationsRes.data);
+      setRooms(roomsRes.data.data);
+      setReservations(reservationsRes.data.data);
     } catch {
       toast.error("Error al cargar el calendario de ocupación");
     } finally {
