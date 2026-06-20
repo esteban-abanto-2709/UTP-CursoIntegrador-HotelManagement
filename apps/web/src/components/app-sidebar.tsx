@@ -8,8 +8,8 @@ import {
   Users,
   Bed,
   Contact,
-  ScrollText,
-  TrendingUp,
+  BarChart3,
+  Wallet,
   ChevronsUpDown,
 } from "lucide-react";
 import { useAuthStore } from "@/store/authStore";
@@ -61,15 +61,15 @@ const items = [
     allowedRoles: ["OWNER", "MANAGER", "EMPLOYEE"],
   },
   {
-    title: "Auditoría",
-    url: routes.dashboard.auditoria(),
-    icon: ScrollText,
+    title: "Finanzas",
+    url: routes.dashboard.finanzas(),
+    icon: Wallet,
     allowedRoles: ["OWNER"],
   },
   {
-    title: "Reportes",
-    url: routes.dashboard.reportes(),
-    icon: TrendingUp,
+    title: "Analíticas",
+    url: routes.dashboard.analiticas(),
+    icon: BarChart3,
     allowedRoles: ["OWNER"],
   },
 ];

@@ -12,8 +12,8 @@ export const routes = {
     calendario: () => "/dashboard/calendario",
     servicio: () => "/dashboard/servicio",
     huespedes: () => "/dashboard/huespedes",
-    auditoria: () => "/dashboard/auditoria",
-    reportes: () => "/dashboard/reportes",
+    analiticas: () => "/dashboard/analiticas",
+    finanzas: () => "/dashboard/finanzas",
   },
 
   // Rutas de la API (NestJS)

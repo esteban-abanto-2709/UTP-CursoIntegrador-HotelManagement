@@ -43,13 +43,13 @@ const PAGE_META: Record<string, PageMeta> = {
     title: "Servicio a habitación",
     subtitle: "Cargos y consumos por habitación",
   },
-  "/dashboard/auditoria": {
-    title: "Auditoría",
-    subtitle: "Registro de actividad del sistema",
-  },
-  "/dashboard/reportes": {
-    title: "Reportes",
+  "/dashboard/finanzas": {
+    title: "Finanzas",
     subtitle: "Ingresos mensuales y anuales del hotel",
+  },
+  "/dashboard/analiticas": {
+    title: "Analíticas",
+    subtitle: "Métricas operativas y registro de actividad",
   },
 };
 

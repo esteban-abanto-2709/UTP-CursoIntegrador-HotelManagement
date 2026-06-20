@@ -16,8 +16,11 @@ Resumen en ≤2 líneas de lo que se hizo.
 
 ---
 
+## [RM-045] Reorganizar pestañas: Finanzas + Analíticas (2026-06-19 19:39)
+Separada la antigua pestaña «Reportes» (que mezclaba finanzas y operativo) en dos: `/dashboard/finanzas` (solo KPIs e ingresos mensual/anual) y `/dashboard/analiticas` (ocupación, top habitaciones, ranking de empleados + la tabla de auditoría reubicada y re-estilada a la paleta crema Mirador). Eliminadas las rutas/carpetas `reportes` y `auditoria`; nuevo módulo compartido `lib/analytics-ui.tsx` (`ChartFrame`, `KpiCard`, paleta, helpers) reusado por ambas páginas. Actualizados `routes.ts`, `app-sidebar.tsx` y `dashboard-header.tsx`. Build verde.
+
 ## [RM-040] Panel de analítica con gráficos para el Owner (2026-06-19 19:10)
-Tres endpoints OWNER-only nuevos en el módulo `analytics` (`GET /analytics/top-rooms`, `/employee-ranking`, `/occupancy?year`) que agregan on-read con SQL (top habitaciones por reservas/noches, ranking de empleados, ocupación mensual; sin tablas de acumulados). Página `/dashboard/reportes` extendida con 3 gráficos recharts. El ranking se basa en `RoomCharge.registeredBy` (autoría siempre real) para esquivar [[TD-006]], que queda Abierto (dato de cobros migrados irrecuperable). Builds verdes.
+Tres endpoints OWNER-only nuevos en el módulo `analytics` (`GET /analytics/top-rooms`, `/employee-ranking`, `/occupancy?year`) que agregan on-read con SQL (top habitaciones por reservas/noches, ranking de empleados, ocupación mensual; sin tablas de acumulados). Página `/dashboard/reportes` extendida con 3 gráficos recharts. El ranking se basa en `RoomCharge.registeredBy` (autoría siempre real) para esquivar el placeholder de cobros migrados antes de RM-011 (`Payment.processedBy` = primer empleado; dato real irrecuperable). La entrada TD-006 que documentaba ese placeholder se eliminó por no tener arreglo posible. Builds verdes.
 
 ## [RM-037] Utilidad (ingreso bruto) mensual y anual para el Owner (2026-06-19 18:50)
 Nuevo módulo backend OWNER-only `analytics` (`GET /analytics/revenue/monthly?year` y `/annual`) que agrega ingreso bruto on-read desde `Payment` con SQL (sin denormalizar), y página `/dashboard/reportes` con KPIs + gráficos recharts (barras mensuales, línea anual). Alcance = ingreso bruto; utilidad neta diferida (no hay fuente de egresos) → [[TD-019]]. Módulo dejado extensible para [[RM-040]]. Builds verdes.

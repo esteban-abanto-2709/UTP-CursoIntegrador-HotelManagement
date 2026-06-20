@@ -15,26 +15,26 @@ changelog y se borra de aquí.
 
 ## [TD-001] Validación de overbooking no es atómica (condición de carrera)
 
-- **Ubicación:** `apps/api/src/modules/reservations/reservations.service.ts:34`
+- **Ubicación:** `apps/api/src/modules/reservations/reservations.service.ts` (`assertNoOverlap`, ~línea 127; invocado desde `create` y `update`)
 - **Riesgo:** 5/10
-- **Problema:** La validación de solapamiento (`findFirst`) y el `create` de la reserva son dos operaciones separadas. Dos peticiones simultáneas para el mismo cuarto y fechas pueden pasar ambas el chequeo antes de que cualquiera inserte, generando doble reserva.
+- **Problema:** La validación de solapamiento (`assertNoOverlap` → `findFirst` con `checkIn < checkOut` y `checkOut > checkIn`) y el `create`/`update` de la reserva son dos operaciones separadas. Dos peticiones simultáneas para el mismo cuarto y fechas pueden pasar ambas el chequeo antes de que cualquiera inserte, generando doble reserva.
 - **Impacto futuro:** Overbooking real bajo concurrencia. La validación en código cubre el flujo normal, pero no la carrera. Solución planificada en RM-024: constraint a nivel de BD `EXCLUDE USING gist` con `tsrange` sobre `(roomId, [checkIn, checkOut))` (requiere extensión `btree_gist`).
 - **Fecha:** 2026-05-30 · **Estado:** Abierto
 
 ## [TD-002] Contrato HTTP de Employee aún en español (capa de mapeo temporal)
 
-- **Ubicación:** `apps/api/src/modules/employees/employees.service.ts:18` (mapas `TURNO_TO_SHIFT`/`SHIFT_TO_TURNO`, `toSpanishShape`), `apps/api/src/modules/employees/dto/create-employee.dto.ts`, `apps/api/src/modules/employees/dto/update-employee.dto.ts`
+- **Ubicación:** `apps/api/src/modules/employees/employees.service.ts` (mapas `TURNO_TO_SHIFT_NAME` ~línea 21 / `SHIFT_NAME_TO_TURNO` ~línea 27, `toSpanishShape` ~línea 38), `apps/api/src/modules/employees/dto/create-employee.dto.ts`, `apps/api/src/modules/employees/dto/update-employee.dto.ts`
 - **Riesgo:** 3/10
-- **Problema:** La DB y la capa Prisma quedaron en inglés (`firstName`, `shift`, etc.), pero el contrato HTTP sigue en español (`nombres`, `turno`, valores `MAÑANA/TARDE/NOCHE`). El service traduce en ambas fronteras (entrada y salida) para no tocar el frontend. Es código puente, no estado final.
+- **Problema:** La DB y la capa Prisma quedaron en inglés (`firstName`, `shift`, etc.; el turno se normalizó a la tabla `Shift` con nombres `MORNING/AFTERNOON/NIGHT`), pero el contrato HTTP sigue en español (`nombres`, `turno`, valores `MAÑANA/TARDE/NOCHE`). El service traduce en ambas fronteras: a la entrada conecta por nombre traducido (`TURNO_TO_SHIFT_NAME`) y a la salida reconstruye la forma española (`toSpanishShape`/`SHIFT_NAME_TO_TURNO`), para no tocar el frontend. Es código puente, no estado final.
 - **Impacto futuro:** Doble fuente de verdad de nombres; cualquier campo nuevo hay que mapearlo en dos sitios y es fácil olvidarlo. Se elimina cuando se traduzca el frontend a inglés (DTOs pasan a passthrough directo y se borran los mapas).
 - **Fecha:** 2026-05-31 · **Estado:** Abierto
 
-## [TD-003] Valores de `Cargo` en español persistidos en la columna `position`
+## [TD-003] Valores de `Cargo` en español como nombres del catálogo `JobPosition`
 
-- **Ubicación:** `apps/api/src/modules/employees/dto/create-employee.dto.ts:12` (`VALID_CARGOS`), `employees.service.ts:13` (`CARGO_TO_ROLE`)
+- **Ubicación:** `apps/api/src/modules/employees/dto/create-employee.dto.ts:10` (`VALID_CARGOS`), `employees.service.ts:14` (`CARGO_TO_ROLE`), conexión por nombre en `create`/`update` (`jobPosition: { connect: { name: data.cargo } }`)
 - **Riesgo:** 2/10
-- **Problema:** Los valores `'Manager' | 'Recepcionista' | 'Botones' | 'Limpieza'` se mandan desde el front y se guardan tal cual en la columna `position`. Quedan como dato en español dentro de una DB ya estandarizada a inglés.
-- **Impacto futuro:** Traducirlos luego exige migrar los datos existentes de `position` y actualizar front + `CARGO_TO_ROLE` de forma coordinada. Cuanto más datos haya, más cara la migración.
+- **Problema:** El antiguo `position` se normalizó a la tabla-catálogo `JobPosition` (`positionId` FK), pero los valores `'Manager' | 'Recepcionista' | 'Botones' | 'Limpieza'` se mandan desde el front y se persisten tal cual como `JobPosition.name` (y la conexión se hace **por nombre**). Quedan como dato en español dentro de una DB ya estandarizada a inglés, y el `name` es además la clave funcional con la que se enlaza al empleado.
+- **Impacto futuro:** Traducir los cargos a inglés exige renombrar las filas de `JobPosition`, migrar el `connect by name` y actualizar front + `CARGO_TO_ROLE` de forma coordinada. Al ser el `name` la clave de conexión, el cambio es más delicado que un simple update de columna.
 - **Fecha:** 2026-05-31 · **Estado:** Abierto
 
 ## [TD-004] Frontend habla español en el contrato (campos y valores de turno)
@@ -44,14 +44,6 @@ changelog y se borra de aquí.
 - **Problema:** El frontend envía/lee campos en español (`nombres`, `apellidoPaterno`, `cargo`, `turno`) y los valores de turno `MAÑANA/TARDE/NOCHE`. Es lo que obliga a mantener la capa de mapeo de [[TD-002]].
 - **Impacto futuro:** Mientras siga así, el backend no puede ser 100% inglés en su frontera. Migrarlo es el paso que cierra TD-002 (mover el contrato a inglés y eliminar el mapeo del service).
 - **Fecha:** 2026-05-31 · **Estado:** Abierto
-
-## [TD-006] `Payment.processedBy` placeholder en los cobros migrados desde Reservation
-
-- **Ubicación:** `apps/api/prisma/migrations/20260607155007_add_payment_model/migration.sql:50` (bloque DataMigration)
-- **Riesgo:** 3/10
-- **Problema:** El modelo viejo (`Reservation.totalAmount/paymentMethod/paidAt`) no registraba qué empleado procesó el cobro. Al normalizar a `Payment` (RM-011), el backfill asigna `processedBy = primer empleado existente` como placeholder para no perder el resto del cobro. Ese dato no refleja quién cobró realmente esas reservas históricas.
-- **Impacto futuro:** Cualquier reporte o auditoría que agrupe pagos por empleado contará esos `Payment` migrados bajo un empleado que no los procesó. Solo afecta a las reservas pagadas antes de RM-011; los cobros nuevos (RM-013) guardan el empleado real vía `@CurrentUser()`. No hay forma de recuperar el dato original.
-- **Fecha:** 2026-06-07 · **Estado:** Abierto
 
 ## [TD-007] Data de prueba template (`seeds/testing/`) es desechable
 
