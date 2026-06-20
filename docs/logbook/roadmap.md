@@ -85,16 +85,6 @@ Al terminar una tarea se mueve al changelog y se borra de aquí.
 
 > Lote levantado de la retroalimentación del profesor y del curso (2026-06-19). Todas comprometidas. Agrupadas por tema; los códigos no implican orden de ejecución.
 
-### Reportería para el Owner
-
-## [RM-040] Panel de analítica con gráficos para auditoría/gestión (Owner)
-
-- **Objetivo:** Dar al `OWNER` gráficos útiles para tomar decisiones: habitaciones más usadas, empleados más destacados (p. ej. por reservas/cobros procesados), ocupación en el tiempo, etc.
-- **Contexto:** La página `/dashboard/auditoria` (`apps/web/src/app/dashboard/auditoria/page.tsx`) hoy es un **log de eventos** (tabla quién/qué/cuándo desde `AuditLog`), no analítica. Esto es una capa nueva de BI sobre los datos existentes (`Reservation`, `Payment`, `RoomCharge`, `Employee`, `Room`). Cuidado con [[TD-006]]: los `Payment` migrados antes de RM-011 tienen `processedBy` placeholder, así que cualquier ranking de empleados por cobros debe excluirlos o anotarlo.
-- **Hecho cuando:** Hay endpoints OWNER-only de agregación (top habitaciones por reservas/noches, ranking de empleados, ocupación por periodo) y una página con gráficos. Métricas **derivadas on-read**; sin tablas de acumulados.
-- **Nota:** la base ya existe tras [[RM-037]]: módulo backend OWNER-only `apps/api/src/modules/analytics/` (extensible: sumar ahí `getTopRooms`/`getEmployeeRanking`/`getOccupancy`) y **recharts** ya instalado en `apps/web`. Falta agregar los endpoints y la página/gráficos de analítica.
-- **Fecha:** 2026-06-19 · **Estado:** Abierto
-
 ### Comprobante de pago e historial
 
 ## [RM-041] Generar comprobante/boucher de pago con el desglose del huésped

@@ -16,6 +16,9 @@ Resumen en ≤2 líneas de lo que se hizo.
 
 ---
 
+## [RM-040] Panel de analítica con gráficos para el Owner (2026-06-19 19:10)
+Tres endpoints OWNER-only nuevos en el módulo `analytics` (`GET /analytics/top-rooms`, `/employee-ranking`, `/occupancy?year`) que agregan on-read con SQL (top habitaciones por reservas/noches, ranking de empleados, ocupación mensual; sin tablas de acumulados). Página `/dashboard/reportes` extendida con 3 gráficos recharts. El ranking se basa en `RoomCharge.registeredBy` (autoría siempre real) para esquivar [[TD-006]], que queda Abierto (dato de cobros migrados irrecuperable). Builds verdes.
+
 ## [RM-037] Utilidad (ingreso bruto) mensual y anual para el Owner (2026-06-19 18:50)
 Nuevo módulo backend OWNER-only `analytics` (`GET /analytics/revenue/monthly?year` y `/annual`) que agrega ingreso bruto on-read desde `Payment` con SQL (sin denormalizar), y página `/dashboard/reportes` con KPIs + gráficos recharts (barras mensuales, línea anual). Alcance = ingreso bruto; utilidad neta diferida (no hay fuente de egresos) → [[TD-019]]. Módulo dejado extensible para [[RM-040]]. Builds verdes.
 

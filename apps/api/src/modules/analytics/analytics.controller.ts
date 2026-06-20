@@ -21,4 +21,21 @@ export class AnalyticsController {
   getAnnualRevenue() {
     return this.analyticsService.getAnnualRevenue();
   }
+
+  @Get('top-rooms')
+  getTopRooms() {
+    return this.analyticsService.getTopRooms();
+  }
+
+  @Get('employee-ranking')
+  getEmployeeRanking() {
+    return this.analyticsService.getEmployeeRanking();
+  }
+
+  @Get('occupancy')
+  getOccupancy(
+    @Query('year', new ParseIntPipe({ optional: true })) year?: number,
+  ) {
+    return this.analyticsService.getOccupancy(year ?? new Date().getFullYear());
+  }
 }

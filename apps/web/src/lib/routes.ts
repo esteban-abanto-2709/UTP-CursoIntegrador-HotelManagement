@@ -99,6 +99,10 @@ export const routes = {
           ? `/analytics/revenue/monthly?year=${year}`
           : "/analytics/revenue/monthly",
       annualRevenue: () => "/analytics/revenue/annual",
+      topRooms: () => "/analytics/top-rooms",
+      employeeRanking: () => "/analytics/employee-ranking",
+      occupancy: (year?: number) =>
+        year ? `/analytics/occupancy?year=${year}` : "/analytics/occupancy",
     },
     auditLogs: {
       list: (filters?: {
