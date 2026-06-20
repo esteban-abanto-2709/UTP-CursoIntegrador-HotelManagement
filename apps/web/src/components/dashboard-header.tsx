@@ -84,48 +84,41 @@ export function DashboardHeader() {
   const meta = resolveMeta(pathname);
 
   return (
-    <header
-      className="flex-none flex items-center gap-[18px] border-b px-[30px] py-[18px]"
-      style={{
-        background: "rgba(243,239,228,0.82)",
-        backdropFilter: "blur(8px)",
-        WebkitBackdropFilter: "blur(8px)",
-        borderBottomColor: "#E6E0D1",
-      }}
-    >
+    <header className="flex-none flex items-center gap-[18px] border-b border-border bg-background/80 px-[30px] py-[18px] backdrop-blur-[8px]">
       <div className="min-w-0 flex-1">
-        <div
-          className="truncate text-[23px] font-bold leading-[1.1] tracking-[-0.02em] text-[#1E251A]"
-          style={{ fontFamily: "var(--font-bricolage), 'Bricolage Grotesque', sans-serif" }}
-        >
+        <div className="truncate font-heading text-[23px] font-bold leading-[1.1] tracking-[-0.02em] text-foreground">
           {meta.title}
         </div>
-        <div className="mt-[2px] truncate text-[13px] text-[#6E7567]">
+        <div className="mt-[2px] truncate text-[13px] text-muted-foreground">
           {meta.subtitle}
         </div>
       </div>
 
       {HEADER_FEATURES.search && (
-        <div
-          className="flex w-[240px] min-w-[150px] shrink items-center gap-[9px] rounded-[11px] px-[14px] py-[9px]"
-          style={{ background: "#fff", border: "1px solid #E6E0D1" }}
-        >
-          <Search width={16} height={16} strokeWidth={2} className="shrink-0 text-[#9AA08F]" />
+        <div className="flex w-[240px] min-w-[150px] shrink items-center gap-[9px] rounded-[11px] border border-border bg-card px-[14px] py-[9px]">
+          <Search
+            width={16}
+            height={16}
+            strokeWidth={2}
+            className="shrink-0 text-muted-soft"
+          />
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Buscar huésped, reserva…"
-            className="w-full border-none bg-transparent text-[13.5px] text-[#1E251A] outline-none placeholder:text-[#9AA08F]"
+            className="w-full border-none bg-transparent text-[13.5px] text-foreground outline-none placeholder:text-muted-soft"
           />
         </div>
       )}
 
       {HEADER_FEATURES.date && (
-        <div
-          className="flex items-center gap-[7px] rounded-[11px] px-[13px] py-[9px] text-[13px] font-semibold text-[#3F463A]"
-          style={{ background: "#fff", border: "1px solid #E6E0D1" }}
-        >
-          <CalendarDays width={16} height={16} strokeWidth={2} className="text-[#C2683E]" />
+        <div className="flex items-center gap-[7px] rounded-[11px] border border-border bg-card px-[13px] py-[9px] text-[13px] font-semibold text-ink-soft">
+          <CalendarDays
+            width={16}
+            height={16}
+            strokeWidth={2}
+            className="text-primary"
+          />
           <span className="whitespace-nowrap">{formatToday()}</span>
         </div>
       )}
@@ -133,14 +126,15 @@ export function DashboardHeader() {
       {HEADER_FEATURES.notifications && (
         <button
           type="button"
-          className="relative flex h-[42px] w-[42px] flex-none items-center justify-center rounded-[11px]"
-          style={{ background: "#fff", border: "1px solid #E6E0D1" }}
+          className="relative flex h-[42px] w-[42px] flex-none items-center justify-center rounded-[11px] border border-border bg-card"
         >
-          <Bell width={18} height={18} strokeWidth={1.9} className="text-[#3F463A]" />
-          <span
-            className="absolute right-[10px] top-[9px] h-[7px] w-[7px] rounded-full"
-            style={{ background: "#C2683E", border: "1.5px solid #fff" }}
+          <Bell
+            width={18}
+            height={18}
+            strokeWidth={1.9}
+            className="text-ink-soft"
           />
+          <span className="absolute right-[10px] top-[9px] h-[7px] w-[7px] rounded-full border-[1.5px] border-card bg-primary" />
         </button>
       )}
 
@@ -148,8 +142,7 @@ export function DashboardHeader() {
         <button
           type="button"
           onClick={() => router.push(routes.dashboard.reservas())}
-          className="flex flex-none items-center gap-[8px] whitespace-nowrap rounded-[11px] bg-[#C2683E] px-[17px] py-[11px] text-[14px] font-semibold text-white transition-colors hover:bg-[#A8552F]"
-          style={{ boxShadow: "0 4px 12px rgba(168,85,47,0.28)" }}
+          className="flex flex-none items-center gap-[8px] whitespace-nowrap rounded-[11px] bg-primary px-[17px] py-[11px] text-[14px] font-semibold text-primary-foreground shadow-brand transition-colors hover:bg-primary-hover"
         >
           <Plus width={17} height={17} strokeWidth={2.2} />
           Nueva reserva

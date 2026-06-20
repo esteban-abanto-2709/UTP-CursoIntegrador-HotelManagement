@@ -18,18 +18,17 @@ export const MONTH_LABELS = [
   "Dic",
 ];
 
-// Paleta Mirador
-export const ACCENT = "#C2683E";
-export const GRID = "#E6E0D1";
-export const AXIS = "#9AA08F";
-export const BRICOLAGE =
-  "var(--font-bricolage), 'Bricolage Grotesque', sans-serif";
+// Paleta Mirador (vía tokens CSS — Recharts requiere valores, no clases)
+export const ACCENT = "var(--primary)";
+export const GRID = "var(--border)";
+export const AXIS = "var(--muted-soft)";
+export const BRICOLAGE = "var(--font-bricolage), sans-serif";
 
 export const tooltipStyle = {
-  background: "#fff",
-  border: `1px solid ${GRID}`,
+  background: "var(--card)",
+  border: `1px solid var(--border)`,
   borderRadius: "0.75rem",
-  color: "#1E251A",
+  color: "var(--foreground)",
 };
 
 const penFormatter = new Intl.NumberFormat("es-PE", {
@@ -56,22 +55,19 @@ export function KpiCard({
   loading: boolean;
 }) {
   return (
-    <div className="bg-white rounded-2xl border border-[#E6E0D1] shadow-sm p-5 flex flex-col gap-2">
-      <div className="flex items-center gap-2 text-[#6E7567]">
-        <span className="text-[#C2683E]">{icon}</span>
+    <div className="bg-card rounded-2xl border border-border shadow-sm p-5 flex flex-col gap-2">
+      <div className="flex items-center gap-2 text-muted-foreground">
+        <span className="text-primary">{icon}</span>
         <span className="text-sm font-semibold">{label}</span>
       </div>
       {loading ? (
-        <Loader2 className="h-6 w-6 animate-spin text-[#C2683E]" />
+        <Loader2 className="h-6 w-6 animate-spin text-primary" />
       ) : (
-        <span
-          className="text-2xl font-bold text-[#1E251A]"
-          style={{ fontFamily: BRICOLAGE }}
-        >
+        <span className="font-heading text-2xl font-bold text-foreground">
           {value}
         </span>
       )}
-      <span className="text-xs text-[#9AA08F]">{hint}</span>
+      <span className="text-xs text-muted-soft">{hint}</span>
     </div>
   );
 }
@@ -89,14 +85,14 @@ export function ChartFrame({
 }) {
   if (loading) {
     return (
-      <div className="flex h-72 items-center justify-center text-[#9AA08F]">
-        <Loader2 className="h-6 w-6 animate-spin text-[#C2683E]" />
+      <div className="flex h-72 items-center justify-center text-muted-soft">
+        <Loader2 className="h-6 w-6 animate-spin text-primary" />
       </div>
     );
   }
   if (empty) {
     return (
-      <div className="flex h-72 items-center justify-center text-sm text-[#9AA08F]">
+      <div className="flex h-72 items-center justify-center text-sm text-muted-soft">
         {emptyLabel}
       </div>
     );

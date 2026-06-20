@@ -118,7 +118,9 @@ export default function ReservationDetailDialog({
     try {
       await generarComprobante(reservation.id);
     } catch (error) {
-      toast.error(getApiErrorMessage(error, "No se pudo generar el comprobante"));
+      toast.error(
+        getApiErrorMessage(error, "No se pudo generar el comprobante"),
+      );
     } finally {
       setIsPrinting(false);
     }
@@ -232,7 +234,7 @@ export default function ReservationDetailDialog({
                           Descuento — {payment.discount.name} (
                           {Number(payment.discount.percentage).toFixed(0)}%)
                         </span>
-                        <span className="font-semibold text-red-500">
+                        <span className="font-semibold text-destructive">
                           − {money(Number(payment.discountAmount))}
                         </span>
                       </div>

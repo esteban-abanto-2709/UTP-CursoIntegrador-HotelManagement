@@ -14,14 +14,7 @@ import {
   CalendarRange,
   ScrollText,
 } from "lucide-react";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-} from "recharts";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip } from "recharts";
 import {
   Table,
   TableBody,
@@ -135,12 +128,16 @@ const ACTION_LABELS: Record<string, string> = {
 };
 
 const ACTION_STYLES: Record<string, string> = {
-  CREATE: "bg-[#E7F0E8] text-[#2F6B3F] border-[#CBE2CE]",
-  UPDATE: "bg-[#FBF1DD] text-[#9A6B1E] border-[#EFD9A8]",
-  DELETE: "bg-[#F6E2DC] text-[#A8442F] border-[#E8C5B8]",
-  CHECKIN: "bg-[#E2ECF2] text-[#3C6B8A] border-[#C4D8E4]",
-  CHECKOUT: "bg-[#E2ECF2] text-[#3C6B8A] border-[#C4D8E4]",
-  CANCEL: "bg-[#F6E2DC] text-[#A8442F] border-[#E8C5B8]",
+  CREATE:
+    "bg-status-available-bg text-status-available-text border-status-available-border",
+  UPDATE:
+    "bg-status-cleaning-bg text-status-cleaning-text border-status-cleaning-border",
+  DELETE: "bg-destructive/10 text-destructive border-destructive/20",
+  CHECKIN:
+    "bg-status-occupied-bg text-status-occupied-text border-status-occupied-border",
+  CHECKOUT:
+    "bg-status-occupied-bg text-status-occupied-text border-status-occupied-border",
+  CANCEL: "bg-destructive/10 text-destructive border-destructive/20",
 };
 
 function formatDateTime(value: string) {
@@ -163,7 +160,7 @@ function employeeName(employee: AuditEmployee) {
 
 function getActionBadge(action: string) {
   const style =
-    ACTION_STYLES[action] ?? "bg-[#EEE9DC] text-[#6E7567] border-[#E6E0D1]";
+    ACTION_STYLES[action] ?? "bg-accent text-muted-foreground border-border";
   return (
     <span
       className={`px-2 py-1 text-xs rounded-full font-semibold border ${style}`}
@@ -186,7 +183,9 @@ export default function AnaliticasPage() {
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
 
   const [topRooms, setTopRooms] = useState<TopRoom[]>([]);
-  const [employeeRanking, setEmployeeRanking] = useState<EmployeeRankingItem[]>([]);
+  const [employeeRanking, setEmployeeRanking] = useState<EmployeeRankingItem[]>(
+    [],
+  );
   const [occupancy, setOccupancy] = useState<OccupancyResponse | null>(null);
   const [isLoadingTopRooms, setIsLoadingTopRooms] = useState(true);
   const [isLoadingRanking, setIsLoadingRanking] = useState(true);
@@ -221,7 +220,12 @@ export default function AnaliticasPage() {
       const res = await api.get(routes.api.analytics.topRooms());
       setTopRooms(res.data);
     } catch (error) {
-      toast.error(getApiErrorMessage(error, "Error al cargar las habitaciones más usadas"));
+      toast.error(
+        getApiErrorMessage(
+          error,
+          "Error al cargar las habitaciones más usadas",
+        ),
+      );
     } finally {
       setIsLoadingTopRooms(false);
     }
@@ -233,7 +237,9 @@ export default function AnaliticasPage() {
       const res = await api.get(routes.api.analytics.employeeRanking());
       setEmployeeRanking(res.data);
     } catch (error) {
-      toast.error(getApiErrorMessage(error, "Error al cargar el ranking de empleados"));
+      toast.error(
+        getApiErrorMessage(error, "Error al cargar el ranking de empleados"),
+      );
     } finally {
       setIsLoadingRanking(false);
     }
@@ -355,34 +361,33 @@ export default function AnaliticasPage() {
   }
 
   const selectClass =
-    "h-11 px-3 rounded-xl border border-[#E6E0D1] bg-white text-[#1E251A] outline-none transition-all cursor-pointer focus:border-[#C2683E] focus:ring-2 focus:ring-[#C2683E]/20";
+    "h-11 px-3 rounded-xl border border-border bg-card text-foreground outline-none transition-all cursor-pointer focus:border-primary focus:ring-2 focus:ring-primary/20";
 
   const hasFilters = tableName || employeeId || from || to;
 
   return (
-    <div
-      className="-m-6 min-h-full p-6 md:-m-8 md:p-8"
-      style={{ background: "#F4F0E6" }}
-    >
+    <div className="-m-6 min-h-full bg-background p-6 md:-m-8 md:p-8">
       <div className="flex flex-col gap-6 max-w-7xl mx-auto w-full animate-in fade-in slide-in-from-bottom-4 duration-500">
         {/* Cabecera */}
-        <div className="flex flex-col gap-4 border-b border-[#E6E0D1] pb-6 sm:flex-row sm:items-end sm:justify-between">
+        <div className="flex flex-col gap-4 border-b border-border pb-6 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <h2
-              className="text-3xl font-bold tracking-tight text-[#1E251A] flex items-center gap-2"
+              className="text-3xl font-bold tracking-tight text-foreground flex items-center gap-2"
               style={{ fontFamily: BRICOLAGE }}
             >
-              <BarChart3 className="h-8 w-8 text-[#C2683E]" />
+              <BarChart3 className="h-8 w-8 text-primary" />
               Analíticas
             </h2>
-            <p className="text-[#6E7567] mt-2 text-base">
+            <p className="text-muted-foreground mt-2 text-base">
               Ocupación, habitaciones más usadas, desempeño del personal y el
               registro de actividad del sistema.
             </p>
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-semibold text-[#6E7567]">Año</label>
+            <label className="text-sm font-semibold text-muted-foreground">
+              Año
+            </label>
             <select
               value={selectedYear}
               onChange={(e) => setSelectedYear(Number(e.target.value))}
@@ -398,15 +403,15 @@ export default function AnaliticasPage() {
         </div>
 
         {/* Ocupación mensual */}
-        <div className="bg-white rounded-2xl border border-[#E6E0D1] shadow-sm p-5">
+        <div className="bg-card rounded-2xl border border-border shadow-sm p-5">
           <h3
-            className="text-lg font-semibold text-[#1E251A] flex items-center gap-2"
+            className="text-lg font-semibold text-foreground flex items-center gap-2"
             style={{ fontFamily: BRICOLAGE }}
           >
-            <CalendarRange className="h-5 w-5 text-[#C2683E]" />
+            <CalendarRange className="h-5 w-5 text-primary" />
             Ocupación mensual · {selectedYear}
           </h3>
-          <p className="text-sm text-[#6E7567] mt-1 mb-4">
+          <p className="text-sm text-muted-foreground mt-1 mb-4">
             Reservas que ocupan habitaciones en cada mes (excluye canceladas).
           </p>
           <ChartFrame
@@ -417,10 +422,17 @@ export default function AnaliticasPage() {
             <BarChart data={occupancyChartData}>
               <CartesianGrid strokeDasharray="3 3" stroke={GRID} />
               <XAxis dataKey="name" stroke={AXIS} fontSize={12} />
-              <YAxis stroke={AXIS} fontSize={12} width={40} allowDecimals={false} />
+              <YAxis
+                stroke={AXIS}
+                fontSize={12}
+                width={40}
+                allowDecimals={false}
+              />
               <Tooltip
                 formatter={(value) => [String(value), "Reservas"]}
-                cursor={{ fill: "rgba(194,104,62,0.08)" }}
+                cursor={{
+                  fill: "color-mix(in srgb, var(--primary) 8%, transparent)",
+                }}
                 contentStyle={tooltipStyle}
               />
               <Bar dataKey="reservas" fill={ACCENT} radius={[6, 6, 0, 0]} />
@@ -429,15 +441,15 @@ export default function AnaliticasPage() {
         </div>
 
         {/* Top habitaciones */}
-        <div className="bg-white rounded-2xl border border-[#E6E0D1] shadow-sm p-5">
+        <div className="bg-card rounded-2xl border border-border shadow-sm p-5">
           <h3
-            className="text-lg font-semibold text-[#1E251A] flex items-center gap-2"
+            className="text-lg font-semibold text-foreground flex items-center gap-2"
             style={{ fontFamily: BRICOLAGE }}
           >
-            <BedDouble className="h-5 w-5 text-[#C2683E]" />
+            <BedDouble className="h-5 w-5 text-primary" />
             Habitaciones más usadas
           </h3>
-          <p className="text-sm text-[#6E7567] mt-1 mb-4">
+          <p className="text-sm text-muted-foreground mt-1 mb-4">
             Top 10 por número de reservas (excluye canceladas).
           </p>
           <ChartFrame
@@ -448,31 +460,38 @@ export default function AnaliticasPage() {
             <BarChart data={topRoomsChartData}>
               <CartesianGrid strokeDasharray="3 3" stroke={GRID} />
               <XAxis dataKey="name" stroke={AXIS} fontSize={12} />
-              <YAxis stroke={AXIS} fontSize={12} width={40} allowDecimals={false} />
+              <YAxis
+                stroke={AXIS}
+                fontSize={12}
+                width={40}
+                allowDecimals={false}
+              />
               <Tooltip
                 formatter={(value, name) => [
                   String(value),
                   name === "noches" ? "Noches" : "Reservas",
                 ]}
-                cursor={{ fill: "rgba(194,104,62,0.08)" }}
+                cursor={{
+                  fill: "color-mix(in srgb, var(--primary) 8%, transparent)",
+                }}
                 contentStyle={tooltipStyle}
               />
               <Bar dataKey="reservas" fill={ACCENT} radius={[6, 6, 0, 0]} />
-              <Bar dataKey="noches" fill="#9AA08F" radius={[6, 6, 0, 0]} />
+              <Bar dataKey="noches" fill={AXIS} radius={[6, 6, 0, 0]} />
             </BarChart>
           </ChartFrame>
         </div>
 
         {/* Ranking de empleados */}
-        <div className="bg-white rounded-2xl border border-[#E6E0D1] shadow-sm p-5">
+        <div className="bg-card rounded-2xl border border-border shadow-sm p-5">
           <h3
-            className="text-lg font-semibold text-[#1E251A] flex items-center gap-2"
+            className="text-lg font-semibold text-foreground flex items-center gap-2"
             style={{ fontFamily: BRICOLAGE }}
           >
-            <Users className="h-5 w-5 text-[#C2683E]" />
+            <Users className="h-5 w-5 text-primary" />
             Empleados destacados
           </h3>
-          <p className="text-sm text-[#6E7567] mt-1 mb-4">
+          <p className="text-sm text-muted-foreground mt-1 mb-4">
             Top 10 por monto de consumos registrados a huéspedes. Mide consumos
             registrados, no cobros procesados.
           </p>
@@ -502,7 +521,9 @@ export default function AnaliticasPage() {
               />
               <Tooltip
                 formatter={(value) => [formatPEN(Number(value)), "Consumos"]}
-                cursor={{ fill: "rgba(194,104,62,0.08)" }}
+                cursor={{
+                  fill: "color-mix(in srgb, var(--primary) 8%, transparent)",
+                }}
                 contentStyle={tooltipStyle}
               />
               <Bar dataKey="monto" fill={ACCENT} radius={[0, 6, 6, 0]} />
@@ -511,25 +532,25 @@ export default function AnaliticasPage() {
         </div>
 
         {/* Registro de auditoría */}
-        <div className="border-t border-[#E6E0D1] pt-6 mt-2">
+        <div className="border-t border-border pt-6 mt-2">
           <h3
-            className="text-2xl font-bold tracking-tight text-[#1E251A] flex items-center gap-2"
+            className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2"
             style={{ fontFamily: BRICOLAGE }}
           >
-            <ScrollText className="h-6 w-6 text-[#C2683E]" />
+            <ScrollText className="h-6 w-6 text-primary" />
             Registro de actividad
           </h3>
-          <p className="text-[#6E7567] mt-1 text-base">
+          <p className="text-muted-foreground mt-1 text-base">
             Consulta quién realizó cada acción sobre reservas, personal y
             habitaciones, y cuándo.
           </p>
         </div>
 
         {/* Filtros */}
-        <div className="bg-white p-4 rounded-2xl border border-[#E6E0D1] shadow-sm">
+        <div className="bg-card p-4 rounded-2xl border border-border shadow-sm">
           <div className="flex flex-col gap-4 md:flex-row md:flex-wrap md:items-end">
             <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-semibold text-[#6E7567]">
+              <label className="text-sm font-semibold text-muted-foreground">
                 Entidad
               </label>
               <select
@@ -547,7 +568,7 @@ export default function AnaliticasPage() {
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-semibold text-[#6E7567]">
+              <label className="text-sm font-semibold text-muted-foreground">
                 Empleado
               </label>
               <select
@@ -558,15 +579,16 @@ export default function AnaliticasPage() {
                 <option value="">Todos</option>
                 {employees.map((emp) => (
                   <option key={emp.id} value={emp.id}>
-                    {[emp.nombres, emp.apellidoPaterno].filter(Boolean).join(" ") ||
-                      `Empleado #${emp.id}`}
+                    {[emp.nombres, emp.apellidoPaterno]
+                      .filter(Boolean)
+                      .join(" ") || `Empleado #${emp.id}`}
                   </option>
                 ))}
               </select>
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-semibold text-[#6E7567]">
+              <label className="text-sm font-semibold text-muted-foreground">
                 Desde
               </label>
               <input
@@ -578,7 +600,7 @@ export default function AnaliticasPage() {
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-semibold text-[#6E7567]">
+              <label className="text-sm font-semibold text-muted-foreground">
                 Hasta
               </label>
               <input
@@ -597,7 +619,7 @@ export default function AnaliticasPage() {
                   setFrom("");
                   setTo("");
                 }}
-                className="h-11 px-4 rounded-xl border border-[#E6E0D1] bg-white text-sm font-semibold text-[#6E7567] transition-all hover:bg-[#F4F0E6] hover:text-[#1E251A]"
+                className="h-11 px-4 rounded-xl border border-border bg-card text-sm font-semibold text-muted-foreground transition-all hover:bg-background hover:text-foreground"
               >
                 Limpiar filtros
               </button>
@@ -606,43 +628,51 @@ export default function AnaliticasPage() {
         </div>
 
         {/* Tabla */}
-        <div className="bg-white rounded-2xl border border-[#E6E0D1] shadow-sm overflow-hidden mb-8">
+        <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden mb-8">
           <Table>
             <TableHeader>
-              <TableRow className="bg-[#F4F0E6] hover:bg-[#F4F0E6] border-[#E6E0D1]">
-                <TableHead className="font-semibold text-[#6E7567] py-4 pl-6">
+              <TableRow className="bg-background hover:bg-background border-border">
+                <TableHead className="font-semibold text-muted-foreground py-4 pl-6">
                   Fecha y hora
                 </TableHead>
-                <TableHead className="font-semibold text-[#6E7567]">
+                <TableHead className="font-semibold text-muted-foreground">
                   Empleado
                 </TableHead>
-                <TableHead className="font-semibold text-[#6E7567]">
+                <TableHead className="font-semibold text-muted-foreground">
                   Acción
                 </TableHead>
-                <TableHead className="font-semibold text-[#6E7567]">
+                <TableHead className="font-semibold text-muted-foreground">
                   Entidad
                 </TableHead>
-                <TableHead className="font-semibold text-[#6E7567] text-right pr-6">
+                <TableHead className="font-semibold text-muted-foreground text-right pr-6">
                   ID del registro
                 </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoadingLogs ? (
-                <TableRow className="border-[#E6E0D1]">
-                  <TableCell colSpan={5} className="h-32 text-center text-[#6E7567]">
+                <TableRow className="border-border">
+                  <TableCell
+                    colSpan={5}
+                    className="h-32 text-center text-muted-foreground"
+                  >
                     <div className="flex flex-col items-center justify-center gap-2">
-                      <Loader2 className="h-6 w-6 animate-spin text-[#C2683E]" />
+                      <Loader2 className="h-6 w-6 animate-spin text-primary" />
                       <span>Cargando registros...</span>
                     </div>
                   </TableCell>
                 </TableRow>
               ) : logs.length === 0 ? (
-                <TableRow className="border-[#E6E0D1]">
-                  <TableCell colSpan={5} className="h-32 text-center text-[#6E7567]">
+                <TableRow className="border-border">
+                  <TableCell
+                    colSpan={5}
+                    className="h-32 text-center text-muted-foreground"
+                  >
                     <div className="flex flex-col items-center justify-center gap-2">
-                      <ScrollText className="h-6 w-6 text-[#9AA08F]" />
-                      <span>No hay registros que coincidan con los filtros.</span>
+                      <ScrollText className="h-6 w-6 text-muted-soft" />
+                      <span>
+                        No hay registros que coincidan con los filtros.
+                      </span>
                     </div>
                   </TableCell>
                 </TableRow>
@@ -651,19 +681,19 @@ export default function AnaliticasPage() {
                   <TableRow
                     key={log.id}
                     onClick={() => setDetail(log)}
-                    className="border-[#E6E0D1] transition-colors hover:bg-[#F4F0E6] group cursor-pointer"
+                    className="border-border transition-colors hover:bg-background group cursor-pointer"
                   >
-                    <TableCell className="text-[#6E7567] pl-6">
+                    <TableCell className="text-muted-foreground pl-6">
                       {formatDateTime(log.performedAt)}
                     </TableCell>
-                    <TableCell className="font-medium text-[#1E251A] group-hover:text-[#C2683E] transition-colors">
+                    <TableCell className="font-medium text-foreground group-hover:text-primary transition-colors">
                       {employeeName(log.employee)}
                     </TableCell>
                     <TableCell>{getActionBadge(log.action.name)}</TableCell>
-                    <TableCell className="text-[#6E7567]">
+                    <TableCell className="text-muted-foreground">
                       {ENTITY_LABELS[log.tableName] ?? log.tableName}
                     </TableCell>
-                    <TableCell className="text-right pr-6 text-[#6E7567]">
+                    <TableCell className="text-right pr-6 text-muted-foreground">
                       #{log.recordId}
                     </TableCell>
                   </TableRow>
@@ -672,7 +702,7 @@ export default function AnaliticasPage() {
             </TableBody>
           </Table>
           {!isLoadingLogs && logsTotal > 0 && (
-            <div className="px-6 py-4 border-t border-[#E6E0D1]">
+            <div className="px-6 py-4 border-t border-border">
               <PaginationControls
                 total={logsTotal}
                 hasPrev={logsCursorStack.length > 1}
@@ -693,12 +723,12 @@ export default function AnaliticasPage() {
           if (!open) setDetail(null);
         }}
       >
-        <DialogContent className="sm:max-w-[620px] rounded-2xl bg-white border-[#E6E0D1] text-[#1E251A]">
+        <DialogContent className="sm:max-w-[620px] rounded-2xl bg-card border-border text-foreground">
           <DialogHeader>
-            <DialogTitle className="text-xl text-[#1E251A]">
+            <DialogTitle className="text-xl text-foreground">
               Detalle del registro
             </DialogTitle>
-            <DialogDescription className="text-[#6E7567]">
+            <DialogDescription className="text-muted-foreground">
               {detail
                 ? `${ACTION_LABELS[detail.action.name as ActionName] ?? detail.action.name} sobre ${ENTITY_LABELS[detail.tableName] ?? detail.tableName} #${detail.recordId}`
                 : ""}
@@ -708,16 +738,20 @@ export default function AnaliticasPage() {
           {detail && (
             <div className="flex flex-col gap-4 mt-2">
               {/* Metadatos */}
-              <div className="bg-[#F4F0E6] rounded-xl p-4 grid grid-cols-2 gap-3 text-sm">
+              <div className="bg-background rounded-xl p-4 grid grid-cols-2 gap-3 text-sm">
                 <div className="flex flex-col">
-                  <span className="text-xs text-[#6E7567]">Empleado</span>
-                  <span className="font-semibold text-[#1E251A]">
+                  <span className="text-xs text-muted-foreground">
+                    Empleado
+                  </span>
+                  <span className="font-semibold text-foreground">
                     {employeeName(detail.employee)}
                   </span>
                 </div>
                 <div className="flex flex-col">
-                  <span className="text-xs text-[#6E7567]">Fecha y hora</span>
-                  <span className="font-semibold text-[#1E251A]">
+                  <span className="text-xs text-muted-foreground">
+                    Fecha y hora
+                  </span>
+                  <span className="font-semibold text-foreground">
                     {formatDateTime(detail.performedAt)}
                   </span>
                 </div>
@@ -726,29 +760,29 @@ export default function AnaliticasPage() {
               {/* Antes / Después */}
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div className="flex flex-col gap-1.5">
-                  <span className="text-sm font-semibold text-[#6E7567]">
+                  <span className="text-sm font-semibold text-muted-foreground">
                     Antes
                   </span>
                   {formatJsonValue(detail.previousValue) ? (
-                    <pre className="text-xs bg-[#F4F0E6] border border-[#E6E0D1] rounded-xl p-3 overflow-auto max-h-[280px] whitespace-pre-wrap break-words text-[#1E251A]">
+                    <pre className="text-xs bg-background border border-border rounded-xl p-3 overflow-auto max-h-[280px] whitespace-pre-wrap break-words text-foreground">
                       {formatJsonValue(detail.previousValue)}
                     </pre>
                   ) : (
-                    <p className="text-xs text-[#6E7567] bg-[#F4F0E6] border border-[#E6E0D1] rounded-xl p-3">
+                    <p className="text-xs text-muted-foreground bg-background border border-border rounded-xl p-3">
                       Sin datos previos.
                     </p>
                   )}
                 </div>
                 <div className="flex flex-col gap-1.5">
-                  <span className="text-sm font-semibold text-[#6E7567]">
+                  <span className="text-sm font-semibold text-muted-foreground">
                     Después
                   </span>
                   {formatJsonValue(detail.newValue) ? (
-                    <pre className="text-xs bg-[#F4F0E6] border border-[#E6E0D1] rounded-xl p-3 overflow-auto max-h-[280px] whitespace-pre-wrap break-words text-[#1E251A]">
+                    <pre className="text-xs bg-background border border-border rounded-xl p-3 overflow-auto max-h-[280px] whitespace-pre-wrap break-words text-foreground">
                       {formatJsonValue(detail.newValue)}
                     </pre>
                   ) : (
-                    <p className="text-xs text-[#6E7567] bg-[#F4F0E6] border border-[#E6E0D1] rounded-xl p-3">
+                    <p className="text-xs text-muted-foreground bg-background border border-border rounded-xl p-3">
                       Sin datos nuevos.
                     </p>
                   )}

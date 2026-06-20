@@ -102,7 +102,7 @@ export function AppSidebar() {
     .filter(Boolean)
     .join(" ");
   const displayName = fullName || user?.username || "Usuario";
-  const roleLabel = user ? ROLE_LABELS[user.role] ?? user.role : "Sin rol";
+  const roleLabel = user ? (ROLE_LABELS[user.role] ?? user.role) : "Sin rol";
 
   const filteredItems = items.filter((item) => {
     if (!user) return false;
@@ -110,53 +110,44 @@ export function AppSidebar() {
   });
 
   return (
-    <aside
-      className="relative flex w-[248px] flex-none flex-col overflow-hidden"
-      style={{ background: "linear-gradient(180deg,#173021 0%,#102017 100%)" }}
-    >
+    <aside className="relative flex w-[248px] flex-none flex-col overflow-hidden bg-sidebar bg-[image:var(--gradient-sidebar)] text-sidebar-foreground">
       <svg
         viewBox="0 0 248 260"
         preserveAspectRatio="none"
         className="pointer-events-none absolute bottom-0 left-0 h-[300px] w-full opacity-[0.16]"
       >
-        <g fill="none" stroke="#C2683E" strokeWidth="1.2">
+        <g fill="none" className="stroke-primary" strokeWidth="1.2">
           <path d="M-20,210 C40,170 90,250 150,200 C200,160 240,210 280,180" />
           <path d="M-20,235 C40,195 90,275 150,225 C200,185 240,235 280,205" />
           <path d="M-20,185 C40,145 90,225 150,175 C200,135 240,185 280,155" />
         </g>
-        <g fill="none" stroke="#7FA88A" strokeWidth="1">
+        <g fill="none" className="stroke-sage" strokeWidth="1">
           <path d="M-20,160 C40,120 90,200 150,150 C200,110 240,160 280,130" />
           <path d="M-20,135 C40,95 90,175 150,125 C200,85 240,135 280,105" />
         </g>
       </svg>
 
       <div className="flex items-center gap-[11px] px-[22px] pb-[18px] pt-[22px]">
-        <div
-          className="flex h-[38px] w-[38px] flex-none items-center justify-center rounded-[11px]"
-          style={{
-            background: "linear-gradient(150deg,#C2683E,#A8552F)",
-            boxShadow: "0 4px 12px rgba(168,85,47,0.35)",
-          }}
-        >
+        <div className="flex h-[38px] w-[38px] flex-none items-center justify-center rounded-[11px] bg-[image:var(--gradient-brand)] shadow-brand-sm">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-            <circle cx="16.5" cy="7" r="2.6" fill="#F6E2C8" />
-            <path d="M2 19 L8.5 9 L13 15.5 L16 11 L22 19 Z" fill="#FBF6ED" />
+            <circle cx="16.5" cy="7" r="2.6" className="fill-brand-sand" />
+            <path
+              d="M2 19 L8.5 9 L13 15.5 L16 11 L22 19 Z"
+              className="fill-brand-cream"
+            />
           </svg>
         </div>
         <div>
-          <div
-            className="text-[19px] font-extrabold leading-none tracking-[-0.02em] text-[#FBF6ED]"
-            style={{ fontFamily: "var(--font-bricolage), 'Bricolage Grotesque', sans-serif" }}
-          >
+          <div className="font-heading text-[19px] font-extrabold leading-none tracking-[-0.02em] text-brand-cream">
             Mirador
           </div>
-          <div className="mt-[3px] text-[10.5px] uppercase tracking-[0.16em] text-[#7E9683]">
+          <div className="mt-[3px] text-[10.5px] uppercase tracking-[0.16em] text-sage">
             Hotel Suite
           </div>
         </div>
       </div>
 
-      <div className="mx-2 mb-2 mt-2 px-[14px] pt-[6px] text-[10.5px] font-semibold uppercase tracking-[0.14em] text-[#5E7563]">
+      <div className="mx-2 mb-2 mt-2 px-[14px] pt-[6px] text-[10.5px] font-semibold uppercase tracking-[0.14em] text-sage-muted">
         Operación
       </div>
 
@@ -169,8 +160,8 @@ export function AppSidebar() {
               href={item.url}
               className={`flex w-full items-center gap-[12px] rounded-[11px] px-[13px] py-[10px] text-[14px] font-semibold transition-colors ${
                 isActive
-                  ? "bg-[#25402E] text-[#FBF6ED]"
-                  : "text-[#9DB0A1] hover:bg-[#1c3324] hover:text-[#FBF6ED]"
+                  ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                  : "text-sage-nav hover:bg-sidebar-accent/60 hover:text-brand-cream"
               }`}
             >
               <item.icon width={18} height={18} strokeWidth={1.9} />
@@ -183,21 +174,23 @@ export function AppSidebar() {
       <div className="relative z-2 mt-auto p-[14px]">
         <button
           onClick={handleLogout}
-          className="flex w-full items-center gap-[11px] rounded-[14px] border border-white/8 bg-white/6 p-[11px] text-left transition-colors hover:bg-white/10"
+          className="flex w-full items-center gap-[11px] rounded-[14px] border border-sidebar-border bg-sidebar-surface p-[11px] text-left transition-colors hover:bg-sidebar-hover"
         >
-          <div
-            className="flex h-[36px] w-[36px] flex-none items-center justify-center rounded-[10px] text-[14px] font-bold text-white"
-            style={{ background: "#3C7A8A" }}
-          >
+          <div className="flex h-[36px] w-[36px] flex-none items-center justify-center rounded-[10px] bg-avatar text-[14px] font-bold text-primary-foreground">
             {getInitials(displayName)}
           </div>
           <div className="min-w-0 flex-1">
-            <div className="truncate text-[13.5px] font-semibold capitalize text-[#EFE9DC]">
+            <div className="truncate text-[13.5px] font-semibold capitalize text-sidebar-foreground">
               {displayName}
             </div>
-            <div className="text-[11.5px] text-[#7E9683]">{roleLabel}</div>
+            <div className="text-[11.5px] text-sage">{roleLabel}</div>
           </div>
-          <ChevronsUpDown width={16} height={16} strokeWidth={2} color="#7E9683" />
+          <ChevronsUpDown
+            width={16}
+            height={16}
+            strokeWidth={2}
+            className="text-sage"
+          />
         </button>
       </div>
     </aside>

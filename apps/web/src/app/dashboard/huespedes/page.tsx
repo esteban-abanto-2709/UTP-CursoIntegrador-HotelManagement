@@ -180,7 +180,10 @@ export default function HuespedesPage() {
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={6} className="h-32 text-center text-muted-foreground">
+                <TableCell
+                  colSpan={6}
+                  className="h-32 text-center text-muted-foreground"
+                >
                   <div className="flex flex-col items-center justify-center gap-2">
                     <Loader2 className="h-6 w-6 animate-spin text-primary" />
                     <span>Cargando huéspedes...</span>
@@ -189,7 +192,10 @@ export default function HuespedesPage() {
               </TableRow>
             ) : guests.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="h-32 text-center text-muted-foreground">
+                <TableCell
+                  colSpan={6}
+                  className="h-32 text-center text-muted-foreground"
+                >
                   {searchTerm
                     ? "No se encontraron huéspedes con esos criterios."
                     : "No hay huéspedes registrados aún."}
@@ -304,7 +310,8 @@ export default function HuespedesPage() {
                             {getRoomTypeLabel(stay.room.type)}
                           </span>
                           <span className="text-xs text-muted-foreground">
-                            {formatDate(stay.checkIn)} → {formatDate(stay.checkOut)}
+                            {formatDate(stay.checkIn)} →{" "}
+                            {formatDate(stay.checkOut)}
                           </span>
                         </div>
                         <ReservationStatusBadge status={stay.status} />

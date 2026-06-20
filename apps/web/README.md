@@ -11,15 +11,15 @@ Interfaz web del PMS Mirador Hotel Suite. Dark Theme Premium construido con Next
 
 ## Tech Stack
 
-| Herramienta | Uso |
-|---|---|
-| Next.js 16 (App Router) | Framework |
-| Tailwind CSS v4 | Estilos |
-| Shadcn UI | Componentes base |
-| Zustand | Estado global (auth) |
-| Axios | HTTP client con interceptores JWT |
-| React Hook Form + Zod | Formularios y validación |
-| pnpm 10.17.x | Gestor de paquetes |
+| Herramienta             | Uso                               |
+| ----------------------- | --------------------------------- |
+| Next.js 16 (App Router) | Framework                         |
+| Tailwind CSS v4         | Estilos                           |
+| Shadcn UI               | Componentes base                  |
+| Zustand                 | Estado global (auth)              |
+| Axios                   | HTTP client con interceptores JWT |
+| React Hook Form + Zod   | Formularios y validación          |
+| pnpm 10.17.x            | Gestor de paquetes                |
 
 ## Setup Local
 
@@ -43,8 +43,8 @@ Abrir [http://localhost:3000](http://localhost:3000).
 
 ## Variables de Entorno
 
-| Variable | Descripción | Ejemplo |
-|---|---|---|
+| Variable              | Descripción          | Ejemplo                 |
+| --------------------- | -------------------- | ----------------------- |
 | `NEXT_PUBLIC_API_URL` | URL base del backend | `http://localhost:4000` |
 
 En producción (Vercel), apunta a la URL del backend desplegado.
@@ -54,6 +54,7 @@ En producción (Vercel), apunta a la URL del backend desplegado.
 El proyecto se despliega automáticamente desde la rama `main`. Vercel detecta pnpm por el `pnpm-lock.yaml`.
 
 Configurar en el dashboard de Vercel:
+
 - **Root Directory:** `apps/web`
 - **Framework Preset:** Next.js
 - **Environment Variables:** `NEXT_PUBLIC_API_URL` → URL del backend en producción

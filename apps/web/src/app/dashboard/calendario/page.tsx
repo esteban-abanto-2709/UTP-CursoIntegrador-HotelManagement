@@ -53,8 +53,8 @@ export default function CalendarioPage() {
           Calendario de Ocupación
         </h2>
         <p className="text-muted-foreground mt-2 text-base">
-          Visualiza de un vistazo qué habitaciones están ocupadas y en qué fechas.
-          Cada fila es un cuarto; cada barra, una reserva.
+          Visualiza de un vistazo qué habitaciones están ocupadas y en qué
+          fechas. Cada fila es un cuarto; cada barra, una reserva.
         </p>
       </div>
 

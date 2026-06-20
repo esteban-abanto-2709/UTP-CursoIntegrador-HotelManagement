@@ -10,7 +10,17 @@ import { getRoomTypeLabel } from "@/lib/room";
 import type { ReservationStatus } from "@/lib/reservation";
 import { ReservationStatusBadge } from "@/components/reservation-status-badge";
 import { toast } from "sonner";
-import { Search, Plus, Loader2, LogIn, LogOut, Pencil, Ban, X, Eye } from "lucide-react";
+import {
+  Search,
+  Plus,
+  Loader2,
+  LogIn,
+  LogOut,
+  Pencil,
+  Ban,
+  X,
+  Eye,
+} from "lucide-react";
 
 import {
   Table,
@@ -109,7 +119,9 @@ export default function ReservasPage() {
   const [editingReservation, setEditingReservation] =
     useState<ReservationForEdit | null>(null);
   const [actioningId, setActioningId] = useState<number | null>(null);
-  const [checkoutTarget, setCheckoutTarget] = useState<Reservation | null>(null);
+  const [checkoutTarget, setCheckoutTarget] = useState<Reservation | null>(
+    null,
+  );
   const [cancelTarget, setCancelTarget] = useState<Reservation | null>(null);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("CASH");
   const [checkoutCharges, setCheckoutCharges] = useState<RoomCharge[]>([]);
@@ -258,7 +270,9 @@ export default function ReservasPage() {
     if (!cancelTarget) return;
     setActioningId(cancelTarget.id);
     try {
-      const res = await api.patch(routes.api.reservations.cancel(cancelTarget.id));
+      const res = await api.patch(
+        routes.api.reservations.cancel(cancelTarget.id),
+      );
       toast.success(res.data.message ?? "Reserva cancelada");
       setCancelTarget(null);
       fetchReservations();
@@ -291,7 +305,7 @@ export default function ReservasPage() {
 
         <button
           onClick={handleNew}
-          className="flex items-center gap-2 bg-zinc-900 text-white px-5 py-2.5 rounded-xl font-semibold hover:bg-zinc-800 transition-all shadow-md active:scale-95"
+          className="flex items-center gap-2 bg-primary text-primary-foreground px-5 py-2.5 rounded-xl font-semibold hover:bg-primary-hover transition-all shadow-md active:scale-95"
         >
           <Plus className="w-5 h-5" /> Nueva Reserva
         </button>
@@ -406,7 +420,10 @@ export default function ReservasPage() {
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={7} className="h-32 text-center text-muted-foreground">
+                <TableCell
+                  colSpan={7}
+                  className="h-32 text-center text-muted-foreground"
+                >
                   <div className="flex flex-col items-center justify-center gap-2">
                     <Loader2 className="h-6 w-6 animate-spin text-primary" />
                     <span>Cargando reservas...</span>
@@ -415,12 +432,13 @@ export default function ReservasPage() {
               </TableRow>
             ) : reservations.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="h-32 text-center text-muted-foreground">
-                  {hasActiveFilters ? (
-                    "No se encontraron reservas con esos criterios."
-                  ) : (
-                    "No hay reservas registradas aún."
-                  )}
+                <TableCell
+                  colSpan={7}
+                  className="h-32 text-center text-muted-foreground"
+                >
+                  {hasActiveFilters
+                    ? "No se encontraron reservas con esos criterios."
+                    : "No hay reservas registradas aún."}
                 </TableCell>
               </TableRow>
             ) : (
@@ -478,7 +496,7 @@ export default function ReservasPage() {
                           onClick={() => setCancelTarget(res)}
                           disabled={actioningId === res.id}
                           title="Cancelar reserva"
-                          className="inline-flex items-center justify-center w-8 h-8 bg-background text-red-500 border border-red-500/20 rounded-lg hover:bg-red-500/10 hover:border-red-500/40 transition-all active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed"
+                          className="inline-flex items-center justify-center w-8 h-8 bg-background text-destructive border border-destructive/20 rounded-lg hover:bg-destructive/10 hover:border-destructive/40 transition-all active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed"
                         >
                           <Ban className="w-3.5 h-3.5" />
                         </button>
@@ -625,7 +643,7 @@ export default function ReservasPage() {
                             <span className="text-muted-foreground">
                               Descuento ({discountPct.toFixed(0)}%)
                             </span>
-                            <span className="font-semibold text-red-500">
+                            <span className="font-semibold text-destructive">
                               − S/. {discountAmount.toFixed(2)}
                             </span>
                           </div>
@@ -755,7 +773,7 @@ export default function ReservasPage() {
                 <button
                   onClick={confirmCancel}
                   disabled={actioningId === cancelTarget.id}
-                  className="flex-1 h-11 rounded-lg bg-red-500 text-white font-semibold shadow hover:bg-red-600 transition-all active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  className="flex-1 h-11 rounded-lg bg-destructive text-primary-foreground font-semibold shadow hover:bg-destructive/90 transition-all active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
                   {actioningId === cancelTarget.id ? (
                     <>

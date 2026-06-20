@@ -91,7 +91,8 @@ export default function OccupancyTimeline({
 
   const windowEnd = addDays(windowStart, WINDOW_DAYS);
   const days = useMemo(
-    () => Array.from({ length: WINDOW_DAYS }, (_, i) => addDays(windowStart, i)),
+    () =>
+      Array.from({ length: WINDOW_DAYS }, (_, i) => addDays(windowStart, i)),
     [windowStart],
   );
 
@@ -156,7 +157,9 @@ export default function OccupancyTimeline({
         <div className="flex items-center gap-4 text-xs text-muted-foreground bg-muted/40 px-3 py-2 rounded-xl border border-border/50">
           {(["PENDING", "ACTIVE", "COMPLETED"] as const).map((s) => (
             <div key={s} className="flex items-center gap-1.5">
-              <span className={`w-2.5 h-2.5 rounded-full ${STATUS_STYLES[s].dot}`} />
+              <span
+                className={`w-2.5 h-2.5 rounded-full ${STATUS_STYLES[s].dot}`}
+              />
               <span className="font-medium">{STATUS_STYLES[s].label}</span>
             </div>
           ))}
@@ -234,7 +237,10 @@ export default function OccupancyTimeline({
                         <div
                           key={bar.id}
                           title={`${bar.guestName} · ${bar.rangeLabel}`}
-                          style={{ left: `${bar.left}%`, width: `${bar.width}%` }}
+                          style={{
+                            left: `${bar.left}%`,
+                            width: `${bar.width}%`,
+                          }}
                           className={`absolute top-1/2 -translate-y-1/2 h-7 flex items-center px-2 rounded-md text-xs font-semibold overflow-hidden ${style.bar} ${
                             bar.clippedStart ? "rounded-l-none" : ""
                           } ${bar.clippedEnd ? "rounded-r-none" : ""}`}

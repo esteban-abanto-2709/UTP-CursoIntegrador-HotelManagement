@@ -15,7 +15,10 @@ export function formatCorrelativo(paymentId: number): string {
   return `${EMPRESA.serie} - ${String(paymentId).padStart(7, "0")}`;
 }
 
-export function igvBreakdown(grandTotal: number): { base: number; igv: number } {
+export function igvBreakdown(grandTotal: number): {
+  base: number;
+  igv: number;
+} {
   const base = Math.round((grandTotal / (1 + IGV_RATE)) * 100) / 100;
   const igv = Math.round((grandTotal - base) * 100) / 100;
   return { base, igv };

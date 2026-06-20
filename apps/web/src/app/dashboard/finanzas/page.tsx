@@ -74,7 +74,9 @@ export default function FinanzasPage() {
       const res = await api.get(routes.api.analytics.annualRevenue());
       setAnnual(res.data);
     } catch (error) {
-      toast.error(getApiErrorMessage(error, "Error al cargar los ingresos anuales"));
+      toast.error(
+        getApiErrorMessage(error, "Error al cargar los ingresos anuales"),
+      );
     } finally {
       setIsLoadingAnnual(false);
     }
@@ -86,7 +88,9 @@ export default function FinanzasPage() {
       const res = await api.get(routes.api.analytics.monthlyRevenue(year));
       setMonthly(res.data);
     } catch (error) {
-      toast.error(getApiErrorMessage(error, "Error al cargar los ingresos mensuales"));
+      toast.error(
+        getApiErrorMessage(error, "Error al cargar los ingresos mensuales"),
+      );
     } finally {
       setIsLoadingMonthly(false);
     }
@@ -156,33 +160,32 @@ export default function FinanzasPage() {
   }
 
   return (
-    <div
-      className="-m-6 min-h-full p-6 md:-m-8 md:p-8"
-      style={{ background: "#F4F0E6" }}
-    >
+    <div className="-m-6 min-h-full bg-background p-6 md:-m-8 md:p-8">
       <div className="flex flex-col gap-6 max-w-7xl mx-auto w-full animate-in fade-in slide-in-from-bottom-4 duration-500">
         {/* Cabecera */}
-        <div className="flex flex-col gap-4 border-b border-[#E6E0D1] pb-6 sm:flex-row sm:items-end sm:justify-between">
+        <div className="flex flex-col gap-4 border-b border-border pb-6 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <h2
-              className="text-3xl font-bold tracking-tight text-[#1E251A] flex items-center gap-2"
+              className="text-3xl font-bold tracking-tight text-foreground flex items-center gap-2"
               style={{ fontFamily: BRICOLAGE }}
             >
-              <Wallet className="h-8 w-8 text-[#C2683E]" />
+              <Wallet className="h-8 w-8 text-primary" />
               Finanzas
             </h2>
-            <p className="text-[#6E7567] mt-2 text-base">
-              Ingresos brutos, pagos procesados y descuentos del hotel, derivados
-              de los pagos cobrados a los huéspedes.
+            <p className="text-muted-foreground mt-2 text-base">
+              Ingresos brutos, pagos procesados y descuentos del hotel,
+              derivados de los pagos cobrados a los huéspedes.
             </p>
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-semibold text-[#6E7567]">Año</label>
+            <label className="text-sm font-semibold text-muted-foreground">
+              Año
+            </label>
             <select
               value={selectedYear}
               onChange={(e) => setSelectedYear(Number(e.target.value))}
-              className="h-11 px-3 rounded-xl border border-[#E6E0D1] bg-white text-[#1E251A] outline-none transition-all cursor-pointer focus:border-[#C2683E] focus:ring-2 focus:ring-[#C2683E]/20"
+              className="h-11 px-3 rounded-xl border border-border bg-card text-foreground outline-none transition-all cursor-pointer focus:border-primary focus:ring-2 focus:ring-primary/20"
             >
               {yearOptions.map((year) => (
                 <option key={year} value={year}>
@@ -226,14 +229,14 @@ export default function FinanzasPage() {
         </div>
 
         {/* Ingreso mensual */}
-        <div className="bg-white rounded-2xl border border-[#E6E0D1] shadow-sm p-5">
+        <div className="bg-card rounded-2xl border border-border shadow-sm p-5">
           <h3
-            className="text-lg font-semibold text-[#1E251A]"
+            className="text-lg font-semibold text-foreground"
             style={{ fontFamily: BRICOLAGE }}
           >
             Ingreso bruto mensual · {selectedYear}
           </h3>
-          <p className="text-sm text-[#6E7567] mt-1 mb-4">
+          <p className="text-sm text-muted-foreground mt-1 mb-4">
             Suma de los pagos cobrados en cada mes.
           </p>
           <ChartFrame loading={isLoadingMonthly}>
@@ -248,7 +251,9 @@ export default function FinanzasPage() {
               />
               <Tooltip
                 formatter={(value) => [formatPEN(Number(value)), "Ingreso"]}
-                cursor={{ fill: "rgba(194,104,62,0.08)" }}
+                cursor={{
+                  fill: "color-mix(in srgb, var(--primary) 8%, transparent)",
+                }}
                 contentStyle={tooltipStyle}
               />
               <Bar dataKey="ingreso" fill={ACCENT} radius={[6, 6, 0, 0]} />
@@ -257,17 +262,20 @@ export default function FinanzasPage() {
         </div>
 
         {/* Ingreso anual */}
-        <div className="bg-white rounded-2xl border border-[#E6E0D1] shadow-sm p-5 mb-8">
+        <div className="bg-card rounded-2xl border border-border shadow-sm p-5 mb-8">
           <h3
-            className="text-lg font-semibold text-[#1E251A]"
+            className="text-lg font-semibold text-foreground"
             style={{ fontFamily: BRICOLAGE }}
           >
             Ingreso bruto anual
           </h3>
-          <p className="text-sm text-[#6E7567] mt-1 mb-4">
+          <p className="text-sm text-muted-foreground mt-1 mb-4">
             Evolución del ingreso bruto por año.
           </p>
-          <ChartFrame loading={isLoadingAnnual} empty={annualChartData.length === 0}>
+          <ChartFrame
+            loading={isLoadingAnnual}
+            empty={annualChartData.length === 0}
+          >
             <LineChart data={annualChartData}>
               <CartesianGrid strokeDasharray="3 3" stroke={GRID} />
               <XAxis dataKey="name" stroke={AXIS} fontSize={12} />

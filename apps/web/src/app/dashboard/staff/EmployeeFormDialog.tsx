@@ -48,7 +48,10 @@ function buildSchema(isEdit: boolean) {
             .refine((v) => v === "" || v.length >= 8, "Mínimo 8 caracteres")
         : z.string().min(8, "Mínimo 8 caracteres"),
       confirmPassword: z.string(),
-      dni: z.string().min(8, "Mínimo 8 caracteres").max(12, "Máximo 12 caracteres"),
+      dni: z
+        .string()
+        .min(8, "Mínimo 8 caracteres")
+        .max(12, "Máximo 12 caracteres"),
       nombres: z.string().min(2, "Campo requerido"),
       apellidoPaterno: z.string().min(2, "Campo requerido"),
       apellidoMaterno: z.string().min(2, "Campo requerido"),
@@ -114,9 +117,10 @@ export function EmployeeFormDialog({
   const isEdit = employee !== null;
 
   // MANAGERs no pueden crear otro Manager
-  const cargos = currentUser?.role === "MANAGER"
-    ? ALL_CARGOS.filter((c) => c !== "Manager")
-    : ALL_CARGOS;
+  const cargos =
+    currentUser?.role === "MANAGER"
+      ? ALL_CARGOS.filter((c) => c !== "Manager")
+      : ALL_CARGOS;
 
   const schema = useMemo(() => buildSchema(isEdit), [isEdit]);
 
@@ -187,8 +191,10 @@ export function EmployeeFormDialog({
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pt-1">
-
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="space-y-6 pt-1"
+          >
             {/* ── Acceso al Sistema ────────────────────────── */}
             <section className="space-y-4">
               <p className="text-xs font-semibold uppercase tracking-widest text-primary">
@@ -230,7 +236,11 @@ export function EmployeeFormDialog({
                             className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                             tabIndex={-1}
                           >
-                            {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                            {showPassword ? (
+                              <EyeOff size={16} />
+                            ) : (
+                              <Eye size={16} />
+                            )}
                           </button>
                         </div>
                       </FormControl>
@@ -259,7 +269,11 @@ export function EmployeeFormDialog({
                             className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                             tabIndex={-1}
                           >
-                            {showConfirm ? <EyeOff size={16} /> : <Eye size={16} />}
+                            {showConfirm ? (
+                              <EyeOff size={16} />
+                            ) : (
+                              <Eye size={16} />
+                            )}
                           </button>
                         </div>
                       </FormControl>
@@ -299,7 +313,12 @@ export function EmployeeFormDialog({
                     <FormItem>
                       <FormLabel>Fecha de Nacimiento</FormLabel>
                       <FormControl>
-                        <Input type="date" className="[color-scheme:light]" disabled={isSubmitting} {...field} />
+                        <Input
+                          type="date"
+                          className="[color-scheme:light]"
+                          disabled={isSubmitting}
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -366,7 +385,11 @@ export function EmployeeFormDialog({
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Cargo / Puesto</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value} disabled={isSubmitting}>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                        disabled={isSubmitting}
+                      >
                         <FormControl>
                           <SelectTrigger className="w-full">
                             <SelectValue placeholder="Selecciona un cargo" />
@@ -390,7 +413,11 @@ export function EmployeeFormDialog({
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Turno</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value} disabled={isSubmitting}>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                        disabled={isSubmitting}
+                      >
                         <FormControl>
                           <SelectTrigger className="w-full">
                             <SelectValue placeholder="Selecciona un turno" />
@@ -415,7 +442,12 @@ export function EmployeeFormDialog({
                     <FormItem>
                       <FormLabel>Fecha de Inicio</FormLabel>
                       <FormControl>
-                        <Input type="date" className="[color-scheme:light]" disabled={isSubmitting} {...field} />
+                        <Input
+                          type="date"
+                          className="[color-scheme:light]"
+                          disabled={isSubmitting}
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -453,7 +485,11 @@ export function EmployeeFormDialog({
                     <FormItem>
                       <FormLabel>Correo Electrónico</FormLabel>
                       <FormControl>
-                        <Input type="email" disabled={isSubmitting} {...field} />
+                        <Input
+                          type="email"
+                          disabled={isSubmitting}
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>

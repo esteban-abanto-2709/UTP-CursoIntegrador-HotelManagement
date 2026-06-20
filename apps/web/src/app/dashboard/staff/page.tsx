@@ -113,19 +113,19 @@ export default function StaffPage() {
     switch (role) {
       case "OWNER":
         return (
-          <span className="inline-flex items-center rounded-full bg-indigo-500/10 px-2 py-1 text-xs font-medium text-indigo-400 ring-1 ring-inset ring-indigo-500/20">
+          <span className="inline-flex items-center rounded-full bg-primary/10 px-2 py-1 text-xs font-medium text-primary ring-1 ring-inset ring-primary/20">
             PROPIETARIO
           </span>
         );
       case "MANAGER":
         return (
-          <span className="inline-flex items-center rounded-full bg-purple-500/10 px-2 py-1 text-xs font-medium text-purple-400 ring-1 ring-inset ring-purple-500/20">
+          <span className="inline-flex items-center rounded-full bg-status-occupied-bg px-2 py-1 text-xs font-medium text-status-occupied-text ring-1 ring-inset ring-status-occupied-border">
             GERENTE
           </span>
         );
       case "EMPLOYEE":
         return (
-          <span className="inline-flex items-center rounded-full bg-sky-500/10 px-2 py-1 text-xs font-medium text-sky-400 ring-1 ring-inset ring-sky-500/20">
+          <span className="inline-flex items-center rounded-full bg-status-available-bg px-2 py-1 text-xs font-medium text-status-available-text ring-1 ring-inset ring-status-available-border">
             EMPLEADO
           </span>
         );
@@ -137,9 +137,12 @@ export default function StaffPage() {
   const getTurnoBadge = (turno: string | null) => {
     if (!turno) return <span className="text-muted-foreground">—</span>;
     const colors: Record<string, string> = {
-      MAÑANA: "bg-amber-500/10 text-amber-400 ring-amber-500/20",
-      TARDE: "bg-orange-500/10 text-orange-400 ring-orange-500/20",
-      NOCHE: "bg-violet-500/10 text-violet-400 ring-violet-500/20",
+      MAÑANA:
+        "bg-status-cleaning-bg text-status-cleaning-text ring-status-cleaning-border",
+      TARDE:
+        "bg-status-maintenance-bg text-status-maintenance-text ring-status-maintenance-border",
+      NOCHE:
+        "bg-status-occupied-bg text-status-occupied-text ring-status-occupied-border",
     };
     const labels: Record<string, string> = {
       MAÑANA: "Mañana",
@@ -147,7 +150,9 @@ export default function StaffPage() {
       NOCHE: "Noche",
     };
     return (
-      <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ring-1 ring-inset ${colors[turno] ?? ""}`}>
+      <span
+        className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ring-1 ring-inset ${colors[turno] ?? ""}`}
+      >
         {labels[turno] ?? turno}
       </span>
     );
@@ -189,18 +194,33 @@ export default function StaffPage() {
         <Table>
           <TableHeader className="bg-muted/50">
             <TableRow className="border-border hover:bg-transparent">
-              <TableHead className="text-muted-foreground font-semibold">Nombre</TableHead>
-              <TableHead className="text-muted-foreground font-semibold">Usuario</TableHead>
-              <TableHead className="text-muted-foreground font-semibold">Cargo</TableHead>
-              <TableHead className="text-muted-foreground font-semibold">Turno</TableHead>
-              <TableHead className="text-muted-foreground font-semibold">Rol</TableHead>
-              <TableHead className="text-muted-foreground font-semibold text-right">Acciones</TableHead>
+              <TableHead className="text-muted-foreground font-semibold">
+                Nombre
+              </TableHead>
+              <TableHead className="text-muted-foreground font-semibold">
+                Usuario
+              </TableHead>
+              <TableHead className="text-muted-foreground font-semibold">
+                Cargo
+              </TableHead>
+              <TableHead className="text-muted-foreground font-semibold">
+                Turno
+              </TableHead>
+              <TableHead className="text-muted-foreground font-semibold">
+                Rol
+              </TableHead>
+              <TableHead className="text-muted-foreground font-semibold text-right">
+                Acciones
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {isLoading ? (
               <TableRow className="border-border hover:bg-transparent">
-                <TableCell colSpan={6} className="h-32 text-center text-muted-foreground">
+                <TableCell
+                  colSpan={6}
+                  className="h-32 text-center text-muted-foreground"
+                >
                   <div className="flex flex-col items-center justify-center gap-2">
                     <Loader2 className="h-6 w-6 animate-spin text-primary" />
                     <span>Cargando personal...</span>
@@ -209,22 +229,33 @@ export default function StaffPage() {
               </TableRow>
             ) : employees.length === 0 ? (
               <TableRow className="border-border hover:bg-transparent">
-                <TableCell colSpan={6} className="h-32 text-center text-muted-foreground font-medium">
+                <TableCell
+                  colSpan={6}
+                  className="h-32 text-center text-muted-foreground font-medium"
+                >
                   No se encontraron empleados en el sistema.
                 </TableCell>
               </TableRow>
             ) : (
               employees.map((e) => (
-                <TableRow key={e.id} className="border-border hover:bg-muted/30 transition-colors">
+                <TableRow
+                  key={e.id}
+                  className="border-border hover:bg-muted/30 transition-colors"
+                >
                   <TableCell className="font-medium text-foreground">
-                    {e.nombres
-                      ? `${e.nombres} ${e.apellidoPaterno ?? ""}`.trim()
-                      : <span className="text-muted-foreground">—</span>
-                    }
+                    {e.nombres ? (
+                      `${e.nombres} ${e.apellidoPaterno ?? ""}`.trim()
+                    ) : (
+                      <span className="text-muted-foreground">—</span>
+                    )}
                   </TableCell>
-                  <TableCell className="text-muted-foreground">{e.username}</TableCell>
                   <TableCell className="text-muted-foreground">
-                    {e.cargo ?? <span className="text-muted-foreground">—</span>}
+                    {e.username}
+                  </TableCell>
+                  <TableCell className="text-muted-foreground">
+                    {e.cargo ?? (
+                      <span className="text-muted-foreground">—</span>
+                    )}
                   </TableCell>
                   <TableCell>{getTurnoBadge(e.turno)}</TableCell>
                   <TableCell>{getRoleBadge(e.role)}</TableCell>

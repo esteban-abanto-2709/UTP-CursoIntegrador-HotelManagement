@@ -258,9 +258,7 @@ export default function LoginPage() {
               gap: 16,
             }}
           >
-            <label
-              style={{ display: "flex", flexDirection: "column", gap: 7 }}
-            >
+            <label style={{ display: "flex", flexDirection: "column", gap: 7 }}>
               <span
                 style={{ fontSize: 12.5, fontWeight: 600, color: "#3F463A" }}
               >
@@ -308,9 +306,7 @@ export default function LoginPage() {
               </div>
             </label>
 
-            <label
-              style={{ display: "flex", flexDirection: "column", gap: 7 }}
-            >
+            <label style={{ display: "flex", flexDirection: "column", gap: 7 }}>
               <span
                 style={{ fontSize: 12.5, fontWeight: 600, color: "#3F463A" }}
               >

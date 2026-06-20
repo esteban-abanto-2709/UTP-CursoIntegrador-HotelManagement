@@ -1,6 +1,12 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo, type ComponentType } from "react";
+import {
+  useState,
+  useEffect,
+  useCallback,
+  useMemo,
+  type ComponentType,
+} from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -87,19 +93,60 @@ interface StatusMeta {
   Icon: ComponentType<{ className?: string }>;
 }
 
+// Valores vía tokens CSS: el pill y el acento usan estilos dinámicos.
 const STATUS_META: Record<StatusKey, StatusMeta> = {
-  AVAILABLE: { label: "Disponible", bg: "#E3EDE0", fg: "#2C5638", accent: "#3C7A4E", dot: "#3C7A4E", Icon: Check },
-  OCCUPIED: { label: "Ocupada", bg: "#F2E2DA", fg: "#9A4226", accent: "#C2683E", dot: "#C2683E", Icon: User },
-  CLEANING: { label: "Limpieza", bg: "#DCEAEC", fg: "#27545F", accent: "#3C7A8A", dot: "#3C7A8A", Icon: Sparkles },
-  MAINTENANCE: { label: "Mantenim.", bg: "#F6ECD3", fg: "#876215", accent: "#C2932F", dot: "#C2932F", Icon: Wrench },
+  AVAILABLE: {
+    label: "Disponible",
+    bg: "var(--status-available-bg)",
+    fg: "var(--status-available-text)",
+    accent: "var(--status-available-icon-text)",
+    dot: "var(--status-available-dot)",
+    Icon: Check,
+  },
+  OCCUPIED: {
+    label: "Ocupada",
+    bg: "var(--status-occupied-bg)",
+    fg: "var(--status-occupied-text)",
+    accent: "var(--status-occupied-icon-text)",
+    dot: "var(--status-occupied-dot)",
+    Icon: User,
+  },
+  CLEANING: {
+    label: "Limpieza",
+    bg: "var(--status-cleaning-bg)",
+    fg: "var(--status-cleaning-text)",
+    accent: "var(--status-cleaning-icon-text)",
+    dot: "var(--status-cleaning-dot)",
+    Icon: Sparkles,
+  },
+  MAINTENANCE: {
+    label: "Mantenim.",
+    bg: "var(--status-maintenance-bg)",
+    fg: "var(--status-maintenance-text)",
+    accent: "var(--status-maintenance-icon-text)",
+    dot: "var(--status-maintenance-dot)",
+    Icon: Wrench,
+  },
 };
 
 const FILTER_KEYS = [
-  { key: "todas" as const, label: "Todas", dot: "#9AA08F" },
-  { key: "AVAILABLE" as const, label: "Disponible", dot: STATUS_META.AVAILABLE.dot },
+  { key: "todas" as const, label: "Todas", dot: "var(--muted-soft)" },
+  {
+    key: "AVAILABLE" as const,
+    label: "Disponible",
+    dot: STATUS_META.AVAILABLE.dot,
+  },
   { key: "OCCUPIED" as const, label: "Ocupada", dot: STATUS_META.OCCUPIED.dot },
-  { key: "CLEANING" as const, label: "Limpieza", dot: STATUS_META.CLEANING.dot },
-  { key: "MAINTENANCE" as const, label: "Mantenim.", dot: STATUS_META.MAINTENANCE.dot },
+  {
+    key: "CLEANING" as const,
+    label: "Limpieza",
+    dot: STATUS_META.CLEANING.dot,
+  },
+  {
+    key: "MAINTENANCE" as const,
+    label: "Mantenim.",
+    dot: STATUS_META.MAINTENANCE.dot,
+  },
 ];
 
 const bricolage = "var(--font-bricolage)";
@@ -246,20 +293,12 @@ export default function RoomsPage() {
     }
   }
 
-  const colSpan = canCreateRooms ? 5 : 4;
-
   return (
-    <div
-      className="-m-6 md:-m-8 min-h-[calc(100%+3rem)] md:min-h-[calc(100%+4rem)]"
-      style={{ background: "#F3EFE4", color: "#1E251A", fontFamily: "var(--font-hanken)" }}
-    >
+    <div className="-m-6 md:-m-8 min-h-[calc(100%+3rem)] md:min-h-[calc(100%+4rem)] bg-background text-foreground">
       <div className="flex flex-col gap-[18px] p-6 md:p-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
         {/* Leyenda + filtros + toggle + acción */}
         <div className="flex flex-wrap items-center gap-3">
-          <div
-            className="flex flex-wrap gap-1.5 rounded-xl p-1.5"
-            style={{ background: "#fff", border: "1px solid #E6E0D1" }}
-          >
+          <div className="flex flex-wrap gap-1.5 rounded-xl border border-border bg-card p-1.5">
             {FILTER_KEYS.map((chip) => {
               const active = statusFilter === chip.key;
               const count = filterCounts[chip.key] ?? 0;
@@ -267,11 +306,11 @@ export default function RoomsPage() {
                 <button
                   key={chip.key}
                   onClick={() => setStatusFilter(chip.key)}
-                  className="flex items-center gap-2 rounded-lg px-3 py-1.5 text-[13px] font-semibold transition-colors"
-                  style={{
-                    background: active ? "#173021" : "transparent",
-                    color: active ? "#FBF6ED" : "#6E7567",
-                  }}
+                  className={`flex items-center gap-2 rounded-lg px-3 py-1.5 text-[13px] font-semibold transition-colors ${
+                    active
+                      ? "bg-sidebar text-brand-cream"
+                      : "text-muted-foreground"
+                  }`}
                 >
                   {chip.key !== "todas" && (
                     <span
@@ -281,11 +320,11 @@ export default function RoomsPage() {
                   )}
                   <span>{chip.label}</span>
                   <span
-                    className="rounded-full px-1.5 py-px text-[11px] font-bold"
-                    style={{
-                      background: active ? "rgba(255,255,255,0.18)" : "#EFEADB",
-                      color: active ? "#EFE9DC" : "#9AA08F",
-                    }}
+                    className={`rounded-full px-1.5 py-px text-[11px] font-bold ${
+                      active
+                        ? "bg-sidebar-hover text-brand-cream"
+                        : "bg-accent text-muted-soft"
+                    }`}
                   >
                     {count}
                   </span>
@@ -297,24 +336,19 @@ export default function RoomsPage() {
           <div className="flex-1" />
 
           {/* Toggle cuadrícula / lista */}
-          <div
-            className="flex gap-1 rounded-[10px] p-1"
-            style={{ background: "#fff", border: "1px solid #E6E0D1" }}
-          >
-            {([
+          <div className="flex gap-1 rounded-[10px] border border-border bg-card p-1">
+            {[
               { key: "grid" as const, label: "Cuadrícula", Icon: LayoutGrid },
               { key: "list" as const, label: "Lista", Icon: List },
-            ]).map(({ key, label, Icon }) => {
+            ].map(({ key, label, Icon }) => {
               const active = roomView === key;
               return (
                 <button
                   key={key}
                   onClick={() => setRoomView(key)}
-                  className="flex items-center gap-1.5 rounded-[7px] px-3 py-1.5 text-[12.5px] font-semibold transition-colors"
-                  style={{
-                    background: active ? "#173021" : "transparent",
-                    color: active ? "#fff" : "#9AA08F",
-                  }}
+                  className={`flex items-center gap-1.5 rounded-[7px] px-3 py-1.5 text-[12.5px] font-semibold transition-colors ${
+                    active ? "bg-sidebar text-brand-cream" : "text-muted-soft"
+                  }`}
                 >
                   <Icon className="h-3.5 w-3.5" />
                   {label}
@@ -326,10 +360,7 @@ export default function RoomsPage() {
           {canCreateRooms && (
             <button
               onClick={openCreate}
-              className="flex items-center gap-2 rounded-xl px-4 py-2.5 text-[13.5px] font-semibold text-white whitespace-nowrap transition-colors"
-              style={{ background: "#C2683E", boxShadow: "0 4px 12px rgba(168,85,47,0.28)" }}
-              onMouseEnter={(e) => (e.currentTarget.style.background = "#A8552F")}
-              onMouseLeave={(e) => (e.currentTarget.style.background = "#C2683E")}
+              className="flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-[13.5px] font-semibold text-primary-foreground whitespace-nowrap shadow-brand transition-colors hover:bg-primary-hover"
             >
               <Plus className="h-4 w-4" />
               Nueva habitación
@@ -339,18 +370,12 @@ export default function RoomsPage() {
 
         {/* Estados de carga / vacío */}
         {isLoadingRooms ? (
-          <div
-            className="flex flex-col items-center justify-center gap-2 rounded-2xl py-20"
-            style={{ background: "#fff", border: "1px solid #E6E0D1", color: "#9AA08F" }}
-          >
-            <Loader2 className="h-6 w-6 animate-spin" style={{ color: "#C2683E" }} />
+          <div className="flex flex-col items-center justify-center gap-2 rounded-2xl border border-border bg-card py-20 text-muted-soft">
+            <Loader2 className="h-6 w-6 animate-spin text-primary" />
             <span>Cargando habitaciones...</span>
           </div>
         ) : visibleRooms.length === 0 ? (
-          <div
-            className="rounded-2xl py-20 text-center text-sm font-medium"
-            style={{ background: "#fff", border: "1px solid #E6E0D1", color: "#9AA08F" }}
-          >
+          <div className="rounded-2xl border border-border bg-card py-20 text-center text-sm font-medium text-muted-soft">
             {rooms.length === 0
               ? "No hay habitaciones registradas en esta página."
               : "Ninguna habitación coincide con el filtro seleccionado."}
@@ -359,27 +384,21 @@ export default function RoomsPage() {
           /* Cuadrícula */
           <div
             className="grid gap-3.5"
-            style={{ gridTemplateColumns: "repeat(auto-fill,minmax(228px,1fr))" }}
+            style={{
+              gridTemplateColumns: "repeat(auto-fill,minmax(228px,1fr))",
+            }}
           >
             {visibleRooms.map((room) => {
               const meta = getStatusMeta(room.status);
               return (
                 <div
                   key={room.id}
-                  className="rounded-2xl p-4"
-                  style={{
-                    background: "#fff",
-                    border: "1px solid #E6E0D1",
-                    borderLeft: `4px solid ${meta.accent}`,
-                    boxShadow: "0 1px 2px rgba(30,37,26,0.04)",
-                  }}
+                  className="rounded-2xl border border-border bg-card p-4 shadow-sm"
+                  style={{ borderLeftWidth: 4, borderLeftColor: meta.accent }}
                 >
                   <div className="flex items-start justify-between">
                     <div>
-                      <div
-                        className="text-[11px] font-semibold uppercase tracking-wider"
-                        style={{ color: "#9AA08F" }}
-                      >
+                      <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-soft">
                         Habitación
                       </div>
                       <div
@@ -392,31 +411,28 @@ export default function RoomsPage() {
                     <StatusPill meta={meta} />
                   </div>
 
-                  <div className="mt-3 text-[13.5px] font-semibold" style={{ color: "#2A3122" }}>
+                  <div className="mt-3 text-[13.5px] font-semibold text-ink-strong">
                     {getRoomTypeLabel(room.type)}
                   </div>
 
-                  <div className="my-3.5 h-px" style={{ background: "#F0EBDD" }} />
+                  <div className="my-3.5 h-px bg-divider" />
 
                   <div className="flex items-end justify-between">
                     <div className="min-w-0">
                       <div
-                        className="text-lg font-bold leading-none"
-                        style={{ fontFamily: bricolage, color: "#1E251A" }}
+                        className="text-lg font-bold leading-none text-foreground"
+                        style={{ fontFamily: bricolage }}
                       >
                         {formatRate(room.price)}
                       </div>
-                      <div className="mt-0.5 text-[11px]" style={{ color: "#9AA08F" }}>
+                      <div className="mt-0.5 text-[11px] text-muted-soft">
                         por noche
                       </div>
                     </div>
                     {canCreateRooms && (
                       <button
                         onClick={() => openEdit(room)}
-                        className="flex shrink-0 items-center gap-1.5 rounded-[9px] px-3 py-1.5 text-[12.5px] font-semibold transition-colors"
-                        style={{ background: "#F3EFE4", color: "#3F463A", border: "1px solid #E6E0D1" }}
-                        onMouseEnter={(e) => (e.currentTarget.style.background = "#ECE6D7")}
-                        onMouseLeave={(e) => (e.currentTarget.style.background = "#F3EFE4")}
+                        className="flex shrink-0 items-center gap-1.5 rounded-[9px] border border-border bg-background px-3 py-1.5 text-[12.5px] font-semibold text-ink-soft transition-colors hover:bg-accent"
                       >
                         <Pencil className="h-3.5 w-3.5" />
                         Editar
@@ -429,19 +445,13 @@ export default function RoomsPage() {
           </div>
         ) : (
           /* Lista */
-          <div
-            className="overflow-hidden rounded-2xl"
-            style={{ background: "#fff", border: "1px solid #E6E0D1", boxShadow: "0 1px 2px rgba(30,37,26,0.04)" }}
-          >
+          <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
             <div
-              className="grid gap-4 px-6 py-3 text-[11.5px] font-bold uppercase tracking-wider"
+              className="grid gap-4 border-b border-border-soft bg-surface-soft px-6 py-3 text-[11.5px] font-bold uppercase tracking-wider text-muted-cap"
               style={{
                 gridTemplateColumns: canCreateRooms
                   ? "0.9fr 2fr 1.4fr 1.2fr 0.9fr"
                   : "0.9fr 2fr 1.4fr 1.2fr",
-                background: "#FAF7EF",
-                borderBottom: "1px solid #ECE6D7",
-                color: "#8A9081",
               }}
             >
               <span>Habitación</span>
@@ -455,12 +465,11 @@ export default function RoomsPage() {
               return (
                 <div
                   key={room.id}
-                  className="grid items-center gap-4 px-6 py-3.5"
+                  className="grid items-center gap-4 border-b border-divider-row px-6 py-3.5"
                   style={{
                     gridTemplateColumns: canCreateRooms
                       ? "0.9fr 2fr 1.4fr 1.2fr 0.9fr"
                       : "0.9fr 2fr 1.4fr 1.2fr",
-                    borderBottom: "1px solid #F2EDDF",
                   }}
                 >
                   <div className="flex items-center gap-3">
@@ -469,21 +478,21 @@ export default function RoomsPage() {
                       style={{ background: meta.accent }}
                     />
                     <span
-                      className="text-base font-bold"
-                      style={{ fontFamily: bricolage, color: "#1E251A" }}
+                      className="text-base font-bold text-foreground"
+                      style={{ fontFamily: bricolage }}
                     >
                       {room.number}
                     </span>
                   </div>
-                  <div className="text-[13.5px] font-semibold" style={{ color: "#2A3122" }}>
+                  <div className="text-[13.5px] font-semibold text-ink-strong">
                     {getRoomTypeLabel(room.type)}
                   </div>
                   <div>
                     <StatusPill meta={meta} />
                   </div>
                   <div
-                    className="text-right text-[14.5px] font-bold"
-                    style={{ fontFamily: bricolage, color: "#1E251A" }}
+                    className="text-right text-[14.5px] font-bold text-foreground"
+                    style={{ fontFamily: bricolage }}
                   >
                     {formatRate(room.price)}
                   </div>
@@ -491,10 +500,7 @@ export default function RoomsPage() {
                     <div className="flex justify-end">
                       <button
                         onClick={() => openEdit(room)}
-                        className="flex items-center gap-1.5 rounded-[9px] px-3 py-1.5 text-[12.5px] font-semibold transition-colors"
-                        style={{ background: "#F3EFE4", color: "#3F463A", border: "1px solid #E6E0D1" }}
-                        onMouseEnter={(e) => (e.currentTarget.style.background = "#ECE6D7")}
-                        onMouseLeave={(e) => (e.currentTarget.style.background = "#F3EFE4")}
+                        className="flex items-center gap-1.5 rounded-[9px] border border-border bg-background px-3 py-1.5 text-[12.5px] font-semibold text-ink-soft transition-colors hover:bg-accent"
                       >
                         <Pencil className="h-3.5 w-3.5" />
                         Editar
@@ -529,15 +535,15 @@ export default function RoomsPage() {
             if (!open) setEditingRoom(null);
           }}
         >
-          <DialogContent
-            className="sm:max-w-md shadow-2xl"
-            style={{ background: "#FBF7EE", border: "1px solid #E6E0D1", color: "#1E251A" }}
-          >
+          <DialogContent className="sm:max-w-md border border-border bg-surface text-foreground shadow-2xl">
             <DialogHeader className="mb-4">
-              <DialogTitle className="text-2xl" style={{ fontFamily: bricolage }}>
+              <DialogTitle
+                className="text-2xl"
+                style={{ fontFamily: bricolage }}
+              >
                 {editingRoom ? "Editar habitación" : "Registrar habitación"}
               </DialogTitle>
-              <DialogDescription style={{ color: "#6E7567" }}>
+              <DialogDescription className="text-muted-foreground">
                 {editingRoom
                   ? "Modifica el número, tipo o tarifa de la habitación."
                   : 'Añade un nuevo cuarto al inventario. Su estado será "Disponible" por defecto.'}
@@ -545,22 +551,27 @@ export default function RoomsPage() {
             </DialogHeader>
 
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              <form
+                onSubmit={form.handleSubmit(onSubmit)}
+                className="space-y-6"
+              >
                 <FormField
                   control={form.control}
                   name="number"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel style={{ color: "#3F463A" }}>Número o nombre</FormLabel>
+                      <FormLabel className="text-ink-soft">
+                        Número o nombre
+                      </FormLabel>
                       <FormControl>
                         <Input
                           placeholder="ej: 101, 102A, VIP-1"
-                          className="uppercase bg-white border-[#E6E0D1] text-[#1E251A] placeholder:text-[#9AA08F] focus-visible:ring-[#C2683E]"
+                          className="uppercase bg-card border-border text-foreground placeholder:text-muted-soft focus-visible:ring-primary"
                           disabled={isSubmitting}
                           {...field}
                         />
                       </FormControl>
-                      <FormMessage className="text-xs text-[#9A4226]" />
+                      <FormMessage className="text-xs text-destructive" />
                     </FormItem>
                   )}
                 />
@@ -570,30 +581,41 @@ export default function RoomsPage() {
                   name="type"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel style={{ color: "#3F463A" }}>Tipo de habitación</FormLabel>
+                      <FormLabel className="text-ink-soft">
+                        Tipo de habitación
+                      </FormLabel>
                       <Select
                         onValueChange={field.onChange}
                         defaultValue={field.value}
                         disabled={isSubmitting}
                       >
                         <FormControl>
-                          <SelectTrigger className="bg-white border-[#E6E0D1] text-[#1E251A] focus-visible:ring-[#C2683E]">
+                          <SelectTrigger className="bg-card border-border text-foreground focus-visible:ring-primary">
                             <SelectValue placeholder="Selecciona un tipo" />
                           </SelectTrigger>
                         </FormControl>
-                        <SelectContent className="bg-[#FBF7EE] border-[#E6E0D1] text-[#1E251A]">
-                          <SelectItem value="SINGLE" className="cursor-pointer focus:bg-[#F0EBDD] focus:text-[#1E251A]">
+                        <SelectContent className="bg-surface border-border text-foreground">
+                          <SelectItem
+                            value="SINGLE"
+                            className="cursor-pointer focus:bg-divider focus:text-foreground"
+                          >
                             Sencilla (Single)
                           </SelectItem>
-                          <SelectItem value="DOUBLE" className="cursor-pointer focus:bg-[#F0EBDD] focus:text-[#1E251A]">
+                          <SelectItem
+                            value="DOUBLE"
+                            className="cursor-pointer focus:bg-divider focus:text-foreground"
+                          >
                             Doble (Double)
                           </SelectItem>
-                          <SelectItem value="SUITE" className="cursor-pointer focus:bg-[#F0EBDD] focus:text-[#1E251A]">
+                          <SelectItem
+                            value="SUITE"
+                            className="cursor-pointer focus:bg-divider focus:text-foreground"
+                          >
                             Suite
                           </SelectItem>
                         </SelectContent>
                       </Select>
-                      <FormMessage className="text-xs text-[#9A4226]" />
+                      <FormMessage className="text-xs text-destructive" />
                     </FormItem>
                   )}
                 />
@@ -603,19 +625,21 @@ export default function RoomsPage() {
                   name="price"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel style={{ color: "#3F463A" }}>Precio por noche (S/.)</FormLabel>
+                      <FormLabel className="text-ink-soft">
+                        Precio por noche (S/.)
+                      </FormLabel>
                       <FormControl>
                         <Input
                           type="number"
                           step="0.01"
                           min="0"
                           placeholder="ej: 120.00"
-                          className="bg-white border-[#E6E0D1] text-[#1E251A] placeholder:text-[#9AA08F] focus-visible:ring-[#C2683E]"
+                          className="bg-card border-border text-foreground placeholder:text-muted-soft focus-visible:ring-primary"
                           disabled={isSubmitting}
                           {...field}
                         />
                       </FormControl>
-                      <FormMessage className="text-xs text-[#9A4226]" />
+                      <FormMessage className="text-xs text-destructive" />
                     </FormItem>
                   )}
                 />
@@ -623,7 +647,7 @@ export default function RoomsPage() {
                 <div className="pt-2">
                   <Button
                     type="submit"
-                    className="w-full font-semibold text-white bg-[#C2683E] hover:bg-[#A8552F]"
+                    className="w-full font-semibold text-primary-foreground bg-primary hover:bg-primary-hover"
                     disabled={isSubmitting}
                   >
                     {isSubmitting ? (

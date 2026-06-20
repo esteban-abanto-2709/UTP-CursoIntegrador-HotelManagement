@@ -202,7 +202,7 @@ export default function DashboardPage() {
             onClick={() => setFilter(f)}
             className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
               filter === f
-                ? "bg-sky-500 text-white shadow-md shadow-sky-500/20"
+                ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
                 : "bg-card border border-border/50 text-muted-foreground hover:text-foreground hover:bg-muted"
             }`}
           >
@@ -222,17 +222,17 @@ export default function DashboardPage() {
       {/* Grid de Habitaciones */}
       <div className="mt-2">
         {isLoading ? (
-          <div className="h-64 flex flex-col items-center justify-center gap-4 text-zinc-500">
-            <Loader2 className="h-8 w-8 animate-spin text-sky-500" />
+          <div className="h-64 flex flex-col items-center justify-center gap-4 text-muted-foreground">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
             <p>Cargando inventario...</p>
           </div>
         ) : rooms.length === 0 ? (
-          <div className="h-64 flex flex-col items-center justify-center gap-2 border border-dashed border-white/10 rounded-2xl bg-white/5">
-            <BedDouble className="h-10 w-10 text-zinc-600 mb-2" />
-            <p className="text-zinc-400 font-medium text-lg">
+          <div className="h-64 flex flex-col items-center justify-center gap-2 border border-dashed border-border rounded-2xl bg-card">
+            <BedDouble className="h-10 w-10 text-muted-soft mb-2" />
+            <p className="text-muted-foreground font-medium text-lg">
               No hay habitaciones registradas.
             </p>
-            <p className="text-zinc-500 text-sm">
+            <p className="text-muted-soft text-sm">
               El Manager debe registrarlas primero en Configuración.
             </p>
           </div>
@@ -248,7 +248,6 @@ export default function DashboardPage() {
                     handleChangeStatus(room.id, newStatus)
                   }
                 />
-
               ))}
           </div>
         )}
@@ -414,7 +413,11 @@ function RoomCard({
                 className="w-full flex items-center justify-between p-4 rounded-xl border border-status-occupied-border bg-status-occupied-bg text-status-occupied-text hover:bg-status-occupied-icon-bg transition-colors font-semibold disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 <div className="flex items-center gap-3">
-                  {isUpdating ? <Loader2 className="w-5 h-5 animate-spin" /> : <User className="w-5 h-5" />}
+                  {isUpdating ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : (
+                    <User className="w-5 h-5" />
+                  )}
                   Efectuar Check-In
                 </div>
                 <ArrowRight className="w-5 h-5" />
@@ -428,7 +431,11 @@ function RoomCard({
                 className="w-full flex items-center justify-between p-4 rounded-xl border border-status-cleaning-border bg-status-cleaning-bg text-status-cleaning-text hover:bg-status-cleaning-icon-bg transition-colors font-semibold disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 <div className="flex items-center gap-3">
-                  {isUpdating ? <Loader2 className="w-5 h-5 animate-spin" /> : <DoorOpen className="w-5 h-5" />}
+                  {isUpdating ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : (
+                    <DoorOpen className="w-5 h-5" />
+                  )}
                   Efectuar Check-Out
                 </div>
                 <ArrowRight className="w-5 h-5" />
@@ -442,7 +449,11 @@ function RoomCard({
                 className="w-full flex items-center justify-between p-4 rounded-xl border border-status-available-border bg-status-available-bg text-status-available-text hover:bg-status-available-icon-bg transition-colors font-semibold disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 <div className="flex items-center gap-3">
-                  {isUpdating ? <Loader2 className="w-5 h-5 animate-spin" /> : <CheckCircle2 className="w-5 h-5" />}
+                  {isUpdating ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : (
+                    <CheckCircle2 className="w-5 h-5" />
+                  )}
                   Finalizar Limpieza
                 </div>
                 <ArrowRight className="w-5 h-5" />
@@ -456,7 +467,11 @@ function RoomCard({
                 className="w-full flex items-center justify-between p-4 rounded-xl border border-status-available-border bg-status-available-bg text-status-available-text hover:bg-status-available-icon-bg transition-colors font-semibold disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 <div className="flex items-center gap-3">
-                  {isUpdating ? <Loader2 className="w-5 h-5 animate-spin" /> : <CheckCircle2 className="w-5 h-5" />}
+                  {isUpdating ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : (
+                    <CheckCircle2 className="w-5 h-5" />
+                  )}
                   Habilitar Habitación
                 </div>
                 <ArrowRight className="w-5 h-5" />

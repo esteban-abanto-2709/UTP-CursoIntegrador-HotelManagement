@@ -26,7 +26,7 @@ export function WakeUpGate({ children }: { children: React.ReactNode }) {
   if (decision === "pending") {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-sky-500 border-t-transparent shadow-[0_0_15px_rgba(14,165,233,0.5)]"></div>
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
       </div>
     );
   }
@@ -75,15 +75,17 @@ function WakingScreen({
     <div className="flex min-h-screen items-center justify-center bg-background px-6">
       <div className="flex w-full max-w-md flex-col items-center text-center">
         {failed ? (
-          <div className="flex h-12 w-12 items-center justify-center rounded-full border-4 border-destructive shadow-[0_0_15px_rgba(239,68,68,0.4)]">
+          <div className="flex h-12 w-12 items-center justify-center rounded-full border-4 border-destructive">
             <span className="text-xl font-bold text-destructive">!</span>
           </div>
         ) : (
-          <div className="h-12 w-12 animate-spin rounded-full border-4 border-sky-500 border-t-transparent shadow-[0_0_15px_rgba(14,165,233,0.5)]"></div>
+          <div className="h-12 w-12 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
         )}
 
         <h1 className="mt-6 text-xl font-semibold text-foreground">
-          {failed ? "No pudimos conectar con el servidor" : "Despertando el servidor…"}
+          {failed
+            ? "No pudimos conectar con el servidor"
+            : "Despertando el servidor…"}
         </h1>
 
         <p className="mt-3 text-sm text-muted-foreground">
@@ -113,7 +115,7 @@ function WakingScreen({
           href={API_URL}
           target="_blank"
           rel="noopener noreferrer"
-          className="mt-6 text-sm text-sky-500 underline-offset-4 hover:underline"
+          className="mt-6 text-sm text-primary underline-offset-4 hover:underline"
         >
           Ver cómo va el API →
         </a>

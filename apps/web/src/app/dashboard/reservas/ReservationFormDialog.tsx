@@ -5,11 +5,7 @@ import api from "@/lib/axios";
 import { routes } from "@/lib/routes";
 import { calcNights } from "@/lib/pricing";
 import { getApiErrorMessage } from "@/lib/api-error";
-import {
-  getRoomTypeLabel,
-  ROOM_TYPE_OPTIONS,
-  type RoomType,
-} from "@/lib/room";
+import { getRoomTypeLabel, ROOM_TYPE_OPTIONS, type RoomType } from "@/lib/room";
 import { toast } from "sonner";
 import { Loader2, Search } from "lucide-react";
 
@@ -213,7 +209,10 @@ export default function ReservationFormDialog({
       };
 
       if (isEdit && reservation) {
-        await api.patch(routes.api.reservations.update(reservation.id), payload);
+        await api.patch(
+          routes.api.reservations.update(reservation.id),
+          payload,
+        );
         toast.success("Reserva actualizada");
       } else {
         await api.post(routes.api.reservations.create(), payload);
