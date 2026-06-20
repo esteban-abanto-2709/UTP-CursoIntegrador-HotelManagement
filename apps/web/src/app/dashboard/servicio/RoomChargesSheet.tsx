@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import api from "@/lib/axios";
 import { routes } from "@/lib/routes";
 import { formatDate } from "@/lib/date";
+import { getApiErrorMessage } from "@/lib/api-error";
 import { toast } from "sonner";
 import { Loader2, Plus, Receipt } from "lucide-react";
 
@@ -111,10 +112,7 @@ export default function RoomChargesSheet({
       setCategoryId("");
       fetchData(reservation.id);
     } catch (error: unknown) {
-      const err = error as { response?: { data?: { message?: string | string[] } } };
-      const raw = err.response?.data?.message;
-      const msg = Array.isArray(raw) ? raw[0] : raw ?? "Error al registrar el cargo";
-      toast.error(msg);
+      toast.error(getApiErrorMessage(error, "Error al registrar el cargo"));
     } finally {
       setIsSaving(false);
     }

@@ -16,6 +16,9 @@ Resumen en ≤2 líneas de lo que se hizo.
 
 ---
 
+## [TD-011] Helper único `getApiErrorMessage` para errores de Axios (2026-06-19 19:49)
+Extraído el helper a un módulo puro `lib/api-error.ts` (antes vivía inline en `analytics-ui.tsx`, que ahora lo re-exporta para no romper sus consumidores). Reemplazados los 8 catch manuales duplicados en `login`, `reservas/page.tsx` (×3), `RoomChargesSheet`, `ReservationFormDialog`, `staff/EmployeeFormDialog` y `rooms/page.tsx`. Build verde.
+
 ## [RM-045] Reorganizar pestañas: Finanzas + Analíticas (2026-06-19 19:39)
 Separada la antigua pestaña «Reportes» (que mezclaba finanzas y operativo) en dos: `/dashboard/finanzas` (solo KPIs e ingresos mensual/anual) y `/dashboard/analiticas` (ocupación, top habitaciones, ranking de empleados + la tabla de auditoría reubicada y re-estilada a la paleta crema Mirador). Eliminadas las rutas/carpetas `reportes` y `auditoria`; nuevo módulo compartido `lib/analytics-ui.tsx` (`ChartFrame`, `KpiCard`, paleta, helpers) reusado por ambas páginas. Actualizados `routes.ts`, `app-sidebar.tsx` y `dashboard-header.tsx`. Build verde.
 

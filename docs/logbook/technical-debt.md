@@ -70,14 +70,6 @@ changelog y se borra de aquí.
 - **Impacto futuro:** Agregar o renombrar un tipo de habitación obliga a editar los seis archivos de forma coordinada; es fácil dejar uno desincronizado. Solución: extraer un helper único (p. ej. `lib/room.ts`) y reusarlo.
 - **Fecha:** 2026-06-19 · **Estado:** Abierto
 
-## [TD-011] Extracción del mensaje de error de Axios duplicada en ~6 sitios
-
-- **Ubicación:** `apps/web/src/app/login/page.tsx`, `dashboard/rooms/page.tsx`, `dashboard/reservas/page.tsx` (handleCheckIn, confirmCheckOut, confirmCancel), `dashboard/reservas/ReservationFormDialog.tsx`
-- **Riesgo:** 3/10
-- **Problema:** En cada `catch` se repite el mismo bloque: castear `error as { response?: { data?: { message?: string | string[] } } }` y resolver `Array.isArray(raw) ? raw[0] : raw ?? fallback`. Lógica idéntica copiada en ~6 lugares.
-- **Impacto futuro:** Cualquier cambio en el formato de error del backend (o querer mostrar todos los mensajes del array, no solo el primero) hay que replicarlo en todos los sitios. Solución: helper `getApiErrorMessage(error, fallback)` en `lib/`.
-- **Fecha:** 2026-06-19 · **Estado:** Abierto
-
 ## [TD-013] Badge de estado de reserva duplicado entre dos páginas
 
 - **Ubicación:** `apps/web/src/app/dashboard/reservas/page.tsx:263` (`getStatusBadge`), `apps/web/src/app/dashboard/huespedes/page.tsx:66` (`getStatusBadge`)

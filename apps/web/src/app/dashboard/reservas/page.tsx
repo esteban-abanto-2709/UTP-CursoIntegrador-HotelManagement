@@ -5,6 +5,7 @@ import api from "@/lib/axios";
 import { routes } from "@/lib/routes";
 import { formatDate } from "@/lib/date";
 import { calcNights } from "@/lib/pricing";
+import { getApiErrorMessage } from "@/lib/api-error";
 import { toast } from "sonner";
 import { Search, Plus, Loader2, LogIn, LogOut, Pencil, Ban, X } from "lucide-react";
 
@@ -178,10 +179,7 @@ export default function ReservasPage() {
       toast.success(res.data.message ?? "Check-in realizado");
       fetchReservations();
     } catch (error: unknown) {
-      const err = error as { response?: { data?: { message?: string | string[] } } };
-      const raw = err.response?.data?.message;
-      const msg = Array.isArray(raw) ? raw[0] : raw ?? "Error al hacer check-in";
-      toast.error(msg);
+      toast.error(getApiErrorMessage(error, "Error al hacer check-in"));
     } finally {
       setActioningId(null);
     }
@@ -220,10 +218,7 @@ export default function ReservasPage() {
       setCheckoutTarget(null);
       fetchReservations();
     } catch (error: unknown) {
-      const err = error as { response?: { data?: { message?: string | string[] } } };
-      const raw = err.response?.data?.message;
-      const msg = Array.isArray(raw) ? raw[0] : raw ?? "Error al hacer check-out";
-      toast.error(msg);
+      toast.error(getApiErrorMessage(error, "Error al hacer check-out"));
     } finally {
       setActioningId(null);
     }
@@ -238,10 +233,7 @@ export default function ReservasPage() {
       setCancelTarget(null);
       fetchReservations();
     } catch (error: unknown) {
-      const err = error as { response?: { data?: { message?: string | string[] } } };
-      const raw = err.response?.data?.message;
-      const msg = Array.isArray(raw) ? raw[0] : raw ?? "Error al cancelar la reserva";
-      toast.error(msg);
+      toast.error(getApiErrorMessage(error, "Error al cancelar la reserva"));
     } finally {
       setActioningId(null);
     }

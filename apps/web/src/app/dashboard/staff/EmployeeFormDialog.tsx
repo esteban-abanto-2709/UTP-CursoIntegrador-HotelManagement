@@ -9,6 +9,7 @@ import { Eye, EyeOff, Loader2 } from "lucide-react";
 
 import api from "@/lib/axios";
 import { routes } from "@/lib/routes";
+import { getApiErrorMessage } from "@/lib/api-error";
 import { useAuthStore } from "@/store/authStore";
 
 import { Button } from "@/components/ui/button";
@@ -165,10 +166,7 @@ export function EmployeeFormDialog({
       onOpenChange(false);
       onSuccess?.();
     } catch (error: unknown) {
-      const err = error as { response?: { data?: { message?: string | string[] } } };
-      const raw = err.response?.data?.message;
-      const message = Array.isArray(raw) ? raw[0] : raw ?? "Error al guardar el empleado.";
-      toast.error(message);
+      toast.error(getApiErrorMessage(error, "Error al guardar el empleado."));
     } finally {
       setIsSubmitting(false);
     }

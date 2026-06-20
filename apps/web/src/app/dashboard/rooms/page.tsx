@@ -9,6 +9,7 @@ import { Bed, Plus, Loader2, Pencil } from "lucide-react";
 
 import api from "@/lib/axios";
 import { routes } from "@/lib/routes";
+import { getApiErrorMessage } from "@/lib/api-error";
 import { useAuthStore } from "@/store/authStore";
 
 import { Button } from "@/components/ui/button";
@@ -141,14 +142,7 @@ export default function RoomsPage() {
       setEditingRoom(null);
       fetchRooms();
     } catch (error: unknown) {
-      const err = error as {
-        response?: { data?: { message?: string | string[] } };
-      };
-      const rawMessage = err.response?.data?.message;
-      const message = Array.isArray(rawMessage)
-        ? rawMessage[0]
-        : rawMessage || "Error al guardar la habitación.";
-      toast.error(message);
+      toast.error(getApiErrorMessage(error, "Error al guardar la habitación."));
     } finally {
       setIsSubmitting(false);
     }

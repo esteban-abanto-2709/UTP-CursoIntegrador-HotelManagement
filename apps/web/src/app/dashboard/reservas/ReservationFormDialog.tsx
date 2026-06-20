@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import api from "@/lib/axios";
 import { routes } from "@/lib/routes";
 import { calcNights } from "@/lib/pricing";
+import { getApiErrorMessage } from "@/lib/api-error";
 import { toast } from "sonner";
 import { Loader2, Search } from "lucide-react";
 
@@ -234,14 +235,7 @@ export default function ReservationFormDialog({
       onOpenChange(false);
       onSuccess();
     } catch (error: unknown) {
-      const err = error as {
-        response?: { data?: { message?: string | string[] } };
-      };
-      const raw = err.response?.data?.message;
-      const msg = Array.isArray(raw)
-        ? raw[0]
-        : raw ?? "Error al guardar la reserva";
-      toast.error(msg);
+      toast.error(getApiErrorMessage(error, "Error al guardar la reserva"));
     } finally {
       setIsSubmitting(false);
     }

@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import api from "@/lib/axios";
 import { useAuthStore } from "@/store/authStore";
 import { routes } from "@/lib/routes";
+import { getApiErrorMessage } from "@/lib/api-error";
 
 const bricolage = "var(--font-bricolage), 'Bricolage Grotesque', sans-serif";
 const hanken = "var(--font-hanken), 'Hanken Grotesk', system-ui, sans-serif";
@@ -43,13 +44,10 @@ export default function LoginPage() {
       toast.success("¡Bienvenido a Mirador!");
       router.push(routes.dashboard.home());
     } catch (error: unknown) {
-      const err = error as {
-        response?: { data?: { message?: string | string[] } };
-      };
-      const rawMessage = err.response?.data?.message;
-      const message = Array.isArray(rawMessage)
-        ? rawMessage[0]
-        : rawMessage || "Credenciales inválidas. Intenta nuevamente.";
+      const message = getApiErrorMessage(
+        error,
+        "Credenciales inválidas. Intenta nuevamente.",
+      );
 
       setErrorMsg(message);
       toast.error(message);
