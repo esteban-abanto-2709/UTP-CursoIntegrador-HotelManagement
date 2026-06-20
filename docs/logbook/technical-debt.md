@@ -109,3 +109,26 @@ changelog y se borra de aquí.
 - **Problema:** El comprobante (RM-041) usa datos de empresa/fiscales **hardcodeados como placeholder** (RUC, dirección, teléfono y email inventados; serie/correlativo `B001-xxxxxxx` sintético derivado de `payment.id`) y **omite la dirección del huésped** —que la boleta de referencia sí muestra— porque el modelo `Guest` no tiene campo `address`. La fila DIRECCIÓN se sustituyó por "Contacto" (teléfono/email).
 - **Impacto futuro:** El documento muestra datos ficticios (mitigado por el disclaimer "no válido para SUNAT"). Para datos reales o fidelidad total con la referencia hay que: parametrizar los datos de la empresa (config/env o tabla) y, si se quiere la dirección, agregar `address` (y posibles datos fiscales) a `Guest` manteniendo la BD normalizada.
 - **Fecha:** 2026-06-19 · **Estado:** Abierto
+
+## [TD-022] Lógica de paginación por cursor duplicada en cada página
+
+- **Ubicación:** `apps/web/src/app/dashboard/rooms/page.tsx`, `reservas/page.tsx`, `huespedes/page.tsx`, `analiticas/page.tsx` (bloque `cursorStack` / `cursor` / `total` / `nextCursor` / `hasNext` + `handleNextPage` / `handlePrevPage`)
+- **Riesgo:** 3/10
+- **Problema:** El mismo bloque de estado y handlers de paginación por cursor (≈25-30 líneas: `cursorStack`, derivación de `cursor`, `total`, `nextCursor`, `hasNext`, `handleNextPage`, `handlePrevPage` y el `useEffect` que resetea el stack al cambiar filtros) está copiado en cada página listada. Es parte del "ruido" que infla esos componentes.
+- **Impacto futuro:** Cualquier ajuste al contrato de paginación (nombres de campos, reseteo de cursor, off-by-one en prev/next) hay que replicarlo a mano en 4+ sitios; fácil que diverjan. Cada página nueva con tabla vuelve a copiar el patrón.
+- **Archivo a crear:** `apps/web/src/hooks/use-cursor-pagination.ts` — hook que exponga `{ cursor, cursorStack, total, hasNext, hasPrev, nextPage, prevPage, reset, setPageMeta }` y centralice el reseteo al cambiar filtros. Las páginas pasan a consumirlo y solo conservan su `fetch`.
+- **Fecha:** 2026-06-20 · **Estado:** Abierto
+
+## [TD-023] Páginas del dashboard monolíticas (vista + estado + diálogos en un solo archivo)
+
+- **Ubicación:** `apps/web/src/app/dashboard/reservas/page.tsx` (775), `analiticas/page.tsx` (763), `rooms/page.tsx` (648), `page.tsx` (dashboard, 470), `login/page.tsx` (554)
+- **Riesgo:** 4/10
+- **Problema:** Estas páginas concentran en un único componente el fetching, el estado de filtros/acciones, la tabla/grilla, los diálogos y los helpers de presentación. Son archivos de 450-775 líneas difíciles de leer, revisar y modificar sin conflictos. El patrón correcto ya existe en el repo (`staff/EmployeeFormDialog.tsx`, `reservas/ReservationFormDialog.tsx`, `reservas/ReservationDetailDialog.tsx`); falta aplicarlo al resto. Se excluye a propósito `components/ui/sidebar.tsx` (678) por ser primitivo generado por shadcn.
+- **Impacto futuro:** A mayor tamaño, más probabilidad de bugs al editar, peores diffs y más fricción para reutilizar piezas (p. ej. la celda de acciones por estado de reserva, o las tarjetas de habitación). Crece con cada feature.
+- **Archivos a crear (propuesta de descomposición):**
+  - **reservas:** `reservas/ReservationFilters.tsx` (búsqueda + selects + rango de fechas), `reservas/ReservationsTable.tsx` (o `ReservationRow.tsx` con la celda de acciones por estado), `reservas/CheckoutDialog.tsx` (diálogo de cobro con el cálculo de totales), `reservas/CancelReservationDialog.tsx`, hook `reservas/use-reservations.ts` (fetch + filtros + check-in/out/cancel).
+  - **analiticas:** `analiticas/OperationalMetrics.tsx` (top rooms, ranking de empleados, ocupación), `analiticas/AuditLogTable.tsx`, `analiticas/AuditLogFilters.tsx`, `analiticas/AuditLogDetailDialog.tsx`, `analiticas/types.ts`, hooks `analiticas/use-audit-logs.ts` y `analiticas/use-operational-metrics.ts`.
+  - **rooms:** mover `STATUS_META`/`formatRate` a `lib/room.ts`; `rooms/RoomStatusPill.tsx`, `rooms/RoomFilters.tsx` (chips + toggle cuadrícula/lista), `rooms/RoomCard.tsx`, `rooms/RoomListRow.tsx`, `rooms/RoomFormDialog.tsx` (extraer el diálogo crear/editar).
+  - **dashboard:** `dashboard/RoomStatusCard.tsx` (KPI), `dashboard/RoomTile.tsx` + `dashboard/RoomBoard.tsx` (grilla con cambio de estado), `dashboard/RoomStatusDialog.tsx`, hook `dashboard/use-rooms-board.ts`.
+  - **login:** `login/LoginBrandPanel.tsx` (panel izquierdo decorativo), `login/LoginForm.tsx`, y los SVG del patrón de montaña a `components/brand/MountainPattern.tsx` (reutilizable con el sidebar).
+- **Fecha:** 2026-06-20 · **Estado:** Abierto
