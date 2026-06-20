@@ -1,12 +1,40 @@
 import { PrismaClient } from '@prisma/client';
 import { createSeedClient } from '../prisma-client';
 
-const guests = [
-  { nationalId: '70123456', fullName: 'Lucía Fernández', email: 'lucia.fernandez@example.com', phone: '987654321' },
-  { nationalId: '70234567', fullName: 'Marco Ríos', email: 'marco.rios@example.com', phone: '987654322' },
-  { nationalId: '70345678', fullName: 'Ana Quispe', email: 'ana.quispe@example.com', phone: '987654323' },
-  { nationalId: '70456789', fullName: 'Diego Salas', email: 'diego.salas@example.com', phone: '987654324' },
+const firstNames = [
+  'Lucía', 'Marco', 'Ana', 'Diego', 'Camila', 'José', 'Valeria', 'Andrés',
+  'Sofía', 'Luis', 'Mariana', 'Carlos', 'Daniela', 'Fernando', 'Paola',
+  'Ricardo', 'Gabriela', 'Miguel', 'Rosa', 'Jorge', 'Patricia', 'Eduardo',
+  'Carmen', 'Raúl', 'Elena', 'Sergio', 'Natalia', 'Hugo', 'Verónica', 'Iván',
 ];
+
+const lastNames = [
+  'Fernández', 'Ríos', 'Quispe', 'Salas', 'Torres', 'Mendoza', 'Paredes',
+  'Huamán', 'Vargas', 'Castro', 'Rojas', 'Flores', 'Díaz', 'Ramos', 'Cárdenas',
+  'Chávez', 'Espinoza', 'Guerrero', 'León', 'Núñez', 'Ortiz', 'Pacheco',
+  'Reyes', 'Soto', 'Ugarte', 'Valdez', 'Zúñiga', 'Bautista', 'Campos', 'Delgado',
+];
+
+function slug(value: string) {
+  return value
+    .normalize('NFD')
+    .replace(/\p{Diacritic}/gu, '')
+    .toLowerCase();
+}
+
+function buildGuests() {
+  return firstNames.map((firstName, i) => {
+    const lastName = lastNames[i];
+    return {
+      nationalId: String(70100001 + i),
+      fullName: `${firstName} ${lastName}`,
+      email: `${slug(firstName)}.${slug(lastName)}@example.com`,
+      phone: `9${String(87000000 + i)}`,
+    };
+  });
+}
+
+const guests = buildGuests();
 
 export async function seedGuests(prisma: PrismaClient) {
   for (const guest of guests) {

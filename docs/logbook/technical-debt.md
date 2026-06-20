@@ -47,11 +47,11 @@ changelog y se borra de aquí.
 
 ## [TD-007] Data de prueba template (`seeds/testing/`) es desechable
 
-- **Ubicación:** `apps/api/prisma/seeds/testing/` (rooms, guests, staff, reservations, charges, payments), orquestador `apps/api/prisma/seed.placeholder.ts`, script `seed:placeholder` en `apps/api/package.json`
+- **Ubicación:** `apps/api/prisma/seeds/testing/` (rooms, guests, staff, reservations, charges, payments), orquestador `apps/api/prisma/seed.demo.ts`, script `seed:demo` en `apps/api/package.json`
 - **Riesgo:** 2/10
 - **Problema:** Los seeds bajo `seeds/testing/` (cuartos, huéspedes, personal, reservas, cargos y pagos) son datos template para probar el flujo del PMS, no base real. Incluyen credenciales de prueba (`manager/manager`, `recepcion1/recepcion1`, `limpieza1/limpieza1`). Las reservas/cargos/pagos usan guard por conteo (idempotentes pero no re-sembrables parcialmente).
 - **Impacto futuro:** Si esta carpeta llega a producción siembra datos y usuarios falsos con contraseñas triviales. Es deuda intencional y de baja prioridad: existe para que quede registrado que debe eliminarse.
-- **Plan:** Al finalizar el proyecto, borrar la carpeta `seeds/testing/`, `seed.placeholder.ts` y el script `seed:placeholder`. Solo debe sobrevivir `npm run seed` (owner + categorías + discounts).
+- **Plan:** Al finalizar el proyecto, borrar la carpeta `seeds/testing/`, `seed.demo.ts` y el script `seed:demo`. Solo debe sobrevivir `npm run seed` (owner + categorías + discounts).
 - **Fecha:** 2026-06-07 · **Estado:** Abierto
 
 ## [TD-008] Sin guard de rol en el frontend para páginas restringidas

@@ -1,10 +1,18 @@
 import { PrismaClient, Role } from '@prisma/client';
 import { createSeedClient } from '../prisma-client';
 
-const chargeSpecs = [
-  { roomNumber: '202', category: 'Minibar', description: 'Consumo de minibar', amount: 25 },
-  { roomNumber: '202', category: 'Room Service', description: 'Cena a la habitación', amount: 60 },
-  { roomNumber: '101', category: 'Lavandería', description: 'Lavado de ropa', amount: 18 },
+const CATALOG: { category: string; description: string; amount: number }[] = [
+  { category: 'Room Service', description: 'Desayuno a la habitación', amount: 35 },
+  { category: 'Room Service', description: 'Cena a la habitación', amount: 60 },
+  { category: 'Room Service', description: 'Almuerzo ejecutivo', amount: 45 },
+  { category: 'Minibar', description: 'Consumo de minibar', amount: 25 },
+  { category: 'Minibar', description: 'Bebidas premium', amount: 40 },
+  { category: 'Lavandería', description: 'Lavado de ropa', amount: 18 },
+  { category: 'Lavandería', description: 'Servicio de planchado', amount: 12 },
+  { category: 'Daños', description: 'Reposición de toallas', amount: 30 },
+  { category: 'Daños', description: 'Daño a mobiliario', amount: 120 },
+  { category: 'Otros', description: 'Late check-out', amount: 50 },
+  { category: 'Otros', description: 'Servicio de transporte', amount: 70 },
 ];
 
 export async function seedCharges(prisma: PrismaClient) {
@@ -22,26 +30,34 @@ export async function seedCharges(prisma: PrismaClient) {
     return;
   }
 
+  const categories = await prisma.expenseCategory.findMany();
+  const categoryId = new Map(categories.map((c) => [c.name, c.id]));
+
+  const reservations = await prisma.reservation.findMany({
+    where: { status: { name: { in: ['ACTIVE', 'COMPLETED'] } } },
+    orderBy: { id: 'asc' },
+  });
+
   let created = 0;
-  for (const spec of chargeSpecs) {
-    const room = await prisma.room.findUnique({ where: { number: spec.roomNumber } });
-    if (!room) continue;
-    const reservation = await prisma.reservation.findFirst({ where: { roomId: room.id } });
-    const category = await prisma.expenseCategory.findUnique({ where: { name: spec.category } });
-    if (!reservation || !category) {
-      console.warn(`Cargo omitido: falta reserva (room ${spec.roomNumber}) o categoría ${spec.category}.`);
-      continue;
+  let j = 0;
+  for (const reservation of reservations) {
+    const howMany = 2 + (j % 3);
+    for (let k = 0; k < howMany; k++) {
+      const item = CATALOG[(j * 2 + k) % CATALOG.length];
+      const catId = categoryId.get(item.category);
+      if (!catId) continue;
+      await prisma.roomCharge.create({
+        data: {
+          reservationId: reservation.id,
+          categoryId: catId,
+          registeredBy: employee.id,
+          description: item.description,
+          amount: item.amount,
+        },
+      });
+      created++;
     }
-    await prisma.roomCharge.create({
-      data: {
-        reservationId: reservation.id,
-        categoryId: category.id,
-        registeredBy: employee.id,
-        description: spec.description,
-        amount: spec.amount,
-      },
-    });
-    created++;
+    j++;
   }
   console.log(`Cargos sembrados (${created}).`);
 }

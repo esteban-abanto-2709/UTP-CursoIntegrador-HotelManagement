@@ -17,7 +17,7 @@ Cada endpoint se prueba con **250, 500 y 1000 peticiones** (= nº de hilos virtu
    docker compose up --build
    # en otra terminal, desde apps/api:
    pnpm seed
-   pnpm seed:placeholder
+   pnpm seed:demo
    ```
 2. **k6 instalado**:
    ```powershell

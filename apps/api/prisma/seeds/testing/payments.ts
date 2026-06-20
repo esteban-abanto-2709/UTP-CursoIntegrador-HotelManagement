@@ -22,20 +22,20 @@ export async function seedPayments(prisma: PrismaClient) {
     where: { name: 'Cliente frecuente', isActive: true },
   });
 
-  const cash = await prisma.paymentMethod.findUnique({
-    where: { name: 'CASH' },
-  });
-  if (!cash) {
-    console.warn('Pagos omitidos: falta el método de pago CASH (corre el seed).');
+  const methods = await prisma.paymentMethod.findMany({ orderBy: { id: 'asc' } });
+  if (methods.length === 0) {
+    console.warn('Pagos omitidos: faltan métodos de pago (corre el seed).');
     return;
   }
 
   const reservations = await prisma.reservation.findMany({
     where: { status: { name: 'COMPLETED' } },
     include: { charges: true },
+    orderBy: { id: 'asc' },
   });
 
   let created = 0;
+  let i = 0;
   for (const reservation of reservations) {
     const nights = Math.max(
       1,
@@ -45,16 +45,19 @@ export async function seedPayments(prisma: PrismaClient) {
     const roomTotal = rate * nights;
     const chargesTotal = reservation.charges.reduce((sum, c) => sum + Number(c.amount), 0);
     const subtotal = roomTotal + chargesTotal;
-    const discountPct = discount ? Number(discount.percentage) : 0;
+
+    const applyDiscount = discount != null && i % 2 === 0;
+    const discountPct = applyDiscount ? Number(discount!.percentage) : 0;
     const discountAmount = Number(((subtotal * discountPct) / 100).toFixed(2));
     const grandTotal = Number((subtotal - discountAmount).toFixed(2));
+    const method = methods[i % methods.length];
 
     await prisma.payment.create({
       data: {
         reservationId: reservation.id,
         processedBy: employee.id,
-        paymentMethodId: cash.id,
-        discountId: discount?.id ?? null,
+        paymentMethodId: method.id,
+        discountId: applyDiscount ? discount!.id : null,
         roomTotal,
         chargesTotal,
         subtotal,
@@ -63,6 +66,7 @@ export async function seedPayments(prisma: PrismaClient) {
       },
     });
     created++;
+    i++;
   }
   console.log(`Pagos sembrados (${created}).`);
 }
