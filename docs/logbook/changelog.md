@@ -16,6 +16,9 @@ Resumen en ≤2 líneas de lo que se hizo.
 
 ---
 
+## [TD-010] Helper único de tipo de habitación en `lib/room.ts` (2026-06-19 19:53)
+Nuevo `lib/room.ts` (`getRoomTypeLabel`, `ROOM_TYPES`, `ROOM_TYPE_OPTIONS`, tipo `RoomType`) como fuente única del mapeo `SINGLE/DOUBLE/SUITE → Sencilla/Doble/Suite`. Eliminadas 7 copias del mapeo (`getRoomTypeLabel`/`getTypeTranslation`/`getTypeLabel`/`TYPE_LABELS`) en `huespedes`, `servicio`, `reservas/page`, `dashboard/page`, `rooms/page`, `calendario/OccupancyTimeline` y `ReservationFormDialog` (que además reusa `ROOM_TYPE_OPTIONS` en su `<select>` y el tipo local `RoomTypeValue` pasó a `RoomType`). Build verde.
+
 ## [TD-011] Helper único `getApiErrorMessage` para errores de Axios (2026-06-19 19:49)
 Extraído el helper a un módulo puro `lib/api-error.ts` (antes vivía inline en `analytics-ui.tsx`, que ahora lo re-exporta para no romper sus consumidores). Reemplazados los 8 catch manuales duplicados en `login`, `reservas/page.tsx` (×3), `RoomChargesSheet`, `ReservationFormDialog`, `staff/EmployeeFormDialog` y `rooms/page.tsx`. Build verde.
 

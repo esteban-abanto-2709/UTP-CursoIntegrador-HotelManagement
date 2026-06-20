@@ -10,6 +10,7 @@ import { Bed, Plus, Loader2, Pencil } from "lucide-react";
 import api from "@/lib/axios";
 import { routes } from "@/lib/routes";
 import { getApiErrorMessage } from "@/lib/api-error";
+import { getRoomTypeLabel } from "@/lib/room";
 import { useAuthStore } from "@/store/authStore";
 
 import { Button } from "@/components/ui/button";
@@ -177,15 +178,6 @@ export default function RoomsPage() {
       default:
         return <span>{status}</span>;
     }
-  };
-
-  const getTypeTranslation = (type: string) => {
-    const types: Record<string, string> = {
-      SINGLE: "Sencilla",
-      DOUBLE: "Doble",
-      SUITE: "Suite",
-    };
-    return types[type] || type;
   };
 
   return (
@@ -405,7 +397,7 @@ export default function RoomsPage() {
                     {room.number}
                   </TableCell>
                   <TableCell className="text-muted-foreground">
-                    {getTypeTranslation(room.type)}
+                    {getRoomTypeLabel(room.type)}
                   </TableCell>
                   <TableCell className="text-foreground font-medium">
                     S/. {Number(room.price).toFixed(2)}

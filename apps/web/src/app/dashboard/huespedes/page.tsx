@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import api from "@/lib/axios";
 import { routes } from "@/lib/routes";
 import { formatDate } from "@/lib/date";
+import { getRoomTypeLabel } from "@/lib/room";
 import { toast } from "sonner";
 import { Search, Loader2, Mail, Phone, History } from "lucide-react";
 
@@ -53,15 +54,6 @@ const STATUS_LABELS: Record<ReservationStatus, string> = {
   COMPLETED: "Finalizada",
   CANCELLED: "Cancelada",
 };
-
-function getRoomTypeLabel(type: string) {
-  const labels: Record<string, string> = {
-    SINGLE: "Sencilla",
-    DOUBLE: "Doble",
-    SUITE: "Suite",
-  };
-  return labels[type] ?? type;
-}
 
 function getStatusBadge(status: ReservationStatus) {
   const styles: Record<ReservationStatus, string> = {

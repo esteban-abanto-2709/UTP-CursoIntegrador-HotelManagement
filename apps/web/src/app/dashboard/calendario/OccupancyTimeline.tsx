@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { ChevronLeft, ChevronRight, CalendarDays } from "lucide-react";
 import { formatDate } from "@/lib/date";
+import { getRoomTypeLabel } from "@/lib/room";
 
 interface TimelineRoom {
   id: number;
@@ -23,12 +24,6 @@ const WINDOW_DAYS = 14;
 const STEP_DAYS = 7;
 
 const WEEKDAYS = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"];
-
-const TYPE_LABELS: Record<string, string> = {
-  SINGLE: "Sencilla",
-  DOUBLE: "Doble",
-  SUITE: "Suite",
-};
 
 const STATUS_STYLES: Record<
   "PENDING" | "ACTIVE" | "COMPLETED",
@@ -217,7 +212,7 @@ export default function OccupancyTimeline({
                       Cto. {room.number}
                     </span>
                     <span className="text-xs text-muted-foreground">
-                      {TYPE_LABELS[room.type] ?? room.type}
+                      {getRoomTypeLabel(room.type)}
                     </span>
                   </div>
 

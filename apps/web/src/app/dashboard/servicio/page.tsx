@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import api from "@/lib/axios";
 import { routes } from "@/lib/routes";
 import { formatDate } from "@/lib/date";
+import { getRoomTypeLabel } from "@/lib/room";
 import { toast } from "sonner";
 import {
   Sparkles,
@@ -22,15 +23,6 @@ interface Room {
   number: string;
   type: string;
   status: string;
-}
-
-function getRoomTypeLabel(type: string) {
-  const labels: Record<string, string> = {
-    SINGLE: "Sencilla",
-    DOUBLE: "Doble",
-    SUITE: "Suite",
-  };
-  return labels[type] ?? type;
 }
 
 export default function ServicioHabitacionPage() {

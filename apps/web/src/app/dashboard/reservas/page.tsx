@@ -6,6 +6,7 @@ import { routes } from "@/lib/routes";
 import { formatDate } from "@/lib/date";
 import { calcNights } from "@/lib/pricing";
 import { getApiErrorMessage } from "@/lib/api-error";
+import { getRoomTypeLabel } from "@/lib/room";
 import { toast } from "sonner";
 import { Search, Plus, Loader2, LogIn, LogOut, Pencil, Ban, X } from "lucide-react";
 
@@ -82,15 +83,6 @@ const STATUS_FILTERS: { value: "ALL" | ReservationStatus; label: string }[] = [
   { value: "COMPLETED", label: "Finalizadas" },
   { value: "CANCELLED", label: "Canceladas" },
 ];
-
-function getRoomTypeLabel(type: string) {
-  const labels: Record<string, string> = {
-    SINGLE: "Sencilla",
-    DOUBLE: "Doble",
-    SUITE: "Suite",
-  };
-  return labels[type] ?? type;
-}
 
 export default function ReservasPage() {
   const [searchTerm, setSearchTerm] = useState("");

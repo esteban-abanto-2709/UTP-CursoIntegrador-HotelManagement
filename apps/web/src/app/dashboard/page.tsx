@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import api from "@/lib/axios";
 import { routes } from "@/lib/routes";
+import { getRoomTypeLabel } from "@/lib/room";
 import { toast } from "sonner";
 import {
   BedDouble,
@@ -329,19 +330,6 @@ function RoomCard({
     }
   };
 
-  const getTypeLabel = (type: string) => {
-    switch (type) {
-      case "SINGLE":
-        return "Sencilla";
-      case "DOUBLE":
-        return "Doble";
-      case "SUITE":
-        return "Suite";
-      default:
-        return type;
-    }
-  };
-
   return (
     <>
       <button
@@ -367,7 +355,7 @@ function RoomCard({
           {room.number}
         </span>
         <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-background border border-border/50 text-muted-foreground mt-1">
-          {getTypeLabel(room.type)}
+          {getRoomTypeLabel(room.type)}
         </span>
       </button>
 
@@ -393,7 +381,7 @@ function RoomCard({
             <div className="p-4 bg-muted border border-border/50 rounded-xl flex justify-between items-center mb-2">
               <div className="text-sm text-muted-foreground">Categoría</div>
               <div className="font-semibold text-foreground">
-                {getTypeLabel(room.type)}
+                {getRoomTypeLabel(room.type)}
               </div>
             </div>
 

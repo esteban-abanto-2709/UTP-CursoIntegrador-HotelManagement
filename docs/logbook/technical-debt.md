@@ -62,14 +62,6 @@ changelog y se borra de aquí.
 - **Impacto futuro:** No es un hueco de seguridad real (el backend protege los datos), pero es una fuga de UX: páginas visibles para roles que no deberían acceder. Mejora: extender `ProtectedRoute` con prop `allowedRoles` y envolver las páginas sensibles (auditoría, rooms, staff) para redirigir a `/dashboard` cuando el rol no coincide.
 - **Fecha:** 2026-06-07 · **Estado:** Abierto
 
-## [TD-010] Mapeo de tipo de habitación duplicado en 6 archivos
-
-- **Ubicación:** `apps/web/src/app/dashboard/reservas/page.tsx`, `huespedes/page.tsx`, `servicio/page.tsx`, `reservas/ReservationFormDialog.tsx`, `rooms/page.tsx`, `dashboard/page.tsx`
-- **Riesgo:** 3/10
-- **Problema:** La traducción `SINGLE/DOUBLE/SUITE → Sencilla/Doble/Suite` está copiada en seis sitios como `getRoomTypeLabel` / `getTypeTranslation` / `getTypeLabel`. No hay fuente única de verdad.
-- **Impacto futuro:** Agregar o renombrar un tipo de habitación obliga a editar los seis archivos de forma coordinada; es fácil dejar uno desincronizado. Solución: extraer un helper único (p. ej. `lib/room.ts`) y reusarlo.
-- **Fecha:** 2026-06-19 · **Estado:** Abierto
-
 ## [TD-013] Badge de estado de reserva duplicado entre dos páginas
 
 - **Ubicación:** `apps/web/src/app/dashboard/reservas/page.tsx:263` (`getStatusBadge`), `apps/web/src/app/dashboard/huespedes/page.tsx:66` (`getStatusBadge`)

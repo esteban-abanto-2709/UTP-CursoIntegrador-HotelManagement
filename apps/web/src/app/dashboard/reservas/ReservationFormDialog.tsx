@@ -5,6 +5,11 @@ import api from "@/lib/axios";
 import { routes } from "@/lib/routes";
 import { calcNights } from "@/lib/pricing";
 import { getApiErrorMessage } from "@/lib/api-error";
+import {
+  getRoomTypeLabel,
+  ROOM_TYPE_OPTIONS,
+  type RoomType,
+} from "@/lib/room";
 import { toast } from "sonner";
 import { Loader2, Search } from "lucide-react";
 
@@ -15,8 +20,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-
-type RoomTypeValue = "SINGLE" | "DOUBLE" | "SUITE";
 
 interface Room {
   id: number;
@@ -47,21 +50,6 @@ interface Props {
   reservation?: ReservationForEdit | null;
 }
 
-const ROOM_TYPES: { value: RoomTypeValue; label: string }[] = [
-  { value: "SINGLE", label: "Sencilla" },
-  { value: "DOUBLE", label: "Doble" },
-  { value: "SUITE", label: "Suite" },
-];
-
-function getRoomTypeLabel(type: string) {
-  const labels: Record<string, string> = {
-    SINGLE: "Sencilla",
-    DOUBLE: "Doble",
-    SUITE: "Suite",
-  };
-  return labels[type] ?? type;
-}
-
 function addDays(dateStr: string, days: number) {
   const d = new Date(dateStr);
   d.setUTCDate(d.getUTCDate() + days);
@@ -83,7 +71,7 @@ export default function ReservationFormDialog({
   const [isSearchingGuest, setIsSearchingGuest] = useState(false);
   const [formCheckIn, setFormCheckIn] = useState("");
   const [formCheckOut, setFormCheckOut] = useState("");
-  const [formType, setFormType] = useState<RoomTypeValue | "">("");
+  const [formType, setFormType] = useState<RoomType | "">("");
   const [selectedRoomId, setSelectedRoomId] = useState("");
   const [availableRooms, setAvailableRooms] = useState<Room[]>([]);
   const [isSearchingRooms, setIsSearchingRooms] = useState(false);
@@ -132,7 +120,7 @@ export default function ReservationFormDialog({
       setPhone(reservation.guest.phone ?? "");
       setFormCheckIn(reservation.checkIn.split("T")[0]);
       setFormCheckOut(reservation.checkOut.split("T")[0]);
-      setFormType(reservation.room.type as RoomTypeValue);
+      setFormType(reservation.room.type as RoomType);
       preselectRef.current = reservation.roomId;
     } else {
       setNationalId("");
@@ -358,11 +346,11 @@ export default function ReservationFormDialog({
             <select
               required
               value={formType}
-              onChange={(e) => setFormType(e.target.value as RoomTypeValue)}
+              onChange={(e) => setFormType(e.target.value as RoomType)}
               className="h-10 px-3 py-2 rounded-lg border border-border/50 bg-background text-foreground focus:ring-2 focus:border-primary focus:ring-primary/20 outline-none transition-all cursor-pointer"
             >
               <option value="">Seleccione un tipo...</option>
-              {ROOM_TYPES.map((t) => (
+              {ROOM_TYPE_OPTIONS.map((t) => (
                 <option key={t.value} value={t.value}>
                   {t.label}
                 </option>
