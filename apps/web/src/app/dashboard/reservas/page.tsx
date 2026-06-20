@@ -7,6 +7,8 @@ import { formatDate } from "@/lib/date";
 import { calcNights } from "@/lib/pricing";
 import { getApiErrorMessage } from "@/lib/api-error";
 import { getRoomTypeLabel } from "@/lib/room";
+import type { ReservationStatus } from "@/lib/reservation";
+import { ReservationStatusBadge } from "@/components/reservation-status-badge";
 import { generarComprobante } from "@/lib/printComprobante";
 import { toast } from "sonner";
 import { Search, Plus, Loader2, LogIn, LogOut, Pencil, Ban, X, Printer } from "lucide-react";
@@ -31,8 +33,6 @@ import {
 import ReservationFormDialog, {
   ReservationForEdit,
 } from "./ReservationFormDialog";
-
-type ReservationStatus = "PENDING" | "ACTIVE" | "COMPLETED" | "CANCELLED";
 
 type PaymentMethod = "CASH" | "CARD" | "TRANSFER";
 
@@ -259,35 +259,6 @@ export default function ReservasPage() {
     toDate !== "" ||
     roomFilter !== "";
 
-  const getStatusBadge = (status: ReservationStatus) => {
-    switch (status) {
-      case "ACTIVE":
-        return (
-          <span className="px-2 py-1 text-xs rounded-full bg-status-occupied-bg text-status-occupied-text font-semibold border border-status-occupied-border">
-            En Hotel (Activa)
-          </span>
-        );
-      case "PENDING":
-        return (
-          <span className="px-2 py-1 text-xs rounded-full bg-status-cleaning-bg text-status-cleaning-text font-semibold border border-status-cleaning-border">
-            Próximos a llegar
-          </span>
-        );
-      case "COMPLETED":
-        return (
-          <span className="px-2 py-1 text-xs rounded-full bg-status-available-bg text-status-available-text font-semibold border border-status-available-border">
-            Finalizada
-          </span>
-        );
-      case "CANCELLED":
-        return (
-          <span className="px-2 py-1 text-xs rounded-full bg-status-maintenance-bg text-status-maintenance-text font-semibold border border-status-maintenance-border">
-            Cancelada
-          </span>
-        );
-    }
-  };
-
   return (
     <div className="flex flex-col gap-6 max-w-7xl mx-auto w-full animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b pb-6">
@@ -455,7 +426,9 @@ export default function ReservasPage() {
                     <span className="opacity-50">→</span>{" "}
                     {formatDate(res.checkOut)}
                   </TableCell>
-                  <TableCell>{getStatusBadge(res.status)}</TableCell>
+                  <TableCell>
+                    <ReservationStatusBadge status={res.status} />
+                  </TableCell>
                   <TableCell className="text-right pr-6">
                     {res.status === "PENDING" && (
                       <div className="inline-flex items-center gap-2">

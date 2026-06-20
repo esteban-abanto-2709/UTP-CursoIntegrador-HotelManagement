@@ -62,14 +62,6 @@ changelog y se borra de aquí.
 - **Impacto futuro:** No es un hueco de seguridad real (el backend protege los datos), pero es una fuga de UX: páginas visibles para roles que no deberían acceder. Mejora: extender `ProtectedRoute` con prop `allowedRoles` y envolver las páginas sensibles (auditoría, rooms, staff) para redirigir a `/dashboard` cuando el rol no coincide.
 - **Fecha:** 2026-06-07 · **Estado:** Abierto
 
-## [TD-013] Badge de estado de reserva duplicado entre dos páginas
-
-- **Ubicación:** `apps/web/src/app/dashboard/reservas/page.tsx:263` (`getStatusBadge`), `apps/web/src/app/dashboard/huespedes/page.tsx:66` (`getStatusBadge`)
-- **Riesgo:** 2/10
-- **Problema:** El mapeo de `PENDING/ACTIVE/COMPLETED/CANCELLED` a clases de color + etiqueta está implementado por separado en ambas páginas, con labels y estilos que ya divergen (p. ej. "Próximos a llegar" vs "Próxima").
-- **Impacto futuro:** Los estados se ven distintos según la página y agregar/renombrar un estado exige tocar ambos. Relacionado con [[TD-010]] (mismo patrón de mapeo duplicado). Solución: componente/helper compartido para el badge de estado.
-- **Fecha:** 2026-06-19 · **Estado:** Abierto
-
 ## [TD-015] Seed real del owner con credenciales por defecto `admin/admin`
 
 - **Ubicación:** `apps/api/prisma/seeds/owner.ts:9`

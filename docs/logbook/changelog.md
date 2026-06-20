@@ -16,6 +16,9 @@ Resumen en ≤2 líneas de lo que se hizo.
 
 ---
 
+## [TD-013] Badge de estado de reserva unificado en un módulo compartido (2026-06-20 09:09)
+Nuevo `lib/reservation.ts` (tipo `ReservationStatus`, labels + clases por estado) y componente `components/reservation-status-badge.tsx`. `reservas/page.tsx` y `huespedes/page.tsx` borran su `getStatusBadge`/tipo local y usan `<ReservationStatusBadge>`. Labels canónicos singulares (`Próxima`/`En hotel`/`Finalizada`/`Cancelada`); el filtro plural de reservas se mantiene aparte. Build web verde.
+
 ## [TD-022] Rebrand Lumina → Mirador Hotel Suite (2026-06-19 21:09)
 Reemplazada la marca vieja "Lumina" por "Mirador Hotel Suite" en metadatos de la web (`layout.tsx`, `dashboard/layout.tsx`), landing del API (`app.service.ts`), docs/diagramas, READMEs, `CLAUDE.md` y fixtures `employees.http` (`@miradorhotel.pe`). El comprobante ya estaba en Mirador. Se dejaron intactas las claves internas de storage (`lumina-auth-storage`, `lumina-api-awake`) por desloguear. Builds de API y web en verde.
 

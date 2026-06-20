@@ -160,7 +160,7 @@ export function AppSidebar() {
         Operación
       </div>
 
-      <nav className="relative z-[1] flex flex-col gap-[3px] px-[14px]">
+      <nav className="relative z-1 flex flex-col gap-[3px] px-[14px]">
         {filteredItems.map((item) => {
           const isActive = pathname === item.url;
           return (
@@ -180,10 +180,10 @@ export function AppSidebar() {
         })}
       </nav>
 
-      <div className="relative z-[2] mt-auto p-[14px]">
+      <div className="relative z-2 mt-auto p-[14px]">
         <button
           onClick={handleLogout}
-          className="flex w-full items-center gap-[11px] rounded-[14px] border border-white/[0.08] bg-white/[0.06] p-[11px] text-left transition-colors hover:bg-white/[0.1]"
+          className="flex w-full items-center gap-[11px] rounded-[14px] border border-white/8 bg-white/6 p-[11px] text-left transition-colors hover:bg-white/10"
         >
           <div
             className="flex h-[36px] w-[36px] flex-none items-center justify-center rounded-[10px] text-[14px] font-bold text-white"

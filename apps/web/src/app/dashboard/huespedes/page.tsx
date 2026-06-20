@@ -5,6 +5,8 @@ import api from "@/lib/axios";
 import { routes } from "@/lib/routes";
 import { formatDate } from "@/lib/date";
 import { getRoomTypeLabel } from "@/lib/room";
+import type { ReservationStatus } from "@/lib/reservation";
+import { ReservationStatusBadge } from "@/components/reservation-status-badge";
 import { toast } from "sonner";
 import { Search, Loader2, Mail, Phone, History } from "lucide-react";
 
@@ -25,8 +27,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
-type ReservationStatus = "PENDING" | "ACTIVE" | "COMPLETED" | "CANCELLED";
-
 interface GuestRow {
   id: number;
   nationalId: string;
@@ -46,33 +46,6 @@ interface GuestStay {
 
 interface GuestDetail extends GuestRow {
   reservations: GuestStay[];
-}
-
-const STATUS_LABELS: Record<ReservationStatus, string> = {
-  PENDING: "Próxima",
-  ACTIVE: "En hotel",
-  COMPLETED: "Finalizada",
-  CANCELLED: "Cancelada",
-};
-
-function getStatusBadge(status: ReservationStatus) {
-  const styles: Record<ReservationStatus, string> = {
-    ACTIVE:
-      "bg-status-occupied-bg text-status-occupied-text border-status-occupied-border",
-    PENDING:
-      "bg-status-cleaning-bg text-status-cleaning-text border-status-cleaning-border",
-    COMPLETED:
-      "bg-status-available-bg text-status-available-text border-status-available-border",
-    CANCELLED:
-      "bg-status-maintenance-bg text-status-maintenance-text border-status-maintenance-border",
-  };
-  return (
-    <span
-      className={`px-2 py-1 text-xs rounded-full font-semibold border ${styles[status]}`}
-    >
-      {STATUS_LABELS[status]}
-    </span>
-  );
 }
 
 export default function HuespedesPage() {
@@ -283,7 +256,7 @@ export default function HuespedesPage() {
                             {formatDate(stay.checkIn)} → {formatDate(stay.checkOut)}
                           </span>
                         </div>
-                        {getStatusBadge(stay.status)}
+                        <ReservationStatusBadge status={stay.status} />
                       </div>
                     ))}
                   </div>
