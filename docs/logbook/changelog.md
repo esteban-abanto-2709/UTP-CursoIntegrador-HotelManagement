@@ -16,6 +16,9 @@ Resumen en ≤2 líneas de lo que se hizo.
 
 ---
 
+## [RM-042] Detalle de consumos + regenerar comprobante en reservas (2026-06-20 09:24)
+Nuevo diálogo en solo lectura `reservas/ReservationDetailDialog.tsx` accesible con "Ver detalle" en filas COMPLETED/CANCELLED: muestra huésped/habitación/fechas, el desglose de consumos (`/reservations/:id/charges`) y, para COMPLETED, el desglose de pago (`/payments/:id`) con botón **Regenerar comprobante** que reusa `generarComprobante`. Se retiró el botón de impresora inline de `reservas/page.tsx` (un solo camino: ver detalle → regenerar). Sin cambios de API/schema. Filtros por fecha/huésped/estado ya existían. Build web verde.
+
 ## [TD-013] Badge de estado de reserva unificado en un módulo compartido (2026-06-20 09:09)
 Nuevo `lib/reservation.ts` (tipo `ReservationStatus`, labels + clases por estado) y componente `components/reservation-status-badge.tsx`. `reservas/page.tsx` y `huespedes/page.tsx` borran su `getStatusBadge`/tipo local y usan `<ReservationStatusBadge>`. Labels canónicos singulares (`Próxima`/`En hotel`/`Finalizada`/`Cancelada`); el filtro plural de reservas se mantiene aparte. Build web verde.
 

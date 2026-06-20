@@ -9,9 +9,8 @@ import { getApiErrorMessage } from "@/lib/api-error";
 import { getRoomTypeLabel } from "@/lib/room";
 import type { ReservationStatus } from "@/lib/reservation";
 import { ReservationStatusBadge } from "@/components/reservation-status-badge";
-import { generarComprobante } from "@/lib/printComprobante";
 import { toast } from "sonner";
-import { Search, Plus, Loader2, LogIn, LogOut, Pencil, Ban, X, Printer } from "lucide-react";
+import { Search, Plus, Loader2, LogIn, LogOut, Pencil, Ban, X, Eye } from "lucide-react";
 
 import {
   Table,
@@ -33,6 +32,7 @@ import {
 import ReservationFormDialog, {
   ReservationForEdit,
 } from "./ReservationFormDialog";
+import ReservationDetailDialog from "./ReservationDetailDialog";
 
 type PaymentMethod = "CASH" | "CARD" | "TRANSFER";
 
@@ -109,20 +109,7 @@ export default function ReservasPage() {
     null,
   );
   const [isLoadingCheckout, setIsLoadingCheckout] = useState(false);
-  const [printingId, setPrintingId] = useState<number | null>(null);
-
-  const handlePrintComprobante = async (id: number) => {
-    setPrintingId(id);
-    try {
-      await generarComprobante(id);
-    } catch (error) {
-      toast.error(
-        getApiErrorMessage(error, "No se pudo generar el comprobante"),
-      );
-    } finally {
-      setPrintingId(null);
-    }
-  };
+  const [detailTarget, setDetailTarget] = useState<Reservation | null>(null);
 
   const fetchReservations = useCallback(async () => {
     setIsLoading(true);
@@ -285,6 +272,11 @@ export default function ReservasPage() {
         onOpenChange={setIsFormOpen}
         onSuccess={fetchReservations}
         reservation={editingReservation}
+      />
+
+      <ReservationDetailDialog
+        reservation={detailTarget}
+        onOpenChange={(open) => !open && setDetailTarget(null)}
       />
 
       <div className="bg-card p-4 rounded-2xl border border-border/50 shadow-sm flex flex-col gap-4">
@@ -472,33 +464,35 @@ export default function ReservasPage() {
                         Check-out
                       </button>
                     )}
-                    {res.status === "COMPLETED" &&
-                      (res.payment ? (
-                        <div className="inline-flex items-center gap-2">
+                    {res.status === "COMPLETED" && (
+                      <div className="inline-flex items-center gap-2">
+                        {res.payment && (
                           <span className="text-xs font-semibold text-foreground">
                             S/. {Number(res.payment.grandTotal).toFixed(2)}
                             <span className="ml-1 font-normal text-muted-foreground">
                               ({PAYMENT_LABELS[res.payment.paymentMethod]})
                             </span>
                           </span>
-                          <button
-                            onClick={() => handlePrintComprobante(res.id)}
-                            disabled={printingId === res.id}
-                            title="Imprimir comprobante"
-                            className="inline-flex items-center justify-center w-8 h-8 bg-background text-muted-foreground border border-border/50 rounded-lg hover:bg-muted hover:text-foreground transition-all active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed"
-                          >
-                            {printingId === res.id ? (
-                              <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                            ) : (
-                              <Printer className="w-3.5 h-3.5" />
-                            )}
-                          </button>
-                        </div>
-                      ) : (
-                        <span className="text-xs text-muted-foreground">—</span>
-                      ))}
+                        )}
+                        <button
+                          onClick={() => setDetailTarget(res)}
+                          title="Ver detalle"
+                          className="inline-flex items-center gap-1.5 bg-background text-muted-foreground border border-border/50 px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-muted hover:text-foreground transition-all active:scale-95"
+                        >
+                          <Eye className="w-3.5 h-3.5" />
+                          Ver detalle
+                        </button>
+                      </div>
+                    )}
                     {res.status === "CANCELLED" && (
-                      <span className="text-xs text-muted-foreground">—</span>
+                      <button
+                        onClick={() => setDetailTarget(res)}
+                        title="Ver detalle"
+                        className="inline-flex items-center gap-1.5 bg-background text-muted-foreground border border-border/50 px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-muted hover:text-foreground transition-all active:scale-95"
+                      >
+                        <Eye className="w-3.5 h-3.5" />
+                        Ver detalle
+                      </button>
                     )}
                   </TableCell>
                 </TableRow>

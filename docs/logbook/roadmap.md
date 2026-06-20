@@ -85,16 +85,6 @@ Al terminar una tarea se mueve al changelog y se borra de aquí.
 
 > Lote levantado de la retroalimentación del profesor y del curso (2026-06-19). Todas comprometidas. Agrupadas por tema; los códigos no implican orden de ejecución.
 
-### Comprobante de pago e historial
-
-## [RM-042] Historial de reservas con reimpresión del comprobante
-
-- **Objetivo:** Un historial donde el personal pueda volver a abrir reservas pasadas, revisar los consumos del huésped y **regenerar** el comprobante de [[RM-041]].
-- **Contexto:** Las reservas `COMPLETED`/`CANCELLED` ya viven en BD; `/dashboard/reservas` lista pero está orientado a operación, no a consulta histórica. Relacionado con [[WL-002]] (tabla de huéspedes hospedados ahora) — son vistas complementarias: una es "quién está", esta es "qué pasó". Reutiliza el generador de comprobante; no duplica lógica de armado del desglose.
-- **Hecho cuando:** Existe una vista de historial filtrable (por fecha/huésped/estado) que abre el detalle de consumos de cualquier reserva pasada y permite regenerar su comprobante.
-- **Nota:** depende de [[RM-041]].
-- **Fecha:** 2026-06-19 · **Estado:** Abierto
-
 ### UX / UI
 
 ## [RM-046] Paginar las tablas (frontend + API) para que no traigan todo de golpe
