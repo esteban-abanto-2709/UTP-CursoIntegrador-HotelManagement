@@ -16,6 +16,9 @@ Resumen en ≤2 líneas de lo que se hizo.
 
 ---
 
+## [RM-041] Comprobante/boleta de pago con el desglose del huésped (2026-06-19 20:14)
+Vista derivada en la web (sin tocar API ni schema): `lib/printComprobante.ts` (`generarComprobante`) arma la boleta desde `reservations.getOne` + `payments.getByReservation` + `reservations.charges` y la **imprime directo en un iframe oculto** (sin navegar), con el `title` del documento fijando el nombre del PDF (`Comprobante B001-xxxxxxx - {cliente}`). Réplica del PDF de referencia (marca Mirador, correlativo sintético desde `payment.id`, IGV 18% derivado del total, monto en letras). Nuevos helpers `lib/numeroALetras.ts` y `lib/comprobante.ts`; botón de impresión directa en `reservas/page.tsx` (filas COMPLETED). Datos placeholder/faltantes registrados en TD-021. Build verde.
+
 ## [TD-010] Helper único de tipo de habitación en `lib/room.ts` (2026-06-19 19:53)
 Nuevo `lib/room.ts` (`getRoomTypeLabel`, `ROOM_TYPES`, `ROOM_TYPE_OPTIONS`, tipo `RoomType`) como fuente única del mapeo `SINGLE/DOUBLE/SUITE → Sencilla/Doble/Suite`. Eliminadas 7 copias del mapeo (`getRoomTypeLabel`/`getTypeTranslation`/`getTypeLabel`/`TYPE_LABELS`) en `huespedes`, `servicio`, `reservas/page`, `dashboard/page`, `rooms/page`, `calendario/OccupancyTimeline` y `ReservationFormDialog` (que además reusa `ROOM_TYPE_OPTIONS` en su `<select>` y el tipo local `RoomTypeValue` pasó a `RoomType`). Build verde.
 

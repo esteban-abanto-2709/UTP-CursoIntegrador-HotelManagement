@@ -109,3 +109,19 @@ changelog y se borra de aquí.
 - **Problema:** El payload del JWT, el usuario actual y el objeto de login se tipan como `any` en toda la cadena de autenticación/autorización.
 - **Impacto futuro:** Se pierde el chequeo de tipos justo donde vive el modelo de seguridad; un typo en `user.role`/`user.id` no lo detecta el compilador. Solución: definir una interfaz `AuthUser`/`JwtPayload` y usarla en strategy, decorador `@CurrentUser` y services.
 - **Fecha:** 2026-06-19 · **Estado:** Abierto
+
+## [TD-021] Comprobante con datos de empresa/fiscales placeholder y sin dirección del huésped
+
+- **Ubicación:** `apps/web/src/lib/comprobante.ts` (`EMPRESA`, `formatCorrelativo`), `apps/web/src/lib/printComprobante.ts` (armado de la boleta)
+- **Riesgo:** 3/10
+- **Problema:** El comprobante (RM-041) usa datos de empresa/fiscales **hardcodeados como placeholder** (RUC, dirección, teléfono y email inventados; serie/correlativo `B001-xxxxxxx` sintético derivado de `payment.id`) y **omite la dirección del huésped** —que la boleta de referencia sí muestra— porque el modelo `Guest` no tiene campo `address`. La fila DIRECCIÓN se sustituyó por "Contacto" (teléfono/email).
+- **Impacto futuro:** El documento muestra datos ficticios (mitigado por el disclaimer "no válido para SUNAT"). Para datos reales o fidelidad total con la referencia hay que: parametrizar los datos de la empresa (config/env o tabla) y, si se quiere la dirección, agregar `address` (y posibles datos fiscales) a `Guest` manteniendo la BD normalizada.
+- **Fecha:** 2026-06-19 · **Estado:** Abierto
+
+## [TD-022] Strings "Lumina" residuales en los metadatos (marca vieja)
+
+- **Ubicación:** `apps/web/src/app/layout.tsx:29` (`title: "Lumina Resort PMS"`), `apps/web/src/app/dashboard/layout.tsx:7` (`title`) y `:8` (`description`)
+- **Riesgo:** 2/10
+- **Problema:** Tras la decisión de marca **Mirador**, quedan textos "Lumina" en los metadatos del root y del dashboard (título de pestaña y descripción). Es la marca anterior visible en la pestaña del navegador.
+- **Impacto futuro:** Inconsistencia de marca de cara al usuario. Antes contaminaba además el nombre del PDF descargado del comprobante (resuelto al imprimir con `title` propio vía iframe en RM-041), pero el residual textual sigue. Parte del rebrand de [[RM-039]] / [[RM-043]]. Solución: reemplazar los textos por la identidad Mirador.
+- **Fecha:** 2026-06-19 · **Estado:** Abierto

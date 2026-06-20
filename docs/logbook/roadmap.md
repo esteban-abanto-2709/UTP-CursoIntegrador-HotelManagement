@@ -87,14 +87,6 @@ Al terminar una tarea se mueve al changelog y se borra de aquí.
 
 ### Comprobante de pago e historial
 
-## [RM-041] Generar comprobante/boucher de pago con el desglose del huésped
-
-- **Objetivo:** Emitir un comprobante imprimible/descargable que liste **todos los gastos** del huésped en una reserva: noches de habitación (tarifa × noches), cargos extra por categoría, descuentos aplicados y total cobrado, con método de pago y datos del huésped.
-- **Contexto:** El dato ya existe y está normalizado: `Reservation` → `Guest`, `RoomCharge` (consumos por categoría), `Payment` con su desglose y descuentos (ver RM-011–RM-014 y, si entra, los descuentos múltiples de [[RM-035]]). Falta la **presentación**: componer todo en un documento. El comprobante es una **vista derivada**, no una entidad nueva (no persistir un PDF/snapshot salvo que se exija valor legal).
-- **Hecho cuando:** Desde una reserva con pago se puede generar el comprobante con el desglose completo y total cuadrado contra `Payment`, listo para imprimir/exportar. Los textos de cara al huésped en español (ver [[RM-044]]).
-- **Nota:** prerequisito de [[RM-042]] (el historial reutiliza este generador).
-- **Fecha:** 2026-06-19 · **Estado:** Abierto
-
 ## [RM-042] Historial de reservas con reimpresión del comprobante
 
 - **Objetivo:** Un historial donde el personal pueda volver a abrir reservas pasadas, revisar los consumos del huésped y **regenerar** el comprobante de [[RM-041]].

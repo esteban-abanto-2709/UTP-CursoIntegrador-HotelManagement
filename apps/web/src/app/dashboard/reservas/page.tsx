@@ -7,8 +7,9 @@ import { formatDate } from "@/lib/date";
 import { calcNights } from "@/lib/pricing";
 import { getApiErrorMessage } from "@/lib/api-error";
 import { getRoomTypeLabel } from "@/lib/room";
+import { generarComprobante } from "@/lib/printComprobante";
 import { toast } from "sonner";
-import { Search, Plus, Loader2, LogIn, LogOut, Pencil, Ban, X } from "lucide-react";
+import { Search, Plus, Loader2, LogIn, LogOut, Pencil, Ban, X, Printer } from "lucide-react";
 
 import {
   Table,
@@ -108,6 +109,20 @@ export default function ReservasPage() {
     null,
   );
   const [isLoadingCheckout, setIsLoadingCheckout] = useState(false);
+  const [printingId, setPrintingId] = useState<number | null>(null);
+
+  const handlePrintComprobante = async (id: number) => {
+    setPrintingId(id);
+    try {
+      await generarComprobante(id);
+    } catch (error) {
+      toast.error(
+        getApiErrorMessage(error, "No se pudo generar el comprobante"),
+      );
+    } finally {
+      setPrintingId(null);
+    }
+  };
 
   const fetchReservations = useCallback(async () => {
     setIsLoading(true);
@@ -486,12 +501,26 @@ export default function ReservasPage() {
                     )}
                     {res.status === "COMPLETED" &&
                       (res.payment ? (
-                        <span className="text-xs font-semibold text-foreground">
-                          S/. {Number(res.payment.grandTotal).toFixed(2)}
-                          <span className="ml-1 font-normal text-muted-foreground">
-                            ({PAYMENT_LABELS[res.payment.paymentMethod]})
+                        <div className="inline-flex items-center gap-2">
+                          <span className="text-xs font-semibold text-foreground">
+                            S/. {Number(res.payment.grandTotal).toFixed(2)}
+                            <span className="ml-1 font-normal text-muted-foreground">
+                              ({PAYMENT_LABELS[res.payment.paymentMethod]})
+                            </span>
                           </span>
-                        </span>
+                          <button
+                            onClick={() => handlePrintComprobante(res.id)}
+                            disabled={printingId === res.id}
+                            title="Imprimir comprobante"
+                            className="inline-flex items-center justify-center w-8 h-8 bg-background text-muted-foreground border border-border/50 rounded-lg hover:bg-muted hover:text-foreground transition-all active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed"
+                          >
+                            {printingId === res.id ? (
+                              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                            ) : (
+                              <Printer className="w-3.5 h-3.5" />
+                            )}
+                          </button>
+                        </div>
                       ) : (
                         <span className="text-xs text-muted-foreground">—</span>
                       ))}
