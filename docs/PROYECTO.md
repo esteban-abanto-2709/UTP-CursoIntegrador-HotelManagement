@@ -1,4 +1,4 @@
-# Lumina Resort PMS — Descripción del Proyecto
+# Mirador Hotel Suite — Descripción del Proyecto
 
 Sistema de Gestión Hotelera (PMS) **B2B** de uso interno para el personal de un hotel.
 Digitaliza la operación diaria —reservas, recepción, housekeeping— eliminando los

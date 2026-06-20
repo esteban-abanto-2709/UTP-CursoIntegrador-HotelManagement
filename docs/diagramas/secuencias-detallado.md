@@ -1,4 +1,4 @@
-# Diagramas de Secuencia (vista detallada) — Lumina Resort PMS
+# Diagramas de Secuencia (vista detallada) — Mirador Hotel Suite
 
 ## Descripción
 

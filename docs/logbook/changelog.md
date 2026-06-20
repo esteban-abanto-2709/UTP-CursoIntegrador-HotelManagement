@@ -16,6 +16,9 @@ Resumen en ≤2 líneas de lo que se hizo.
 
 ---
 
+## [TD-022] Rebrand Lumina → Mirador Hotel Suite (2026-06-19 21:09)
+Reemplazada la marca vieja "Lumina" por "Mirador Hotel Suite" en metadatos de la web (`layout.tsx`, `dashboard/layout.tsx`), landing del API (`app.service.ts`), docs/diagramas, READMEs, `CLAUDE.md` y fixtures `employees.http` (`@miradorhotel.pe`). El comprobante ya estaba en Mirador. Se dejaron intactas las claves internas de storage (`lumina-auth-storage`, `lumina-api-awake`) por desloguear. Builds de API y web en verde.
+
 ## [RM-041] Comprobante/boleta de pago con el desglose del huésped (2026-06-19 20:14)
 Vista derivada en la web (sin tocar API ni schema): `lib/printComprobante.ts` (`generarComprobante`) arma la boleta desde `reservations.getOne` + `payments.getByReservation` + `reservations.charges` y la **imprime directo en un iframe oculto** (sin navegar), con el `title` del documento fijando el nombre del PDF (`Comprobante B001-xxxxxxx - {cliente}`). Réplica del PDF de referencia (marca Mirador, correlativo sintético desde `payment.id`, IGV 18% derivado del total, monto en letras). Nuevos helpers `lib/numeroALetras.ts` y `lib/comprobante.ts`; botón de impresión directa en `reservas/page.tsx` (filas COMPLETED). Datos placeholder/faltantes registrados en TD-021. Build verde.
 

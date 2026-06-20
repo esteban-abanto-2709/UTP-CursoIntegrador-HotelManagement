@@ -1,4 +1,4 @@
-# Lumina Resort PMS
+# Mirador Hotel Suite
 
 Sistema de gestión hotelera B2B construido como monorepo con NestJS + Next.js.
 

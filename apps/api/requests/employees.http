@@ -52,7 +52,7 @@ Content-Type: application/json
   "turno": "MAÑANA",
   "fechaInicio": "2026-01-10",
   "telefono": "987654321",
-  "email": "carlos.mendoza@lumina.pe"
+  "email": "carlos.mendoza@miradorhotel.pe"
 }
 
 ### 2B. OWNER crea un EMPLOYEE con cargo "Recepcionista"
@@ -73,7 +73,7 @@ Content-Type: application/json
   "turno": "TARDE",
   "fechaInicio": "2026-02-01",
   "telefono": "912345678",
-  "email": "lucia.torres@lumina.pe"
+  "email": "lucia.torres@miradorhotel.pe"
 }
 
 ### 2C. OWNER crea un EMPLOYEE con cargo "Limpieza"
@@ -94,7 +94,7 @@ Content-Type: application/json
   "turno": "NOCHE",
   "fechaInicio": "2026-03-05",
   "telefono": "956789012",
-  "email": "jose.quispe@lumina.pe",
+  "email": "jose.quispe@miradorhotel.pe",
   "direccion": "Av. Los Pinos 342, Miraflores"
 }
 
@@ -120,7 +120,7 @@ Content-Type: application/json
   "turno": "MAÑANA",
   "fechaInicio": "2026-04-01",
   "telefono": "934567890",
-  "email": "pedro.huanca@lumina.pe"
+  "email": "pedro.huanca@miradorhotel.pe"
 }
 
 ### 3B. MANAGER intenta crear otro MANAGER (Debe fallar — 409 Conflict)
@@ -141,7 +141,7 @@ Content-Type: application/json
   "turno": "TARDE",
   "fechaInicio": "2026-04-01",
   "telefono": "999888777",
-  "email": "ana.flores@lumina.pe"
+  "email": "ana.flores@miradorhotel.pe"
 }
 
 ### =============================================================
@@ -165,7 +165,7 @@ Content-Type: application/json
   "turno": "MAÑANA",
   "fechaInicio": "2026-05-01",
   "telefono": "911111111",
-  "email": "otro.email@lumina.pe"
+  "email": "otro.email@miradorhotel.pe"
 }
 
 ### 4B. DNI duplicado (Debe fallar — 409 "El DNI ya está registrado")
@@ -185,7 +185,7 @@ Content-Type: application/json
   "turno": "TARDE",
   "fechaInicio": "2026-05-01",
   "telefono": "922222222",
-  "email": "nuevo.usuario@lumina.pe"
+  "email": "nuevo.usuario@miradorhotel.pe"
 }
 
 ### 4C. Email duplicado (Debe fallar — 409 "El correo electrónico ya está registrado")
@@ -205,7 +205,7 @@ Content-Type: application/json
   "turno": "NOCHE",
   "fechaInicio": "2026-05-01",
   "telefono": "933333333",
-  "email": "carlos.mendoza@lumina.pe"
+  "email": "carlos.mendoza@miradorhotel.pe"
 }
 
 ### =============================================================

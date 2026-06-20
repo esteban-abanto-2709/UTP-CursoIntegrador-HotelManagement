@@ -1,4 +1,4 @@
-# Reporte de Rendimiento — Lumina Resort PMS
+# Reporte de Rendimiento — Mirador Hotel Suite
 
 Evaluación de rendimiento de los dos endpoints más solicitados del sistema,
 realizada con la herramienta **k6**.

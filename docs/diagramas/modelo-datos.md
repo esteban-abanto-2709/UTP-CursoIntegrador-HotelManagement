@@ -1,9 +1,9 @@
-# Modelo de Datos (ER) — Lumina Resort PMS
+# Modelo de Datos (ER) — Mirador Hotel Suite
 
 ## Descripción
 
-El modelo de datos describe la estructura lógica de la base de datos del sistema Lumina
-Resort PMS, implementada sobre PostgreSQL mediante el ORM Prisma. El esquema está compuesto
+El modelo de datos describe la estructura lógica de la base de datos del sistema Mirador
+Hotel Suite, implementada sobre PostgreSQL mediante el ORM Prisma. El esquema está compuesto
 por **16 entidades** diseñadas siguiendo un criterio de normalización estricta, con el
 objetivo de eliminar la redundancia y garantizar la integridad referencial de la
 información operativa del hotel.

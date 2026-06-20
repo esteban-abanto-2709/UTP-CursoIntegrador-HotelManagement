@@ -1,9 +1,9 @@
-# Diagrama de Clases — Lumina Resort PMS
+# Diagrama de Clases — Mirador Hotel Suite
 
 ## Descripción
 
-El diagrama de clases representa la estructura orientada a objetos del backend de Lumina
-Resort PMS, construido con el framework NestJS. A diferencia del modelo de datos —que
+El diagrama de clases representa la estructura orientada a objetos del backend de Mirador
+Hotel Suite, construido con el framework NestJS. A diferencia del modelo de datos —que
 describe las tablas persistidas—, este diagrama muestra las **clases de software** que
 implementan la lógica de la aplicación y las dependencias entre ellas.
 

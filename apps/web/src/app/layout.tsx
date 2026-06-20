@@ -26,7 +26,7 @@ const hanken = Hanken_Grotesk({
 });
 
 export const metadata: Metadata = {
-  title: "Lumina Resort PMS",
+  title: "Mirador Hotel Suite",
   description: "Sistema de gestión hotelera",
 };
 

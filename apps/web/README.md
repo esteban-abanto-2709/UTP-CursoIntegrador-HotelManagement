@@ -1,6 +1,6 @@
-# Lumina Resort — Frontend
+# Mirador Hotel Suite — Frontend
 
-Interfaz web del PMS Lumina Resort. Dark Theme Premium construido con Next.js 16 App Router, Tailwind CSS v4 y Shadcn UI. Desplegado en Vercel.
+Interfaz web del PMS Mirador Hotel Suite. Dark Theme Premium construido con Next.js 16 App Router, Tailwind CSS v4 y Shadcn UI. Desplegado en Vercel.
 
 ## Características
 

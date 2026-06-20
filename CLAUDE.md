@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**Lumina Resort PMS** — A full-stack Property Management System built as a monorepo with two apps:
+**Mirador Hotel Suite** — A full-stack Property Management System built as a monorepo with two apps:
 
 - `apps/api` — NestJS 11 backend (port 4000)
 - `apps/web` — Next.js 16 frontend (port 3000)

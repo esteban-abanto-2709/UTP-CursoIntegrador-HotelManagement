@@ -4,8 +4,8 @@ import { DashboardHeader } from "@/components/dashboard-header";
 import { ProtectedRoute } from "@/components/protected-route";
 
 export const metadata: Metadata = {
-  title: "Lumina Resort | Dashboard",
-  description: "Sistema operativo B2B de Grand Lumina Resort",
+  title: "Mirador Hotel Suite | Dashboard",
+  description: "Sistema operativo B2B de Mirador Hotel Suite",
 };
 
 export default function DashboardLayout({

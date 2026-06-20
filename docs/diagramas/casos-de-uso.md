@@ -1,8 +1,8 @@
-# Diagrama de Casos de Uso — Lumina Resort PMS
+# Diagrama de Casos de Uso — Mirador Hotel Suite
 
 ## Descripción
 
-El diagrama de casos de uso describe las funcionalidades que el sistema Lumina Resort PMS
+El diagrama de casos de uso describe las funcionalidades que el sistema Mirador Hotel Suite
 ofrece a su personal y quién puede ejecutarlas. Al tratarse de un sistema interno (B2B), no
 existen actores externos como clientes finales: los actores son los **roles del personal**
 del hotel, gobernados por el control de acceso basado en roles (RBAC) del backend.
@@ -28,7 +28,7 @@ flowchart LR
     owner -. hereda de .-> manager
     manager -. hereda de .-> employee
 
-    subgraph sys["Sistema — Lumina Resort PMS"]
+    subgraph sys["Sistema — Mirador Hotel Suite"]
         direction TB
 
         subgraph op["Operación diaria (EMPLOYEE)"]

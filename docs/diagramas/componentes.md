@@ -1,8 +1,8 @@
-# Diagrama de Componentes — Lumina Resort PMS
+# Diagrama de Componentes — Mirador Hotel Suite
 
 ## Descripción
 
-El diagrama de componentes representa la arquitectura física del sistema Lumina Resort PMS
+El diagrama de componentes representa la arquitectura física del sistema Mirador Hotel Suite
 y la manera en que sus piezas de software se distribuyen y comunican entre sí. La solución
 adopta una arquitectura cliente-servidor de tres capas claramente diferenciadas, cada una
 desplegada en un proveedor de hosting independiente: el **frontend** sobre Vercel, el

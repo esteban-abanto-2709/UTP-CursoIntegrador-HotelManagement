@@ -83,5 +83,3 @@ solo cambia *dónde* corre:
 - **TD-021** — los datos de la empresa son placeholder (RUC, dirección,
   correlativo sintético) y se omite la dirección del huésped porque el modelo
   `Guest` no tiene ese campo (se muestra "Contacto" en su lugar).
-- **TD-022** — quedan textos "Lumina" (marca anterior) en los metadatos de la
-  app; parte del rebrand a Mirador (RM-039 / RM-043).

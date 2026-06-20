@@ -25,7 +25,7 @@ export class AppService {
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Lumina Resort API</title>
+  <title>Mirador Hotel Suite API</title>
   <style>
     :root {
       --bg: #0a0f1a;
@@ -112,7 +112,7 @@ export class AppService {
     <div class="brand">
       <div class="dot"></div>
       <div>
-        <h1>Lumina Resort API</h1>
+        <h1>Mirador Hotel Suite API</h1>
         <span>Estado del servicio</span>
       </div>
     </div>
