@@ -109,13 +109,6 @@ Al terminar una tarea se mueve al changelog y se borra de aquí.
 - **Hecho cuando:** El ícono del root/pestaña refleja la marca del PMS y reemplaza al placeholder actual.
 - **Fecha:** 2026-06-19 · **Estado:** Abierto
 
-## [RM-043] Pase general de rediseño de la app (Claude Design)
-
-- **Objetivo:** Mejorar el diseño general de la aplicación apoyándose en Claude Design, dándole consistencia visual a todas las páginas.
-- **Contexto:** El rediseño "Mirador" ya empezó en el sidebar/header (ver [[RM-036]] y commits recientes), pero las páginas internas (rooms, staff, reservas, servicio, huéspedes, auditoría, calendario) conviven con estilos previos. Esto es el paraguas que unifica el lenguaje visual; [[RM-036]] (cablear controles del header) es un sub-pendiente concreto dentro de este esfuerzo.
-- **Hecho cuando:** Las páginas del dashboard comparten un lenguaje visual coherente (tipografías Bricolage/Hanken ya cargadas, paleta, tarjetas, espaciados) y la UI luce terminada y consistente.
-- **Fecha:** 2026-06-19 · **Estado:** Abierto
-
 ### Estandarización de idioma
 
 ## [RM-044] Estandarizar idioma: BD/API en inglés, UI en español *(cierra [[TD-002]] [[TD-003]] [[TD-004]])*
@@ -132,4 +125,4 @@ Al terminar una tarea se mueve al changelog y se borra de aquí.
 
 Milestones M1–M6 ya resueltos (ver `changelog.md`). Pendientes independientes: **RM-024** (M5), **RM-031** (M6), **RM-034 / RM-035** (M7). Cualquiera es punto de corte válido.
 
-**Recomendaciones del profesor:** **RM-037/RM-040** comparten módulo de agregación (reportería). **RM-041 → RM-042** (el historial reusa el generador de comprobante). **RM-044** cierra TD-002/003/004 y conviene antes de mostrar más textos al usuario. **RM-038/RM-039/RM-043** (UX/UI) son independientes; RM-043 engloba a [[RM-036]].
+**Recomendaciones del profesor:** **RM-037/RM-040** comparten módulo de agregación (reportería). **RM-041 → RM-042** (el historial reusa el generador de comprobante). **RM-044** cierra TD-002/003/004 y conviene antes de mostrar más textos al usuario. **RM-038/RM-039** (UX/UI) son independientes. El rediseño general (ex-RM-043) se cerró; su sub-pendiente [[RM-036]] sigue abierto.

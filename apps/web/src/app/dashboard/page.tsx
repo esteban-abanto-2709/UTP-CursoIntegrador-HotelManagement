@@ -60,6 +60,7 @@ export default function DashboardPage() {
   const disponibles = rooms.filter((r) => r.status === "AVAILABLE").length;
   const ocupadas = rooms.filter((r) => r.status === "OCCUPIED").length;
   const limpieza = rooms.filter((r) => r.status === "CLEANING").length;
+  const mantenimiento = rooms.filter((r) => r.status === "MAINTENANCE").length;
 
   const handleChangeStatus = async (roomId: number, newStatus: RoomStatus) => {
     const response = await api.patch(routes.api.rooms.updateStatus(roomId), {
@@ -85,7 +86,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Tarjetas KPI Superiores (Estilo Premium) */}
-      <div className="grid gap-6 md:grid-cols-3">
+      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
         {/* Tarjeta Disponibles */}
         <div className="relative overflow-hidden rounded-2xl border border-border/50 bg-card p-6 shadow-sm transition-all hover:shadow-md">
           <div className="flex items-center justify-between">
@@ -142,6 +143,26 @@ export default function DashboardPage() {
             </span>
             <span className="text-sm font-medium text-status-cleaning-icon-text bg-status-cleaning-bg px-2 py-0.5 rounded-full border border-status-cleaning-border">
               Requieren atención
+            </span>
+          </div>
+        </div>
+
+        {/* Tarjeta Mantenimiento */}
+        <div className="relative overflow-hidden rounded-2xl border border-border/50 bg-card p-6 shadow-sm transition-all hover:shadow-md">
+          <div className="flex items-center justify-between">
+            <h3 className="font-semibold tracking-tight text-muted-foreground">
+              Mantenimiento
+            </h3>
+            <div className="h-10 w-10 bg-status-maintenance-icon-bg rounded-full flex items-center justify-center text-status-maintenance-icon-text">
+              <Wrench className="w-5 h-5" />
+            </div>
+          </div>
+          <div className="mt-4 flex items-baseline gap-2">
+            <span className="text-4xl font-bold text-foreground">
+              {mantenimiento}
+            </span>
+            <span className="text-sm font-medium text-status-maintenance-icon-text bg-status-maintenance-bg px-2 py-0.5 rounded-full border border-status-maintenance-border">
+              Fuera de servicio
             </span>
           </div>
         </div>

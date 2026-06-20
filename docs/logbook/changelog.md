@@ -16,6 +16,9 @@ Resumen en ≤2 líneas de lo que se hizo.
 
 ---
 
+## [RM-043] Pase de rediseño del dashboard — estado de un vistazo (2026-06-20 10:31)
+Dashboard (`dashboard/page.tsx`) ahora muestra los 4 estados en el resumen superior: se agregó la tarjeta KPI **Mantenimiento** (reusando estilo y colores `status-maintenance-*`) y la grilla pasó a `sm:grid-cols-2 lg:grid-cols-4`. El rediseño visual general se sigue afinando vía **Claude Design** (diseño mapeado por el usuario, fuera del repo). Build web verde.
+
 ## [RM-042] Detalle de consumos + regenerar comprobante en reservas (2026-06-20 09:24)
 Nuevo diálogo en solo lectura `reservas/ReservationDetailDialog.tsx` accesible con "Ver detalle" en filas COMPLETED/CANCELLED: muestra huésped/habitación/fechas, el desglose de consumos (`/reservations/:id/charges`) y, para COMPLETED, el desglose de pago (`/payments/:id`) con botón **Regenerar comprobante** que reusa `generarComprobante`. Se retiró el botón de impresora inline de `reservas/page.tsx` (un solo camino: ver detalle → regenerar). Sin cambios de API/schema. Filtros por fecha/huésped/estado ya existían. Build web verde.
 
