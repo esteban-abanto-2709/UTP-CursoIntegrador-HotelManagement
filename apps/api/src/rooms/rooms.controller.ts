@@ -4,6 +4,7 @@ import { CreateRoomDto } from './dto/create-room.dto';
 import { UpdateRoomStatusDto } from './dto/update-room-status.dto';
 import { UpdateRoomDto } from './dto/update-room.dto';
 import { AvailabilityQueryDto } from './dto/availability-query.dto';
+import { FindRoomsDto } from './dto/find-rooms.dto';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
@@ -25,8 +26,8 @@ export class RoomsController {
 
   @UseGuards(JwtAuthGuard)
   @Get()
-  findAll() {
-    return this.roomsService.findAll();
+  findAll(@Query() filters: FindRoomsDto) {
+    return this.roomsService.findAll(filters);
   }
 
   @UseGuards(JwtAuthGuard)

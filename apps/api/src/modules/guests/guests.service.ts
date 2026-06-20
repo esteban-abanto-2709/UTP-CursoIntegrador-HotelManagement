@@ -8,12 +8,13 @@ import { Prisma } from '@prisma/client';
 import { FindGuestsDto } from './dto/find-guests.dto';
 import { CreateGuestDto } from './dto/create-guest.dto';
 import { UpdateGuestDto } from './dto/update-guest.dto';
+import { cursorArgs, buildPage } from '@/common/pagination/paginate';
 
 @Injectable()
 export class GuestsService {
   constructor(private prisma: PrismaService) {}
 
-  findAll(filters: FindGuestsDto) {
+  async findAll(filters: FindGuestsDto) {
     const where: Prisma.GuestWhereInput = {};
 
     if (filters.search) {
@@ -23,11 +24,23 @@ export class GuestsService {
       ];
     }
 
-    return this.prisma.guest.findMany({
-      where,
-      include: { _count: { select: { reservations: true } } },
-      orderBy: { registeredAt: 'desc' },
-    });
+    const [rows, total] = await Promise.all([
+      this.prisma.guest.findMany({
+        where,
+        include: { _count: { select: { reservations: true } } },
+        orderBy: [{ registeredAt: 'desc' }, { id: 'desc' }],
+        ...cursorArgs(filters),
+      }),
+      this.prisma.guest.count({ where }),
+    ]);
+
+    const page = buildPage(rows, filters);
+    return {
+      data: page.data,
+      total,
+      nextCursor: page.nextCursor,
+      hasNext: page.hasNext,
+    };
   }
 
   async findOne(id: number) {

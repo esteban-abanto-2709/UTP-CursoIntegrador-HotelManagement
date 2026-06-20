@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '@/providers/prisma/prisma.service';
 import { FilterAuditLogsDto } from './dto/filter-audit-logs.dto';
+import { cursorArgs, buildPage } from '@/common/pagination/paginate';
 
 @Injectable()
 export class AuditService {
@@ -48,27 +49,37 @@ export class AuditService {
       if (filters.to) where.performedAt.lte = new Date(filters.to);
     }
 
-    const logs = await this.prisma.auditLog.findMany({
-      where,
-      include: {
-        employee: {
-          select: {
-            id: true,
-            username: true,
-            firstName: true,
-            lastName: true,
+    const [rows, total] = await Promise.all([
+      this.prisma.auditLog.findMany({
+        where,
+        include: {
+          employee: {
+            select: {
+              id: true,
+              username: true,
+              firstName: true,
+              lastName: true,
+            },
           },
+          action: { select: { name: true } },
         },
-        action: { select: { name: true } },
-      },
-      orderBy: { performedAt: 'desc' },
-    });
+        orderBy: [{ performedAt: 'desc' }, { id: 'desc' }],
+        ...cursorArgs(filters),
+      }),
+      this.prisma.auditLog.count({ where }),
+    ]);
 
-    return logs.map((log) => ({
-      ...log,
-      previousValue: this.parseValue(log.previousValue),
-      newValue: this.parseValue(log.newValue),
-    }));
+    const page = buildPage(rows, filters);
+    return {
+      data: page.data.map((log) => ({
+        ...log,
+        previousValue: this.parseValue(log.previousValue),
+        newValue: this.parseValue(log.newValue),
+      })),
+      total,
+      nextCursor: page.nextCursor,
+      hasNext: page.hasNext,
+    };
   }
 
   private parseValue(value: string | null): unknown {

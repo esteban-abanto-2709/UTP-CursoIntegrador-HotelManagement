@@ -1,6 +1,12 @@
-import { IsOptional, IsString, IsNumberString, IsDateString } from 'class-validator';
+import {
+  IsOptional,
+  IsString,
+  IsNumberString,
+  IsDateString,
+} from 'class-validator';
+import { CursorPaginationDto } from '@/common/pagination/cursor-pagination.dto';
 
-export class FilterAuditLogsDto {
+export class FilterAuditLogsDto extends CursorPaginationDto {
   @IsOptional()
   @IsString()
   tableName?: string;

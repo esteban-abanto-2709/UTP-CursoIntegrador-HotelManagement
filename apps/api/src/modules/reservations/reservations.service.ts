@@ -13,6 +13,7 @@ import { FilterReservationsDto } from './dto/filter-reservations.dto';
 import { CheckoutReservationDto } from './dto/checkout-reservation.dto';
 import { GuestsService } from '../guests/guests.service';
 import { AuditService } from '../audit/audit.service';
+import { cursorArgs, buildPage } from '@/common/pagination/paginate';
 
 @Injectable()
 export class ReservationsService {
@@ -157,14 +158,32 @@ export class ReservationsService {
     if (filters.to) {
       where.checkIn = { lte: new Date(filters.to) };
     }
+    if (filters.search) {
+      where.guest = {
+        OR: [
+          { fullName: { contains: filters.search, mode: 'insensitive' } },
+          { nationalId: { contains: filters.search } },
+        ],
+      };
+    }
 
-    const reservations = await this.prisma.reservation.findMany({
-      where,
-      include: this.reservationInclude,
-      orderBy: { checkIn: 'asc' },
-    });
+    const [rows, total] = await Promise.all([
+      this.prisma.reservation.findMany({
+        where,
+        include: this.reservationInclude,
+        orderBy: [{ checkIn: 'asc' }, { id: 'asc' }],
+        ...cursorArgs(filters),
+      }),
+      this.prisma.reservation.count({ where }),
+    ]);
 
-    return reservations.map((r) => this.flattenReservation(r));
+    const page = buildPage(rows, filters);
+    return {
+      data: page.data.map((r) => this.flattenReservation(r)),
+      total,
+      nextCursor: page.nextCursor,
+      hasNext: page.hasNext,
+    };
   }
 
   async findOne(id: number) {

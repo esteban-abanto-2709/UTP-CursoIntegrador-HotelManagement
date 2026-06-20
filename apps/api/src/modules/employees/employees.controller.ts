@@ -6,11 +6,13 @@ import {
   Get,
   Patch,
   Param,
+  Query,
   ParseIntPipe,
 } from '@nestjs/common';
 import { EmployeesService } from './employees.service';
 import { CreateEmployeeDto } from './dto/create-employee.dto';
 import { UpdateEmployeeDto } from './dto/update-employee.dto';
+import { FindEmployeesDto } from './dto/find-employees.dto';
 import { JwtAuthGuard } from '@/common/guards/jwt-auth.guard';
 import { RolesGuard } from '@/common/guards/roles.guard';
 import { Roles } from '@/common/decorators/roles.decorator';
@@ -31,8 +33,11 @@ export class EmployeesController {
   }
 
   @Get()
-  findAll(@CurrentUser() currentUser: any) {
-    return this.employeesService.findAll(currentUser);
+  findAll(
+    @CurrentUser() currentUser: any,
+    @Query() filters: FindEmployeesDto,
+  ) {
+    return this.employeesService.findAll(currentUser, filters);
   }
 
   @Get(':id')

@@ -8,7 +8,9 @@ import { PrismaService } from '@/providers/prisma/prisma.service';
 import { Employee, Role } from '@prisma/client';
 import { CreateEmployeeDto, Cargo, Turno } from './dto/create-employee.dto';
 import { UpdateEmployeeDto } from './dto/update-employee.dto';
+import { FindEmployeesDto } from './dto/find-employees.dto';
 import { AuditService } from '../audit/audit.service';
+import { cursorArgs, buildPage } from '@/common/pagination/paginate';
 import * as bcrypt from 'bcrypt';
 
 const CARGO_TO_ROLE: Record<Cargo, Role> = {
@@ -253,36 +255,46 @@ export class EmployeesService {
     return result;
   }
 
-  async findAll(currentUser: any) {
+  async findAll(currentUser: any, filters: FindEmployeesDto) {
     const where =
       currentUser.role === 'MANAGER' ? { role: { not: Role.OWNER } } : {};
 
-    const employees = await this.prisma.employee.findMany({
-      where,
-      select: {
-        id: true,
-        username: true,
-        role: true,
-        firstName: true,
-        lastName: true,
-        secondLastName: true,
-        jobPosition: { select: { name: true } },
-        shift: { select: { name: true } },
-        createdAt: true,
-      },
-      orderBy: { createdAt: 'desc' },
-    });
+    const [rows, total] = await Promise.all([
+      this.prisma.employee.findMany({
+        where,
+        select: {
+          id: true,
+          username: true,
+          role: true,
+          firstName: true,
+          lastName: true,
+          secondLastName: true,
+          jobPosition: { select: { name: true } },
+          shift: { select: { name: true } },
+          createdAt: true,
+        },
+        orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+        ...cursorArgs(filters),
+      }),
+      this.prisma.employee.count({ where }),
+    ]);
 
-    return employees.map((e) => ({
-      id: e.id,
-      username: e.username,
-      role: e.role,
-      nombres: e.firstName,
-      apellidoPaterno: e.lastName,
-      apellidoMaterno: e.secondLastName,
-      cargo: e.jobPosition?.name ?? null,
-      turno: e.shift ? SHIFT_NAME_TO_TURNO[e.shift.name] : null,
-      createdAt: e.createdAt,
-    }));
+    const page = buildPage(rows, filters);
+    return {
+      data: page.data.map((e) => ({
+        id: e.id,
+        username: e.username,
+        role: e.role,
+        nombres: e.firstName,
+        apellidoPaterno: e.lastName,
+        apellidoMaterno: e.secondLastName,
+        cargo: e.jobPosition?.name ?? null,
+        turno: e.shift ? SHIFT_NAME_TO_TURNO[e.shift.name] : null,
+        createdAt: e.createdAt,
+      })),
+      total,
+      nextCursor: page.nextCursor,
+      hasNext: page.hasNext,
+    };
   }
 }

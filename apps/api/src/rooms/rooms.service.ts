@@ -10,7 +10,9 @@ import { CreateRoomDto } from './dto/create-room.dto';
 import { UpdateRoomStatusDto } from './dto/update-room-status.dto';
 import { UpdateRoomDto } from './dto/update-room.dto';
 import { AvailabilityQueryDto } from './dto/availability-query.dto';
+import { FindRoomsDto } from './dto/find-rooms.dto';
 import { AuditService } from '../modules/audit/audit.service';
+import { cursorArgs, buildPage } from '@/common/pagination/paginate';
 
 @Injectable()
 export class RoomsService {
@@ -75,12 +77,23 @@ export class RoomsService {
     };
   }
 
-  async findAll() {
-    const rooms = await this.prisma.room.findMany({
-      include: this.roomInclude,
-      orderBy: { number: 'asc' },
-    });
-    return rooms.map((room) => this.flattenRoom(room));
+  async findAll(filters: FindRoomsDto) {
+    const [rows, total] = await Promise.all([
+      this.prisma.room.findMany({
+        include: this.roomInclude,
+        orderBy: [{ number: 'asc' }, { id: 'asc' }],
+        ...cursorArgs(filters),
+      }),
+      this.prisma.room.count(),
+    ]);
+
+    const page = buildPage(rows, filters);
+    return {
+      data: page.data.map((room) => this.flattenRoom(room)),
+      total,
+      nextCursor: page.nextCursor,
+      hasNext: page.hasNext,
+    };
   }
 
   async findAvailable(query: AvailabilityQueryDto) {
