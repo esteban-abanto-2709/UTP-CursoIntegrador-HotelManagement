@@ -70,6 +70,7 @@ export const routes = {
         to?: string;
         roomId?: number;
         search?: string;
+        sort?: string;
         cursor?: number;
         take?: number;
       }) => {
@@ -80,6 +81,7 @@ export const routes = {
         if (filters.to) q.set("to", filters.to);
         if (filters.roomId != null) q.set("roomId", String(filters.roomId));
         if (filters.search) q.set("search", filters.search);
+        if (filters.sort) q.set("sort", filters.sort);
         if (filters.cursor != null) q.set("cursor", String(filters.cursor));
         if (filters.take != null) q.set("take", String(filters.take));
         const qs = q.toString();

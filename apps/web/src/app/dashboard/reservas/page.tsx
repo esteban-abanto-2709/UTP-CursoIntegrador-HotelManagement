@@ -99,6 +99,33 @@ const STATUS_FILTERS: { value: "ALL" | ReservationStatus; label: string }[] = [
   { value: "CANCELLED", label: "Canceladas" },
 ];
 
+type SortOption =
+  | "checkin_asc"
+  | "checkin_desc"
+  | "checkout_asc"
+  | "recent"
+  | "guest_asc";
+
+const SORT_OPTIONS: { value: SortOption; label: string }[] = [
+  { value: "checkin_asc", label: "Llegada más próxima" },
+  { value: "checkin_desc", label: "Llegada más lejana" },
+  { value: "checkout_asc", label: "Salida más próxima" },
+  { value: "recent", label: "Registradas recientemente" },
+  { value: "guest_asc", label: "Huésped (A–Z)" },
+];
+
+function getReservationAmount(res: Reservation): {
+  amount: number;
+  paid: boolean;
+} {
+  if (res.payment) {
+    return { amount: Number(res.payment.grandTotal), paid: true };
+  }
+  const nights = calcNights(res.checkIn, res.checkOut);
+  const rate = Number(res.rateSnapshot ?? 0);
+  return { amount: nights * rate, paid: false };
+}
+
 export default function ReservasPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<"ALL" | ReservationStatus>(
@@ -107,6 +134,7 @@ export default function ReservasPage() {
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
   const [roomFilter, setRoomFilter] = useState("");
+  const [sort, setSort] = useState<SortOption>("checkin_asc");
   const [rooms, setRooms] = useState<RoomOption[]>([]);
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -144,6 +172,7 @@ export default function ReservasPage() {
           to: toDate || undefined,
           roomId: roomFilter ? Number(roomFilter) : undefined,
           search: debouncedSearch || undefined,
+          sort,
           cursor: cursor ?? undefined,
           take: PAGE_SIZE,
         }),
@@ -157,7 +186,7 @@ export default function ReservasPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [statusFilter, fromDate, toDate, roomFilter, debouncedSearch, cursor]);
+  }, [statusFilter, fromDate, toDate, roomFilter, debouncedSearch, sort, cursor]);
 
   useEffect(() => {
     fetchReservations();
@@ -170,7 +199,7 @@ export default function ReservasPage() {
 
   useEffect(() => {
     setCursorStack([null]);
-  }, [statusFilter, fromDate, toDate, roomFilter, debouncedSearch]);
+  }, [statusFilter, fromDate, toDate, roomFilter, debouncedSearch, sort]);
 
   const handleNextPage = () => {
     if (hasNext && nextCursor != null) {
@@ -378,10 +407,24 @@ export default function ReservasPage() {
               className="bg-transparent text-foreground focus:outline-none cursor-pointer"
             />
           </label>
+          <label className="flex items-center gap-2 h-11 px-3 rounded-xl border border-border/50 bg-background text-muted-foreground font-medium sm:ml-auto">
+            <span className="text-sm whitespace-nowrap">Ordenar por</span>
+            <select
+              value={sort}
+              onChange={(e) => setSort(e.target.value as SortOption)}
+              className="bg-transparent text-foreground font-medium focus:outline-none cursor-pointer"
+            >
+              {SORT_OPTIONS.map((o) => (
+                <option key={o.value} value={o.value}>
+                  {o.label}
+                </option>
+              ))}
+            </select>
+          </label>
           {hasActiveFilters && (
             <button
               onClick={clearFilters}
-              className="flex items-center justify-center gap-1.5 h-11 px-4 rounded-xl border border-border/50 bg-background text-muted-foreground font-medium hover:bg-muted hover:text-foreground transition-all active:scale-95 sm:ml-auto"
+              className="flex items-center justify-center gap-1.5 h-11 px-4 rounded-xl border border-border/50 bg-background text-muted-foreground font-medium hover:bg-muted hover:text-foreground transition-all active:scale-95"
             >
               <X className="w-4 h-4" />
               Limpiar filtros
@@ -394,23 +437,20 @@ export default function ReservasPage() {
         <Table>
           <TableHeader>
             <TableRow className="bg-muted/30 hover:bg-muted/30">
-              <TableHead className="font-semibold text-muted-foreground py-4 w-[80px] pl-6">
-                ID
-              </TableHead>
-              <TableHead className="font-semibold text-muted-foreground">
+              <TableHead className="font-semibold text-muted-foreground py-4 pl-6">
                 Huésped
               </TableHead>
               <TableHead className="font-semibold text-muted-foreground">
-                Documento
+                Estancia
               </TableHead>
               <TableHead className="font-semibold text-muted-foreground">
-                Alojamiento
-              </TableHead>
-              <TableHead className="font-semibold text-muted-foreground">
-                Fechas (In → Out)
+                Habitación
               </TableHead>
               <TableHead className="font-semibold text-muted-foreground">
                 Estado
+              </TableHead>
+              <TableHead className="font-semibold text-muted-foreground">
+                Monto
               </TableHead>
               <TableHead className="font-semibold text-muted-foreground text-right pr-6">
                 Acciones
@@ -421,7 +461,7 @@ export default function ReservasPage() {
             {isLoading ? (
               <TableRow>
                 <TableCell
-                  colSpan={7}
+                  colSpan={6}
                   className="h-32 text-center text-muted-foreground"
                 >
                   <div className="flex flex-col items-center justify-center gap-2">
@@ -433,7 +473,7 @@ export default function ReservasPage() {
             ) : reservations.length === 0 ? (
               <TableRow>
                 <TableCell
-                  colSpan={7}
+                  colSpan={6}
                   className="h-32 text-center text-muted-foreground"
                 >
                   {hasActiveFilters
@@ -447,27 +487,68 @@ export default function ReservasPage() {
                   key={res.id}
                   className="transition-colors hover:bg-muted/50 group"
                 >
-                  <TableCell className="font-bold text-foreground pl-6">
-                    #{res.id}
-                  </TableCell>
-                  <TableCell className="font-medium text-foreground group-hover:text-primary transition-colors">
+                  <TableCell className="font-medium text-foreground group-hover:text-primary transition-colors pl-6">
                     {res.guest.fullName}
                   </TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {res.guest.nationalId}
+                  <TableCell>
+                    <div className="text-foreground">
+                      {formatDate(res.checkIn)}{" "}
+                      <span className="opacity-50">→</span>{" "}
+                      {formatDate(res.checkOut)}
+                    </div>
+                    {(() => {
+                      const nights = calcNights(res.checkIn, res.checkOut);
+                      return (
+                        <div className="text-xs text-muted-foreground mt-0.5">
+                          {nights} noche{nights > 1 ? "s" : ""}
+                        </div>
+                      );
+                    })()}
                   </TableCell>
                   <TableCell>
-                    <span className="bg-muted text-muted-foreground px-2.5 py-1 rounded-md text-xs font-bold border border-border/50">
-                      Cto. {res.room.number} — {getRoomTypeLabel(res.room.type)}
-                    </span>
-                  </TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {formatDate(res.checkIn)}{" "}
-                    <span className="opacity-50">→</span>{" "}
-                    {formatDate(res.checkOut)}
+                    <div className="font-medium text-foreground">
+                      {getRoomTypeLabel(res.room.type)}
+                    </div>
+                    <div className="text-xs text-muted-foreground mt-0.5">
+                      Cto. {res.room.number}
+                    </div>
                   </TableCell>
                   <TableCell>
                     <ReservationStatusBadge status={res.status} />
+                  </TableCell>
+                  <TableCell>
+                    {(() => {
+                      const { amount, paid } = getReservationAmount(res);
+                      const isCancelled = res.status === "CANCELLED";
+                      return (
+                        <>
+                          <div
+                            className={`font-semibold ${
+                              isCancelled
+                                ? "text-muted-foreground line-through"
+                                : "text-foreground"
+                            }`}
+                          >
+                            S/. {amount.toFixed(2)}
+                          </div>
+                          <div
+                            className={`text-xs font-medium mt-0.5 ${
+                              isCancelled
+                                ? "text-muted-foreground"
+                                : paid
+                                  ? "text-status-available-text"
+                                  : "text-status-cleaning-text"
+                            }`}
+                          >
+                            {isCancelled
+                              ? "Anulado"
+                              : paid
+                                ? "Pagado"
+                                : "Pendiente"}
+                          </div>
+                        </>
+                      );
+                    })()}
                   </TableCell>
                   <TableCell className="text-right pr-6">
                     {res.status === "PENDING" && (
@@ -513,24 +594,14 @@ export default function ReservasPage() {
                       </button>
                     )}
                     {res.status === "COMPLETED" && (
-                      <div className="inline-flex items-center gap-2">
-                        {res.payment && (
-                          <span className="text-xs font-semibold text-foreground">
-                            S/. {Number(res.payment.grandTotal).toFixed(2)}
-                            <span className="ml-1 font-normal text-muted-foreground">
-                              ({PAYMENT_LABELS[res.payment.paymentMethod]})
-                            </span>
-                          </span>
-                        )}
-                        <button
-                          onClick={() => setDetailTarget(res)}
-                          title="Ver detalle"
-                          className="inline-flex items-center gap-1.5 bg-background text-muted-foreground border border-border/50 px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-muted hover:text-foreground transition-all active:scale-95"
-                        >
-                          <Eye className="w-3.5 h-3.5" />
-                          Ver detalle
-                        </button>
-                      </div>
+                      <button
+                        onClick={() => setDetailTarget(res)}
+                        title="Ver detalle"
+                        className="inline-flex items-center gap-1.5 bg-background text-muted-foreground border border-border/50 px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-muted hover:text-foreground transition-all active:scale-95"
+                      >
+                        <Eye className="w-3.5 h-3.5" />
+                        Ver detalle
+                      </button>
                     )}
                     {res.status === "CANCELLED" && (
                       <button

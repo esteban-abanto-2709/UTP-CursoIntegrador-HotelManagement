@@ -132,3 +132,11 @@ changelog y se borra de aquí.
   - **dashboard:** `dashboard/RoomStatusCard.tsx` (KPI), `dashboard/RoomTile.tsx` + `dashboard/RoomBoard.tsx` (grilla con cambio de estado), `dashboard/RoomStatusDialog.tsx`, hook `dashboard/use-rooms-board.ts`.
   - **login:** `login/LoginBrandPanel.tsx` (panel izquierdo decorativo), `login/LoginForm.tsx`, y los SVG del patrón de montaña a `components/brand/MountainPattern.tsx` (reutilizable con el sidebar).
 - **Fecha:** 2026-06-20 · **Estado:** Abierto
+
+## [TD-024] Monto estimado en tabla de reservas ignora cargos y descuentos
+
+- **Ubicación:** `apps/web/src/app/dashboard/reservas/page.tsx` (`getReservationAmount`)
+- **Riesgo:** 3/10
+- **Problema:** Para reservas no finalizadas (PENDING/ACTIVE) la columna "Monto" calcula `noches × rateSnapshot`; no incluye cargos adicionales (`RoomCharge`) ni descuentos, que sí se aplican al cerrar el check-out (ver el cálculo real en `reservations.service.ts` → `checkOut`). Para COMPLETED sí usa el `payment.grandTotal` real.
+- **Impacto futuro:** El monto "Pendiente" mostrado puede no coincidir con el total real cobrado en el check-out, generando confusión en recepción. Solución: exponer un total estimado desde el backend que agregue cargos, o etiquetar explícitamente el valor como "estimado de habitación".
+- **Fecha:** 2026-06-20 · **Estado:** Abierto

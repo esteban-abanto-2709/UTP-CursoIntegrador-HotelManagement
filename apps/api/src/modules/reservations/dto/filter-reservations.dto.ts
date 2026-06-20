@@ -9,6 +9,16 @@ import { VALID_RESERVATION_STATUSES } from './update-reservation-status.dto';
 import type { ReservationStatusName } from './update-reservation-status.dto';
 import { CursorPaginationDto } from '@/common/pagination/cursor-pagination.dto';
 
+export const VALID_RESERVATION_SORTS = [
+  'checkin_asc',
+  'checkin_desc',
+  'checkout_asc',
+  'recent',
+  'guest_asc',
+] as const;
+
+export type ReservationSort = (typeof VALID_RESERVATION_SORTS)[number];
+
 export class FilterReservationsDto extends CursorPaginationDto {
   @IsOptional()
   @IsIn(VALID_RESERVATION_STATUSES, {
@@ -31,4 +41,11 @@ export class FilterReservationsDto extends CursorPaginationDto {
   @IsOptional()
   @IsString({ message: 'La búsqueda debe ser texto' })
   search?: string;
+
+  @IsOptional()
+  @IsIn(VALID_RESERVATION_SORTS, {
+    message:
+      'El orden debe ser checkin_asc, checkin_desc, checkout_asc, recent o guest_asc',
+  })
+  sort?: ReservationSort;
 }

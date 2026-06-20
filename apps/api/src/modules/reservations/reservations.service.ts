@@ -40,6 +40,24 @@ export class ReservationsService {
     },
   } satisfies Prisma.ReservationInclude;
 
+  private buildOrderBy(
+    sort?: string,
+  ): Prisma.ReservationOrderByWithRelationInput[] {
+    switch (sort) {
+      case 'checkin_desc':
+        return [{ checkIn: 'desc' }, { id: 'desc' }];
+      case 'checkout_asc':
+        return [{ checkOut: 'asc' }, { id: 'asc' }];
+      case 'recent':
+        return [{ id: 'desc' }];
+      case 'guest_asc':
+        return [{ guest: { fullName: 'asc' } }, { id: 'asc' }];
+      case 'checkin_asc':
+      default:
+        return [{ checkIn: 'asc' }, { id: 'asc' }];
+    }
+  }
+
   private calcNights(checkIn: Date, checkOut: Date) {
     const MS_PER_DAY = 1000 * 60 * 60 * 24;
     return Math.max(
@@ -171,7 +189,7 @@ export class ReservationsService {
       this.prisma.reservation.findMany({
         where,
         include: this.reservationInclude,
-        orderBy: [{ checkIn: 'asc' }, { id: 'asc' }],
+        orderBy: this.buildOrderBy(filters.sort),
         ...cursorArgs(filters),
       }),
       this.prisma.reservation.count({ where }),
