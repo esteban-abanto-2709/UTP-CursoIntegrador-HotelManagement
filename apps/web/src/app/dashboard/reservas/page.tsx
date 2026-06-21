@@ -72,7 +72,17 @@ interface Discount {
   id: number;
   name: string;
   percentage: string;
+  type: string;
 }
+
+const DISCOUNT_TYPE_LABELS: Record<string, string> = {
+  SEASONAL: "Temporada",
+  LOYALTY: "Fidelidad",
+  PROMOTIONAL: "Promociones",
+  CORPORATE: "Corporativo",
+  GROUP: "Grupos",
+  EARLY_BIRD: "Reserva anticipada",
+};
 
 interface RoomCharge {
   id: number;
@@ -154,9 +164,7 @@ export default function ReservasPage() {
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("CASH");
   const [checkoutCharges, setCheckoutCharges] = useState<RoomCharge[]>([]);
   const [activeDiscounts, setActiveDiscounts] = useState<Discount[]>([]);
-  const [selectedDiscountId, setSelectedDiscountId] = useState<number | null>(
-    null,
-  );
+  const [selectedDiscountIds, setSelectedDiscountIds] = useState<number[]>([]);
   const [isLoadingCheckout, setIsLoadingCheckout] = useState(false);
   const [detailTarget, setDetailTarget] = useState<Reservation | null>(null);
 
@@ -258,7 +266,7 @@ export default function ReservasPage() {
 
   const openCheckout = async (reservation: Reservation) => {
     setPaymentMethod("CASH");
-    setSelectedDiscountId(null);
+    setSelectedDiscountIds([]);
     setCheckoutCharges([]);
     setActiveDiscounts([]);
     setCheckoutTarget(reservation);
@@ -283,7 +291,7 @@ export default function ReservasPage() {
     try {
       const res = await api.patch(
         routes.api.reservations.checkOut(checkoutTarget.id),
-        { paymentMethod, discountId: selectedDiscountId ?? undefined },
+        { paymentMethod, discountIds: selectedDiscountIds },
       );
       toast.success(res.data.message ?? "Check-out realizado");
       setCheckoutTarget(null);
@@ -649,14 +657,25 @@ export default function ReservasPage() {
                 0,
               );
               const subtotal = roomTotal + chargesTotal;
-              const selectedDiscount = activeDiscounts.find(
-                (d) => d.id === selectedDiscountId,
-              );
-              const discountPct = selectedDiscount
-                ? Number(selectedDiscount.percentage)
-                : 0;
-              const discountAmount = (subtotal * discountPct) / 100;
-              const grandTotal = subtotal - discountAmount;
+              const selectedDiscounts = activeDiscounts
+                .filter((d) => selectedDiscountIds.includes(d.id))
+                .sort((a, b) => a.id - b.id);
+              let running = subtotal;
+              const discountLines = selectedDiscounts.map((d) => {
+                const pct = Number(d.percentage);
+                const amount = (running * pct) / 100;
+                running -= amount;
+                return { id: d.id, name: d.name, pct, amount };
+              });
+              const grandTotal = running;
+              const groupedDiscounts = activeDiscounts.reduce<
+                { type: string; items: Discount[] }[]
+              >((acc, d) => {
+                const group = acc.find((g) => g.type === d.type);
+                if (group) group.items.push(d);
+                else acc.push({ type: d.type, items: [d] });
+                return acc;
+              }, []);
 
               return (
                 <div className="flex flex-col gap-4 mt-2">
@@ -699,16 +718,16 @@ export default function ReservasPage() {
                             S/. {chargesTotal.toFixed(2)}
                           </span>
                         </div>
-                        {selectedDiscount && (
-                          <div className="flex justify-between">
+                        {discountLines.map((line) => (
+                          <div key={line.id} className="flex justify-between">
                             <span className="text-muted-foreground">
-                              Descuento ({discountPct.toFixed(0)}%)
+                              {line.name} ({line.pct.toFixed(0)}%)
                             </span>
                             <span className="font-semibold text-destructive">
-                              − S/. {discountAmount.toFixed(2)}
+                              − S/. {line.amount.toFixed(2)}
                             </span>
                           </div>
-                        )}
+                        ))}
                         <div className="border-t border-border/50 mt-1 pt-2 flex justify-between items-center">
                           <span className="font-semibold text-foreground">
                             Total a cobrar
@@ -721,24 +740,57 @@ export default function ReservasPage() {
 
                       <div className="flex flex-col gap-1.5">
                         <label className="text-sm font-semibold text-muted-foreground">
-                          Descuento
+                          Descuentos
                         </label>
-                        <select
-                          value={selectedDiscountId ?? ""}
-                          onChange={(e) =>
-                            setSelectedDiscountId(
-                              e.target.value ? Number(e.target.value) : null,
-                            )
-                          }
-                          className="h-11 px-3 rounded-xl border border-border/50 bg-background text-foreground font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all cursor-pointer"
-                        >
-                          <option value="">Sin descuento</option>
-                          {activeDiscounts.map((d) => (
-                            <option key={d.id} value={d.id}>
-                              {d.name} ({Number(d.percentage).toFixed(0)}%)
-                            </option>
-                          ))}
-                        </select>
+                        {activeDiscounts.length === 0 ? (
+                          <span className="text-sm text-muted-foreground">
+                            No hay descuentos disponibles
+                          </span>
+                        ) : (
+                          <div className="flex flex-col gap-3 rounded-xl border border-border/50 bg-background p-3 max-h-60 overflow-y-auto">
+                            {groupedDiscounts.map((group) => {
+                              const sameTypeIds = group.items.map((x) => x.id);
+                              const selectedInGroup =
+                                group.items.find((x) =>
+                                  selectedDiscountIds.includes(x.id),
+                                )?.id ?? "";
+                              return (
+                                <div
+                                  key={group.type}
+                                  className="flex flex-col gap-1"
+                                >
+                                  <span className="px-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground/70">
+                                    {DISCOUNT_TYPE_LABELS[group.type] ??
+                                      group.type}
+                                  </span>
+                                  <select
+                                    value={selectedInGroup}
+                                    onChange={(e) => {
+                                      const value = e.target.value;
+                                      setSelectedDiscountIds((prev) => {
+                                        const without = prev.filter(
+                                          (id) => !sameTypeIds.includes(id),
+                                        );
+                                        return value
+                                          ? [...without, Number(value)]
+                                          : without;
+                                      });
+                                    }}
+                                    className="h-11 px-3 rounded-lg border border-border/50 bg-background text-foreground font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all cursor-pointer"
+                                  >
+                                    <option value="">Sin descuento</option>
+                                    {group.items.map((d) => (
+                                      <option key={d.id} value={d.id}>
+                                        {d.name} (
+                                        {Number(d.percentage).toFixed(0)}%)
+                                      </option>
+                                    ))}
+                                  </select>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
                       </div>
 
                       <div className="flex flex-col gap-1.5">

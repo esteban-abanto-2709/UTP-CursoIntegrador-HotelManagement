@@ -1,7 +1,14 @@
 import { PrismaClient } from '@prisma/client';
 import { createSeedClient } from './prisma-client';
 
-const types = ['SEASONAL', 'LOYALTY', 'PROMOTIONAL', 'CORPORATE'];
+const types = [
+  'SEASONAL',
+  'LOYALTY',
+  'PROMOTIONAL',
+  'CORPORATE',
+  'GROUP',
+  'EARLY_BIRD',
+];
 
 export async function seedDiscountTypes(prisma: PrismaClient) {
   for (const name of types) {

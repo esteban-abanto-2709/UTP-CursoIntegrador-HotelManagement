@@ -46,22 +46,6 @@ Al terminar una tarea se mueve al changelog y se borra de aquí.
 
 ---
 
-## Milestone 7 — Huecos restantes del modelo *(opcional)*
-
-> RM-035 toca `Discount`/`Payment`.
-
-## [RM-035] Varios descuentos en un mismo checkout
-
-- **Objetivo:** Aplicar **varios** descuentos a la vez en el pago. **Problema:** el checkout solo admite **un** descuento (`Payment.discountId Int?`, `CheckoutReservationDto.discountId?`, `checkOut()` calcula con un único `%`).
-- **Hecho cuando:** Un checkout puede registrar múltiples descuentos con su desglose, persistidos en la tabla puente y reflejados en respuestas y front.
-- **Schema (migración `payment_multiple_discounts`):** relación `Payment`↔`Discount` de 1-a-muchos a **muchos-a-muchos** vía tabla puente explícita `PaymentDiscount` (`paymentId`, `discountId`, y **snapshotear** el `percentage` aplicado por fila para que el histórico no cambie si luego se edita el descuento). Quitar `discountId`/`discount` y `@@index([discountId])` de `Payment`.
-- **API:** `CheckoutReservationDto`: `discountId?` → `discountIds?: number[]`. En `checkOut()`: validar que cada descuento exista y esté activo; **decisión de negocio a fijar (registrar en `technical-debt.md`):** ¿porcentajes **sumados** (10%+15%=25%) o **en cascada**? y **tope 100%**. Persistir una fila `PaymentDiscount` por descuento y guardar el `discountAmount` total agregado.
-- **Respuestas:** donde se expone `payment.discount` pasar a `discounts` como arreglo.
-- **Front:** diálogo de checkout (`apps/web/.../servicio`) cambia el `Select` único por selección múltiple y muestra el desglose sumando todos.
-- **Estado:** Abierto
-
----
-
 ## Rediseño UI (Mirador)
 
 ## [RM-036] Cablear los controles del header de Mirador
@@ -107,6 +91,6 @@ Al terminar una tarea se mueve al changelog y se borra de aquí.
 
 ## Dependencias
 
-Milestones M1–M6 ya resueltos (ver `changelog.md`). Pendientes independientes: **RM-024** (M5), **RM-031** (M6), **RM-035** (M7). Cualquiera es punto de corte válido.
+Milestones M1–M7 ya resueltos (ver `changelog.md`). Pendientes independientes: **RM-024** (M5), **RM-031** (M6). Cualquiera es punto de corte válido.
 
 **Recomendaciones del profesor:** **RM-037/RM-040** comparten módulo de agregación (reportería). **RM-041 → RM-042** (el historial reusa el generador de comprobante). **RM-044** cierra TD-002/003/004 y conviene antes de mostrar más textos al usuario. **RM-038/RM-039** (UX/UI) son independientes. El rediseño general (ex-RM-043) se cerró; su sub-pendiente [[RM-036]] sigue abierto.

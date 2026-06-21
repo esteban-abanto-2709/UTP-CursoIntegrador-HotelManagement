@@ -9,7 +9,10 @@ export class PaymentsService {
     const payment = await this.prisma.payment.findUnique({
       where: { reservationId },
       include: {
-        discount: true,
+        paymentDiscounts: {
+          include: { discount: { select: { name: true } } },
+          orderBy: { id: 'asc' },
+        },
         employee: {
           select: { id: true, firstName: true, lastName: true },
         },
@@ -22,6 +25,18 @@ export class PaymentsService {
       );
     }
 
-    return payment;
+    let running = payment.subtotal;
+    const discounts = payment.paymentDiscounts.map((pd) => {
+      const amount = running.mul(pd.percentage).div(100);
+      running = running.sub(amount);
+      return {
+        name: pd.discount.name,
+        percentage: pd.percentage,
+        amount,
+      };
+    });
+
+    const { paymentDiscounts: _paymentDiscounts, ...rest } = payment;
+    return { ...rest, discounts };
   }
 }

@@ -34,7 +34,7 @@ interface Payment {
   grandTotal: string;
   processedAt: string;
   employee: { firstName: string; lastName: string };
-  discount: { name: string; percentage: string } | null;
+  discounts: { name: string; percentage: string; amount: string }[];
 }
 
 interface RoomCharge {
@@ -76,7 +76,6 @@ function buildHTML(
   const rate = Number(reservation.rateSnapshot ?? 0);
   const roomTotal = Number(payment.roomTotal);
   const subtotal = Number(payment.subtotal);
-  const discountAmount = Number(payment.discountAmount);
   const grandTotal = Number(payment.grandTotal);
   const { base, igv } = igvBreakdown(grandTotal);
   const metodoPago =
@@ -93,9 +92,12 @@ function buildHTML(
     }),
   ].join("");
 
-  const discountRow = payment.discount
-    ? `<div class="tline"><span>Descuento — ${esc(payment.discount.name)} (${Number(payment.discount.percentage).toFixed(0)}%)</span><span class="neg">− ${money(discountAmount)}</span></div>`
-    : "";
+  const discountRows = payment.discounts
+    .map(
+      (d) =>
+        `<div class="tline"><span>Descuento — ${esc(d.name)} (${Number(d.percentage).toFixed(0)}%)</span><span class="neg">− ${money(Number(d.amount))}</span></div>`,
+    )
+    .join("");
 
   return `<!doctype html>
 <html lang="es">
@@ -177,7 +179,7 @@ function buildHTML(
       <div class="tline"><span>Op. Gravada (Base imponible)</span><span>${money(base)}</span></div>
       <div class="tline"><span>I.G.V. (18%)</span><span>${money(igv)}</span></div>
       <div class="tline sep"><span>Subtotal estadía</span><span>${money(subtotal)}</span></div>
-      ${discountRow}
+      ${discountRows}
       <div class="grand"><span class="g-lbl">Total a pagar</span><span class="g-val">${money(grandTotal)}</span></div>
     </div>
   </div>

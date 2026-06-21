@@ -52,7 +52,7 @@ interface Payment {
   grandTotal: string;
   processedAt: string;
   employee: { firstName: string; lastName: string };
-  discount: { name: string; percentage: string } | null;
+  discounts: { name: string; percentage: string; amount: string }[];
 }
 
 const PAYMENT_LABELS: Record<PaymentMethod, string> = {
@@ -228,17 +228,17 @@ export default function ReservationDetailDialog({
                         {money(Number(payment.chargesTotal))}
                       </span>
                     </div>
-                    {payment.discount && (
-                      <div className="flex justify-between">
+                    {payment.discounts.map((d) => (
+                      <div key={d.name} className="flex justify-between">
                         <span className="text-muted-foreground">
-                          Descuento — {payment.discount.name} (
-                          {Number(payment.discount.percentage).toFixed(0)}%)
+                          Descuento — {d.name} (
+                          {Number(d.percentage).toFixed(0)}%)
                         </span>
                         <span className="font-semibold text-destructive">
-                          − {money(Number(payment.discountAmount))}
+                          − {money(Number(d.amount))}
                         </span>
                       </div>
-                    )}
+                    ))}
                     <div className="border-t border-border/50 mt-1 pt-2 flex justify-between items-center">
                       <span className="font-semibold text-foreground">
                         Total pagado

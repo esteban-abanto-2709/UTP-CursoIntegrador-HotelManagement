@@ -151,7 +151,7 @@ model Discount {
   typeId      Int
   type        DiscountType @relation(fields: [typeId], references: [id])
   createdAt   DateTime     @default(now())
-  payments    Payment[]
+  paymentDiscounts PaymentDiscount[]
 
   @@index([typeId])
 }
@@ -170,18 +170,28 @@ model Payment {
   processedBy    Int
   paymentMethodId Int?
   paymentMethod  PaymentMethod? @relation(fields: [paymentMethodId], references: [id])
-  discount       Discount?     @relation(fields: [discountId], references: [id])
-  discountId     Int?
   roomTotal      Decimal       @db.Decimal(10, 2)
   chargesTotal   Decimal       @db.Decimal(10, 2)
   subtotal       Decimal       @db.Decimal(10, 2)
   discountAmount Decimal       @db.Decimal(10, 2)
   grandTotal     Decimal       @db.Decimal(10, 2)
   processedAt    DateTime      @default(now())
+  paymentDiscounts PaymentDiscount[]
 
   @@index([processedBy])
-  @@index([discountId])
   @@index([paymentMethodId])
+}
+
+model PaymentDiscount {
+  id         Int      @id @default(autoincrement())
+  payment    Payment  @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+  paymentId  Int
+  discount   Discount @relation(fields: [discountId], references: [id])
+  discountId Int
+  percentage Decimal  @db.Decimal(5, 2)
+
+  @@unique([paymentId, discountId])
+  @@index([discountId])
 }
 
 model PaymentMethod {

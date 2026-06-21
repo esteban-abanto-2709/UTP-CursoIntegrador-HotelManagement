@@ -418,25 +418,29 @@ export class ReservationsService {
       );
     }
 
-    const discount =
-      dto.discountId != null
-        ? await this.prisma.discount.findUnique({
-            where: { id: dto.discountId },
-          })
-        : null;
+    const requestedIds = [...new Set(dto.discountIds ?? [])];
 
-    if (dto.discountId != null) {
-      if (!discount) {
-        throw new NotFoundException(
-          `Descuento ${dto.discountId} no encontrado`,
-        );
+    const discounts = requestedIds.length
+      ? await this.prisma.discount.findMany({
+          where: { id: { in: requestedIds } },
+        })
+      : [];
+
+    const foundIds = new Set(discounts.map((d) => d.id));
+    for (const discountId of requestedIds) {
+      if (!foundIds.has(discountId)) {
+        throw new NotFoundException(`Descuento ${discountId} no encontrado`);
       }
+    }
+    for (const discount of discounts) {
       if (!discount.isActive) {
         throw new BadRequestException(
           `El descuento "${discount.name}" no está activo`,
         );
       }
     }
+
+    discounts.sort((a, b) => a.id - b.id);
 
     const paymentMethod = await this.prisma.paymentMethod.findUnique({
       where: { name: dto.paymentMethod },
@@ -458,38 +462,50 @@ export class ReservationsService {
     const roomTotal = new Prisma.Decimal(rate).mul(nights);
     const chargesTotal = chargesAgg._sum.amount ?? new Prisma.Decimal(0);
     const subtotal = roomTotal.add(chargesTotal);
-    const discountAmount = discount
-      ? subtotal.mul(discount.percentage).div(100)
-      : new Prisma.Decimal(0);
-    const grandTotal = subtotal.sub(discountAmount);
 
-    const [updated, payment] = await this.prisma.$transaction([
-      this.prisma.reservation.update({
+    let running = subtotal;
+    for (const discount of discounts) {
+      running = running.sub(running.mul(discount.percentage).div(100));
+    }
+    const discountAmount = subtotal.sub(running);
+    const grandTotal = running;
+
+    const { updated, payment } = await this.prisma.$transaction(async (tx) => {
+      const updated = await tx.reservation.update({
         where: { id },
         data: {
           status: { connect: { name: 'COMPLETED' } },
           actualCheckOut: new Date(),
         },
         include: this.reservationInclude,
-      }),
-      this.prisma.payment.create({
+      });
+      const payment = await tx.payment.create({
         data: {
           reservationId: id,
           processedBy: employeeId,
           paymentMethodId: paymentMethod.id,
-          discountId: discount?.id ?? null,
           roomTotal,
           chargesTotal,
           subtotal,
           discountAmount,
           grandTotal,
         },
-      }),
-      this.prisma.room.update({
+      });
+      if (discounts.length) {
+        await tx.paymentDiscount.createMany({
+          data: discounts.map((discount) => ({
+            paymentId: payment.id,
+            discountId: discount.id,
+            percentage: discount.percentage,
+          })),
+        });
+      }
+      await tx.room.update({
         where: { id: reservation.roomId },
         data: { status: { connect: { name: 'CLEANING' } } },
-      }),
-    ]);
+      });
+      return { updated, payment };
+    });
 
     await this.audit.log(employeeId, 'CHECKOUT', 'Reservation', id);
 

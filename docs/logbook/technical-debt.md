@@ -140,3 +140,11 @@ changelog y se borra de aquí.
 - **Problema:** Para reservas no finalizadas (PENDING/ACTIVE) la columna "Monto" calcula `noches × rateSnapshot`; no incluye cargos adicionales (`RoomCharge`) ni descuentos, que sí se aplican al cerrar el check-out (ver el cálculo real en `reservations.service.ts` → `checkOut`). Para COMPLETED sí usa el `payment.grandTotal` real.
 - **Impacto futuro:** El monto "Pendiente" mostrado puede no coincidir con el total real cobrado en el check-out, generando confusión en recepción. Solución: exponer un total estimado desde el backend que agregue cargos, o etiquetar explícitamente el valor como "estimado de habitación".
 - **Fecha:** 2026-06-20 · **Estado:** Abierto
+
+## [TD-025] La restricción "un descuento por tipo" solo existe en la UI
+
+- **Ubicación:** `apps/web/src/app/dashboard/reservas/page.tsx` (selects de descuento por tipo en el diálogo de checkout), `apps/api/src/modules/reservations/reservations.service.ts` (`checkOut`), `apps/api/src/modules/reservations/dto/checkout-reservation.dto.ts`
+- **Riesgo:** 3/10
+- **Problema:** El front presenta los descuentos agrupados por tipo con un `<select>` por grupo, lo que impide elegir dos del mismo tipo. Pero el backend (`checkOut`) acepta cualquier `discountIds: number[]` y solo valida que cada descuento exista y esté activo; no verifica unicidad por `DiscountType`. Una petición directa al API (o un cliente futuro) puede aplicar varios descuentos del mismo tipo y la cascada los combinaría igual.
+- **Impacto futuro:** La regla de negocio "máximo uno por tipo" no está garantizada donde importa (la BD/transacción). Solución: en `checkOut`, tras cargar los descuentos, agrupar por `typeId` y lanzar `BadRequestException` si hay más de uno por tipo (o, si se prefiere, hacerlo configurable). Mantiene la BD normalizada (validación, no columna nueva).
+- **Fecha:** 2026-06-20 · **Estado:** Abierto

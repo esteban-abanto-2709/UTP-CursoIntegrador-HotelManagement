@@ -18,8 +18,9 @@ export async function seedPayments(prisma: PrismaClient) {
     return;
   }
 
-  const discount = await prisma.discount.findFirst({
-    where: { name: 'Cliente frecuente', isActive: true },
+  const activeDiscounts = await prisma.discount.findMany({
+    where: { isActive: true },
+    orderBy: { id: 'asc' },
   });
 
   const methods = await prisma.paymentMethod.findMany({ orderBy: { id: 'asc' } });
@@ -46,10 +47,22 @@ export async function seedPayments(prisma: PrismaClient) {
     const chargesTotal = reservation.charges.reduce((sum, c) => sum + Number(c.amount), 0);
     const subtotal = roomTotal + chargesTotal;
 
-    const applyDiscount = discount != null && i % 2 === 0;
-    const discountPct = applyDiscount ? Number(discount!.percentage) : 0;
-    const discountAmount = Number(((subtotal * discountPct) / 100).toFixed(2));
-    const grandTotal = Number((subtotal - discountAmount).toFixed(2));
+    const wanted = activeDiscounts.length === 0 ? 0 : i % 3;
+    const picked: typeof activeDiscounts = [];
+    for (let k = 0; k < wanted; k++) {
+      const candidate = activeDiscounts[(i + k) % activeDiscounts.length];
+      if (!picked.some((d) => d.id === candidate.id)) {
+        picked.push(candidate);
+      }
+    }
+    picked.sort((a, b) => a.id - b.id);
+
+    let running = subtotal;
+    for (const d of picked) {
+      running -= (running * Number(d.percentage)) / 100;
+    }
+    const discountAmount = Number((subtotal - running).toFixed(2));
+    const grandTotal = Number(running.toFixed(2));
     const method = methods[i % methods.length];
 
     await prisma.payment.create({
@@ -57,12 +70,17 @@ export async function seedPayments(prisma: PrismaClient) {
         reservationId: reservation.id,
         processedBy: employee.id,
         paymentMethodId: method.id,
-        discountId: applyDiscount ? discount!.id : null,
         roomTotal,
         chargesTotal,
         subtotal,
         discountAmount,
         grandTotal,
+        paymentDiscounts: {
+          create: picked.map((d) => ({
+            discountId: d.id,
+            percentage: d.percentage,
+          })),
+        },
       },
     });
     created++;

@@ -16,6 +16,9 @@ Resumen en ≤2 líneas de lo que se hizo.
 
 ---
 
+## [RM-035] Varios descuentos en un mismo checkout (2026-06-20 20:47)
+Relación `Payment`↔`Discount` pasó a muchos-a-muchos vía tabla puente explícita `PaymentDiscount` (`paymentId`, `discountId`, `percentage` snapshot por fila); migración única `payment_multiple_discounts` (crear tabla+FKs → backfill del `discountId` único → drop de columna/FK/índice viejos). `CheckoutReservationDto.discountId?` → `discountIds?: number[]`; `checkOut()` valida cada descuento (existe+activo) y aplica **en cascada** (`running -= running·pct/100`; total order-independent, sin tope) en un `$transaction` interactivo; `discountAmount` total agregado y `grandTotal` se conservan en `Payment` (snapshot financiero que usa analytics). `GET /payments/:id` deriva el monto por fila on-read y expone `discounts[]`. Seed enriquecido: nuevos `DiscountType` (GROUP, EARLY_BIRD) y 11 descuentos repartidos por tipo; `seed:demo` reparte 0/1/2 descuentos por pago. Front: el `<select>` único del checkout pasó a descuentos **agrupados por tipo** con un dropdown por grupo (uno por tipo); desglose en cascada en diálogo, detalle y comprobante. Decisión cascada = regla deliberada (no TD). Builds api/web verdes.
+
 ## [RM-034] DiscountType — clasificar los descuentos por categoría (2026-06-20 19:54)
 Nueva tabla-catálogo `DiscountType` (SEASONAL/LOYALTY/PROMOTIONAL/CORPORATE) + `typeId` (FK NOT NULL) y `createdAt` en `Discount`; migración única `add_discount_type_table` (crear→sembrar→nullable→backfill por nombre→NOT NULL→FK). Seed reejecutable `discount-types.ts` en `seed.ts`, `discounts.ts` conecta su tipo por nombre, y `GET /discounts` aplana `type` a string. Build API verde.
 

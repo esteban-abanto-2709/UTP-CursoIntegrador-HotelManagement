@@ -1,4 +1,4 @@
-import { IsIn, IsOptional, IsInt } from 'class-validator';
+import { IsIn, IsOptional, IsInt, IsArray } from 'class-validator';
 
 export const VALID_PAYMENT_METHODS = ['CASH', 'CARD', 'TRANSFER'] as const;
 
@@ -11,6 +11,7 @@ export class CheckoutReservationDto {
   paymentMethod: PaymentMethodName;
 
   @IsOptional()
-  @IsInt({ message: 'discountId debe ser un número entero' })
-  discountId?: number;
+  @IsArray({ message: 'discountIds debe ser un arreglo' })
+  @IsInt({ each: true, message: 'cada discountId debe ser un número entero' })
+  discountIds?: number[];
 }
