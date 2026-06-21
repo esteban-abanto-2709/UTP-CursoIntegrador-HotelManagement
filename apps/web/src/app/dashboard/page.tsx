@@ -71,20 +71,7 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="flex flex-col gap-8 max-w-7xl mx-auto w-full animate-in fade-in slide-in-from-bottom-4 duration-500">
-      {/* Cabecera Principal */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b pb-6">
-        <div>
-          <h2 className="text-3xl font-bold tracking-tight text-foreground">
-            Vista General de Recepción
-          </h2>
-          <p className="text-muted-foreground mt-2 text-base">
-            Monitorea la disponibilidad y el estado en tiempo real de las
-            habitaciones del hotel.
-          </p>
-        </div>
-      </div>
-
+    <div className="flex flex-col gap-8 w-full animate-in fade-in slide-in-from-bottom-4 duration-500">
       {/* Tarjetas KPI Superiores (Estilo Premium) */}
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
         {/* Tarjeta Disponibles */}

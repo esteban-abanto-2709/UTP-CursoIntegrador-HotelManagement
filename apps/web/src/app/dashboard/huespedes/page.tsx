@@ -126,18 +126,7 @@ export default function HuespedesPage() {
   };
 
   return (
-    <div className="flex flex-col gap-6 max-w-7xl mx-auto w-full animate-in fade-in slide-in-from-bottom-4 duration-500">
-      {/* Cabecera */}
-      <div className="border-b pb-6">
-        <h2 className="text-3xl font-bold tracking-tight text-foreground">
-          Gestión de Huéspedes
-        </h2>
-        <p className="text-muted-foreground mt-2 text-base">
-          Consulta el directorio de huéspedes registrados y su historial de
-          estadías.
-        </p>
-      </div>
-
+    <div className="flex flex-col gap-6 w-full animate-in fade-in slide-in-from-bottom-4 duration-500">
       {/* Buscador */}
       <div className="bg-card p-4 rounded-2xl border border-border/50 shadow-sm">
         <div className="relative w-full max-w-md">
@@ -157,7 +146,7 @@ export default function HuespedesPage() {
         <Table>
           <TableHeader>
             <TableRow className="bg-muted/30 hover:bg-muted/30">
-              <TableHead className="font-semibold text-muted-foreground py-4 pl-6">
+              <TableHead className="font-semibold text-muted-foreground">
                 Nombre
               </TableHead>
               <TableHead className="font-semibold text-muted-foreground">

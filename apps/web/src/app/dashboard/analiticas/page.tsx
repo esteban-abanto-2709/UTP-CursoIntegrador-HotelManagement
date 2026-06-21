@@ -8,7 +8,6 @@ import { useAuthStore } from "@/store/authStore";
 import { toast } from "sonner";
 import {
   Loader2,
-  BarChart3,
   BedDouble,
   Users,
   CalendarRange,
@@ -367,23 +366,9 @@ export default function AnaliticasPage() {
 
   return (
     <div className="-m-6 min-h-full bg-background p-6 md:-m-8 md:p-8">
-      <div className="flex flex-col gap-6 max-w-7xl mx-auto w-full animate-in fade-in slide-in-from-bottom-4 duration-500">
-        {/* Cabecera */}
-        <div className="flex flex-col gap-4 border-b border-border pb-6 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <h2
-              className="text-3xl font-bold tracking-tight text-foreground flex items-center gap-2"
-              style={{ fontFamily: BRICOLAGE }}
-            >
-              <BarChart3 className="h-8 w-8 text-primary" />
-              Analíticas
-            </h2>
-            <p className="text-muted-foreground mt-2 text-base">
-              Ocupación, habitaciones más usadas, desempeño del personal y el
-              registro de actividad del sistema.
-            </p>
-          </div>
-
+      <div className="flex flex-col gap-6 w-full animate-in fade-in slide-in-from-bottom-4 duration-500">
+        {/* Selector de año */}
+        <div className="flex justify-end">
           <div className="flex flex-col gap-1.5">
             <label className="text-sm font-semibold text-muted-foreground">
               Año
@@ -631,8 +616,8 @@ export default function AnaliticasPage() {
         <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden mb-8">
           <Table>
             <TableHeader>
-              <TableRow className="bg-background hover:bg-background border-border">
-                <TableHead className="font-semibold text-muted-foreground py-4 pl-6">
+              <TableRow>
+                <TableHead className="font-semibold text-muted-foreground">
                   Fecha y hora
                 </TableHead>
                 <TableHead className="font-semibold text-muted-foreground">
@@ -681,7 +666,7 @@ export default function AnaliticasPage() {
                   <TableRow
                     key={log.id}
                     onClick={() => setDetail(log)}
-                    className="border-border transition-colors hover:bg-background group cursor-pointer"
+                    className="group cursor-pointer"
                   >
                     <TableCell className="text-muted-foreground pl-6">
                       {formatDateTime(log.performedAt)}

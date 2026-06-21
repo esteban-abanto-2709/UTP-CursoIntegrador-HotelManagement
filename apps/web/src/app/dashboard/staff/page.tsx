@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
-import { Users, Loader2, ClipboardList, Pencil, Lock } from "lucide-react";
+import { Loader2, ClipboardList, Pencil, Lock } from "lucide-react";
 
 import api from "@/lib/axios";
 import { routes } from "@/lib/routes";
@@ -159,19 +159,9 @@ export default function StaffPage() {
   };
 
   return (
-    <div className="flex flex-col gap-8 max-w-7xl mx-auto w-full animate-in fade-in slide-in-from-bottom-4 duration-500">
-      {/* Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h2 className="text-3xl font-bold tracking-tight text-foreground flex items-center gap-2">
-            <Users className="h-8 w-8 text-primary" />
-            Gestión de Personal
-          </h2>
-          <p className="text-muted-foreground mt-1">
-            Administra los accesos y roles del equipo del hotel.
-          </p>
-        </div>
-
+    <div className="flex flex-col gap-8 w-full animate-in fade-in slide-in-from-bottom-4 duration-500">
+      {/* Acción */}
+      <div className="flex justify-end">
         <Button onClick={openCreate}>
           <ClipboardList className="mr-2 h-4 w-4" />
           Registrar Empleado
@@ -192,8 +182,8 @@ export default function StaffPage() {
       {/* Tabla */}
       <div className="rounded-xl border bg-card overflow-hidden shadow-xl">
         <Table>
-          <TableHeader className="bg-muted/50">
-            <TableRow className="border-border hover:bg-transparent">
+          <TableHeader>
+            <TableRow>
               <TableHead className="text-muted-foreground font-semibold">
                 Nombre
               </TableHead>
@@ -238,10 +228,7 @@ export default function StaffPage() {
               </TableRow>
             ) : (
               employees.map((e) => (
-                <TableRow
-                  key={e.id}
-                  className="border-border hover:bg-muted/30 transition-colors"
-                >
+                <TableRow key={e.id}>
                   <TableCell className="font-medium text-foreground">
                     {e.nombres ? (
                       `${e.nombres} ${e.apellidoPaterno ?? ""}`.trim()

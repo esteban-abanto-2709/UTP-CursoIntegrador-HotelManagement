@@ -320,18 +320,8 @@ export default function ReservasPage() {
     roomFilter !== "";
 
   return (
-    <div className="flex flex-col gap-6 max-w-7xl mx-auto w-full animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b pb-6">
-        <div>
-          <h2 className="text-3xl font-bold tracking-tight text-foreground">
-            Gestión de Reservas
-          </h2>
-          <p className="text-muted-foreground mt-2 text-base">
-            Administra el historial y controla los próximos ingresos para evitar
-            overbooking al 100%.
-          </p>
-        </div>
-
+    <div className="flex flex-col gap-6 w-full animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <div className="flex justify-end">
         <button
           onClick={handleNew}
           className="flex items-center gap-2 bg-primary text-primary-foreground px-5 py-2.5 rounded-xl font-semibold hover:bg-primary-hover transition-all shadow-md active:scale-95"
@@ -437,7 +427,7 @@ export default function ReservasPage() {
         <Table>
           <TableHeader>
             <TableRow className="bg-muted/30 hover:bg-muted/30">
-              <TableHead className="font-semibold text-muted-foreground py-4 pl-6">
+              <TableHead className="font-semibold text-muted-foreground">
                 Huésped
               </TableHead>
               <TableHead className="font-semibold text-muted-foreground">

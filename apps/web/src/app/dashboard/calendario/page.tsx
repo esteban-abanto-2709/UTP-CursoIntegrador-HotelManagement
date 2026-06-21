@@ -47,17 +47,7 @@ export default function CalendarioPage() {
   }, [fetchData]);
 
   return (
-    <div className="flex flex-col gap-6 max-w-7xl mx-auto w-full animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <div className="border-b pb-6">
-        <h2 className="text-3xl font-bold tracking-tight text-foreground">
-          Calendario de Ocupación
-        </h2>
-        <p className="text-muted-foreground mt-2 text-base">
-          Visualiza de un vistazo qué habitaciones están ocupadas y en qué
-          fechas. Cada fila es un cuarto; cada barra, una reserva.
-        </p>
-      </div>
-
+    <div className="flex flex-col gap-6 w-full animate-in fade-in slide-in-from-bottom-4 duration-500">
       {isLoading ? (
         <div className="flex flex-col items-center justify-center gap-2 py-24 text-muted-foreground">
           <Loader2 className="h-6 w-6 animate-spin text-primary" />

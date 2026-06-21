@@ -75,20 +75,7 @@ export default function ServicioHabitacionPage() {
   };
 
   return (
-    <div className="flex flex-col gap-6 max-w-7xl mx-auto w-full animate-in fade-in slide-in-from-bottom-4 duration-500">
-      {/* Cabecera Principal */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b pb-6">
-        <div>
-          <h2 className="text-3xl font-bold tracking-tight text-foreground">
-            Servicio a la Habitación
-          </h2>
-          <p className="text-muted-foreground mt-2 text-base">
-            Panel del staff. Libera habitaciones tras el Check-Out y registra
-            cargos adicionales a las reservas activas.
-          </p>
-        </div>
-      </div>
-
+    <div className="flex flex-col gap-6 w-full animate-in fade-in slide-in-from-bottom-4 duration-500">
       {/* Sección A — Limpieza pendiente */}
       <div className="flex flex-col gap-4">
         <h3 className="text-xl font-bold tracking-tight text-foreground">

@@ -6,7 +6,7 @@ import api from "@/lib/axios";
 import { routes } from "@/lib/routes";
 import { useAuthStore } from "@/store/authStore";
 import { toast } from "sonner";
-import { TrendingUp, Receipt, CreditCard, Tag, Wallet } from "lucide-react";
+import { TrendingUp, Receipt, CreditCard, Tag } from "lucide-react";
 import {
   BarChart,
   Bar,
@@ -161,23 +161,9 @@ export default function FinanzasPage() {
 
   return (
     <div className="-m-6 min-h-full bg-background p-6 md:-m-8 md:p-8">
-      <div className="flex flex-col gap-6 max-w-7xl mx-auto w-full animate-in fade-in slide-in-from-bottom-4 duration-500">
-        {/* Cabecera */}
-        <div className="flex flex-col gap-4 border-b border-border pb-6 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <h2
-              className="text-3xl font-bold tracking-tight text-foreground flex items-center gap-2"
-              style={{ fontFamily: BRICOLAGE }}
-            >
-              <Wallet className="h-8 w-8 text-primary" />
-              Finanzas
-            </h2>
-            <p className="text-muted-foreground mt-2 text-base">
-              Ingresos brutos, pagos procesados y descuentos del hotel,
-              derivados de los pagos cobrados a los huéspedes.
-            </p>
-          </div>
-
+      <div className="flex flex-col gap-6 w-full animate-in fade-in slide-in-from-bottom-4 duration-500">
+        {/* Selector de año */}
+        <div className="flex justify-end">
           <div className="flex flex-col gap-1.5">
             <label className="text-sm font-semibold text-muted-foreground">
               Año
