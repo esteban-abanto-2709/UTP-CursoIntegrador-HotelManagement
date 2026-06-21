@@ -48,15 +48,7 @@ Al terminar una tarea se mueve al changelog y se borra de aquí.
 
 ## Milestone 7 — Huecos restantes del modelo *(opcional)*
 
-> Independientes entre sí. RM-034 y RM-035 ambas tocan `Discount`/`Payment` pero no dependen entre sí.
-
-## [RM-034] DiscountType — clasificar los descuentos por categoría
-
-- **Objetivo:** Añadir una dimensión de tipo/categoría sobre los descuentos. **Contexto:** hoy `Discount` (`name @unique`, `percentage`, `isActive`) tiene descuentos concretos que ya se aplican en checkout; `seeds/discounts.ts` siembra 4. No existe tabla `DiscountType`, ni `typeId`, ni `createdAt` en `Discount`.
-- **Hecho cuando:** Existe tabla-catálogo `DiscountType` (`name @unique`: `SEASONAL`/`LOYALTY`/`PROMOTIONAL`/`CORPORATE`) + `typeId` (FK **NOT NULL**) y `createdAt` en `Discount`, sembrada y conectada, y `GET /discounts` devuelve `type` aplanado a string.
-- **Migración `add_discount_type_table` (todo en una, patrón RM-028–RM-030):** crear tabla → sembrar los 4 tipos → `typeId` **nullable** → **backfill** (mapear por nombre: «Cliente frecuente»→`LOYALTY`, «Temporada baja»→`SEASONAL`, «Convenio corporativo»→`CORPORATE`, «Estadía larga»→`PROMOTIONAL`) → recién entonces FK **NOT NULL**.
-- **Código:** seed reejecutable `seeds/discount-types.ts` (en `seed.ts`), `seeds/discounts.ts` conecta cada descuento con su `type` por nombre, y `GET /discounts` devuelve `type` con `include`.
-- **Estado:** Abierto
+> RM-035 toca `Discount`/`Payment`.
 
 ## [RM-035] Varios descuentos en un mismo checkout
 
@@ -115,6 +107,6 @@ Al terminar una tarea se mueve al changelog y se borra de aquí.
 
 ## Dependencias
 
-Milestones M1–M6 ya resueltos (ver `changelog.md`). Pendientes independientes: **RM-024** (M5), **RM-031** (M6), **RM-034 / RM-035** (M7). Cualquiera es punto de corte válido.
+Milestones M1–M6 ya resueltos (ver `changelog.md`). Pendientes independientes: **RM-024** (M5), **RM-031** (M6), **RM-035** (M7). Cualquiera es punto de corte válido.
 
 **Recomendaciones del profesor:** **RM-037/RM-040** comparten módulo de agregación (reportería). **RM-041 → RM-042** (el historial reusa el generador de comprobante). **RM-044** cierra TD-002/003/004 y conviene antes de mostrar más textos al usuario. **RM-038/RM-039** (UX/UI) son independientes. El rediseño general (ex-RM-043) se cerró; su sub-pendiente [[RM-036]] sigue abierto.

@@ -6,10 +6,16 @@ import { FindDiscountsDto } from './dto/find-discounts.dto';
 export class DiscountsService {
   constructor(private prisma: PrismaService) {}
 
-  findAll(filters: FindDiscountsDto) {
-    return this.prisma.discount.findMany({
+  async findAll(filters: FindDiscountsDto) {
+    const discounts = await this.prisma.discount.findMany({
       where: filters.active === 'true' ? { isActive: true } : {},
       orderBy: { name: 'asc' },
+      include: { type: { select: { name: true } } },
     });
+
+    return discounts.map(({ type, ...discount }) => ({
+      ...discount,
+      type: type.name,
+    }));
   }
 }

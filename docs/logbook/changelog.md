@@ -16,6 +16,9 @@ Resumen en ≤2 líneas de lo que se hizo.
 
 ---
 
+## [RM-034] DiscountType — clasificar los descuentos por categoría (2026-06-20 19:54)
+Nueva tabla-catálogo `DiscountType` (SEASONAL/LOYALTY/PROMOTIONAL/CORPORATE) + `typeId` (FK NOT NULL) y `createdAt` en `Discount`; migración única `add_discount_type_table` (crear→sembrar→nullable→backfill por nombre→NOT NULL→FK). Seed reejecutable `discount-types.ts` en `seed.ts`, `discounts.ts` conecta su tipo por nombre, y `GET /discounts` aplana `type` a string. Build API verde.
+
 ## [RM-046] Paginación server-side (cursor) en los listados del dashboard (2026-06-20 13:18)
 Paginación por cursor en los 5 listados (reservas, huéspedes, staff, auditoría, habitaciones): nuevo `common/pagination/` (DTO + helpers `cursorArgs`/`buildPage`, técnica take+1, ventana opt-in vía `take`) reusado por los services, que ahora devuelven `{ data, total, nextCursor, hasNext }` con `orderBy` desempatado por `id`. Front: componente compartido `PaginationControls` (Anterior/Siguiente + total) y pila de cursores local por página; búsqueda de reservas movida a la API (`search` en `FilterReservationsDto`). Consumidores no paginados (dashboard home, calendario, servicio, autocomplete de huéspedes, dropdown de empleados, dropdown de habitaciones de reservas) adaptados a `.data`. Sin migración de BD. Builds api/web verdes.
 

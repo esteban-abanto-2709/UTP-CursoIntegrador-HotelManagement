@@ -1,6 +1,7 @@
 import { createSeedClient } from './seeds/prisma-client';
 import { seedOwner } from './seeds/owner';
 import { seedCategories } from './seeds/categories';
+import { seedDiscountTypes } from './seeds/discount-types';
 import { seedDiscounts } from './seeds/discounts';
 import { seedAuditActions } from './seeds/audit-actions';
 import { seedJobPositions } from './seeds/job-positions';
@@ -15,6 +16,7 @@ async function main() {
   try {
     await seedOwner(prisma);
     await seedCategories(prisma);
+    await seedDiscountTypes(prisma);
     await seedDiscounts(prisma);
     await seedAuditActions(prisma);
     await seedJobPositions(prisma);

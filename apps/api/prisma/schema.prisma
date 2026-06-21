@@ -143,12 +143,23 @@ model RoomCharge {
 }
 
 model Discount {
-  id          Int       @id @default(autoincrement())
-  name        String    @unique
+  id          Int          @id @default(autoincrement())
+  name        String       @unique
   description String?
-  percentage  Decimal   @db.Decimal(5, 2)
-  isActive    Boolean   @default(true)
+  percentage  Decimal      @db.Decimal(5, 2)
+  isActive    Boolean      @default(true)
+  typeId      Int
+  type        DiscountType @relation(fields: [typeId], references: [id])
+  createdAt   DateTime     @default(now())
   payments    Payment[]
+
+  @@index([typeId])
+}
+
+model DiscountType {
+  id        Int        @id @default(autoincrement())
+  name      String     @unique
+  discounts Discount[]
 }
 
 model Payment {
