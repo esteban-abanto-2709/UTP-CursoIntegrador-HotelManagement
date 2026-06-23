@@ -71,18 +71,6 @@ Al terminar una tarea se mueve al changelog y se borra de aquí.
 
 ---
 
-## Infraestructura / Deploy
-
-## [RM-049] Dockerizar `apps/web` para el deploy en Digital Ocean
-
-- **Objetivo:** Que el frontend también corra en contenedor, junto al API y la BD, para desplegar todo el stack en Digital Ocean sin depender de Vercel.
-- **Contexto:** Solo `apps/api` está dockerizado (`apps/api/Dockerfile`, servicio `api` en `apps/docker/docker-compose.yml`); `apps/web` no tiene `Dockerfile` ni servicio en el compose y hoy se publica en Vercel. Next.js 16 admite build standalone (`output: "standalone"`) para imágenes ligeras. `NEXT_PUBLIC_API_URL` se hornea en build time, así que el contenedor web necesita apuntar al API por la URL pública/ruteable del deploy, no a `localhost`.
-- **Hecho cuando:** Existe `apps/web/Dockerfile` (multi-stage, build standalone) + `.dockerignore`, un servicio `web` en `docker-compose.yml` (con `NEXT_PUBLIC_API_URL`, `depends_on` del API y puerto expuesto), y `docker compose up --build` levanta los tres servicios (db + api + web) sirviendo la app end-to-end. El build del contenedor lo corre el usuario.
-- **Nota:** Mantener pnpm 10.x en `apps/web` (Vercel) salvo que se confirme abandonar Vercel; verificar el enfoque del Dockerfile de Next 16 con context7 antes de implementar. El levantado/deploy en Digital Ocean lo hace el usuario; Claude solo prueba el build.
-- **Fecha:** 2026-06-23 · **Estado:** Abierto
-
----
-
 ## Dependencias
 
 Milestones M1–M7 ya resueltos (ver `changelog.md`). Pendientes independientes: **RM-024** (M5), **RM-031** (M6). Cualquiera es punto de corte válido.

@@ -16,6 +16,9 @@ Resumen en ≤2 líneas de lo que se hizo.
 
 ---
 
+## [RM-049] Dockerizar `apps/web` para el deploy en Digital Ocean (2026-06-23 14:27)
+`apps/web` ahora corre en contenedor: nuevo `Dockerfile` multi-stage (base `node:22-alpine` + corepack, etapas deps→build→runner) con build standalone de Next 16 (`output: "standalone"` en `next.config.ts`), copiando `.next/standalone` + `.next/static` + `public` y arrancando con `node server.js` como usuario no-root en el puerto 3000. `NEXT_PUBLIC_API_URL` (se hornea en build) se pasa como build ARG con default `http://localhost:4000`; nuevo servicio `web` en `docker-compose.yml` (build con ese arg, `ports 3000:3000`, `depends_on api`, red `hotel-net`) y `.env.example` documentado. Build local de Next verde (genera `standalone/server.js`); el build/levantado del contenedor y el deploy lo corre el usuario.
+
 ## [RM-038] Filtros en el calendario de ocupación (2026-06-23 14:32)
 `GET /rooms` ahora filtra server-side por `type`, `status` y `search` (número de cuarto, `contains` insensitive): `FindRoomsDto` extendido reusando `VALID_ROOM_TYPES`/`VALID_ROOM_STATUSES` y `rooms.service.findAll` construye `where` (aplicado también al `count`), replicando el patrón de `ReservationsService` (RM-020–RM-023). El calendario (`dashboard/calendario/page.tsx`) suma barra de filtros (búsqueda con debounce 300ms + selects de tipo y estado + "Limpiar filtros") que acota las filas del `OccupancyTimeline`; `routes.rooms.list` admite los nuevos params. Reservas se siguen trayendo completas (ventana de 14 días client-side). Builds api/web verdes.
 

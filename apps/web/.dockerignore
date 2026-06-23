@@ -1,0 +1,9 @@
+node_modules
+.next
+.env
+.env.*
+pnpm-debug.log
+.git
+.vscode
+Dockerfile
+.dockerignore
