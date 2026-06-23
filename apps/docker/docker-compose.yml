@@ -47,10 +47,20 @@ services:
       dockerfile: Dockerfile
       args:
         API_INTERNAL_URL: http://api:4000
-    ports:
-      - "3000:3000"
     depends_on:
       - api
+    networks:
+      - hotel-net
+
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: hotel-management-tunnel
+    restart: unless-stopped
+    command: tunnel --no-autoupdate --url http://web:3000
+    environment:
+     - TUNNEL_TOKEN=${TUNNEL_TOKEN}
+    depends_on:
+      - web
     networks:
       - hotel-net
 
