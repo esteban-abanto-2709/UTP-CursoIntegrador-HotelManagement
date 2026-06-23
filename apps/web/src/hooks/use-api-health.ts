@@ -1,7 +1,7 @@
 import * as React from "react";
-import { routes } from "@/lib/routes";
+import { API_BASE_PATH, routes } from "@/lib/routes";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+const API_BASE = API_BASE_PATH;
 const ATTEMPT_TIMEOUT = 8000;
 const RETRY_INTERVAL = 3000;
 const MAX_WINDOW = 90000;

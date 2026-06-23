@@ -28,26 +28,39 @@ Interfaz web del PMS Mirador Hotel Suite. Dark Theme Premium construido con Next
 ```bash
 cd apps/web
 
-# 1. Variables de entorno
-cp .env.example .env.local
-# NEXT_PUBLIC_API_URL=http://localhost:4000
-
-# 2. Instalar dependencias
+# 1. Instalar dependencias
 pnpm install
 
-# 3. Iniciar dev server
+# 2. Iniciar dev server
 pnpm dev
 ```
 
 Abrir [http://localhost:3000](http://localhost:3000).
 
-## Variables de Entorno
+> No necesitas configurar variables de entorno en local: el proxy cae a su
+> default `http://localhost:4000` (ver "Comunicación con el API").
 
-| Variable              | Descripción          | Ejemplo                 |
-| --------------------- | -------------------- | ----------------------- |
-| `NEXT_PUBLIC_API_URL` | URL base del backend | `http://localhost:4000` |
+## Comunicación con el API (proxy)
 
-En producción (Vercel), apunta a la URL del backend desplegado.
+El navegador **nunca** llama al backend directamente. Todas las peticiones van a
+rutas relativas con prefijo `/api` (mismo origen que la web) y el servidor de
+Next las reenvía al backend mediante un rewrite definido en `next.config.ts`.
+
+- **Punto único del prefijo:** la constante `API_BASE_PATH` en
+  `src/lib/routes.ts`. La importan `lib/axios.ts`, `hooks/use-api-health.ts` y
+  `components/wake-up-gate.tsx`. No hardcodear `/api` en ningún otro archivo.
+- **Destino del proxy:** la variable `API_INTERNAL_URL`. Ojo: Next evalúa los
+  `rewrites()` en **build time** y congela el destino en `routes-manifest.json`
+  (no se lee en runtime), así que la variable debe estar presente al hacer
+  `next build`. Por defecto `http://localhost:4000`.
+
+| Entorno                | `API_INTERNAL_URL`              | Cuándo / quién lo define                         |
+| ---------------------- | ------------------------------- | ------------------------------------------------ |
+| Dev local (`pnpm dev`) | `http://localhost:4000` (default) | nada que configurar; `next dev` re-evalúa en vivo |
+| Docker                 | `http://api:4000` (DNS interno) | build-arg en `Dockerfile` / `docker-compose.yml`  |
+
+Ventaja: el backend no se expone al exterior y no hay que configurar CORS; solo
+se publica la web.
 
 ## Deploy en Vercel
 
@@ -57,7 +70,7 @@ Configurar en el dashboard de Vercel:
 
 - **Root Directory:** `apps/web`
 - **Framework Preset:** Next.js
-- **Environment Variables:** `NEXT_PUBLIC_API_URL` → URL del backend en producción
+- **Environment Variables:** `API_INTERNAL_URL` → URL del backend en producción (el proxy de Next la reenvía server-side)
 
 > Usar pnpm **10.x**. pnpm 11.x no es compatible con Vercel actualmente.
 
@@ -70,8 +83,8 @@ src/
 │   └── dashboard/        # Recepción, staff, habitaciones, reservas, servicio
 ├── components/ui/        # Componentes Shadcn
 ├── lib/
-│   ├── axios.ts          # Cliente HTTP con interceptor de auth
-│   └── routes.ts         # Constantes de rutas de la API
+│   ├── axios.ts          # Cliente HTTP con interceptor de auth (baseURL = API_BASE_PATH)
+│   └── routes.ts         # Rutas de la API + API_BASE_PATH (prefijo del proxy)
 └── store/
     └── useAuthStore.ts   # Estado de autenticación (Zustand)
 ```

@@ -1,4 +1,6 @@
 // Archivo centralizado de rutas para evitar hardcodear strings en toda la app.
+export const API_BASE_PATH = "/api";
+
 export const routes = {
   // Rutas del Frontend (Next.js)
   home: () => "/",

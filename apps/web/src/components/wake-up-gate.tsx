@@ -7,9 +7,10 @@ import {
   type ApiHealthStatus,
   RETRY_INTERVAL_SECONDS,
 } from "@/hooks/use-api-health";
+import { API_BASE_PATH } from "@/lib/routes";
 
 const SESSION_KEY = "lumina-api-awake";
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+const API_URL = API_BASE_PATH;
 
 export function WakeUpGate({ children }: { children: React.ReactNode }) {
   const [decision, setDecision] = React.useState<"pending" | "awake" | "check">(
