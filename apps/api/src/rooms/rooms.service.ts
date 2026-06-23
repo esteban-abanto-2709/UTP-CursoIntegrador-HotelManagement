@@ -78,13 +78,26 @@ export class RoomsService {
   }
 
   async findAll(filters: FindRoomsDto) {
+    const where: Prisma.RoomWhereInput = {};
+
+    if (filters.type) {
+      where.type = { name: filters.type };
+    }
+    if (filters.status) {
+      where.status = { name: filters.status };
+    }
+    if (filters.search) {
+      where.number = { contains: filters.search, mode: 'insensitive' };
+    }
+
     const [rows, total] = await Promise.all([
       this.prisma.room.findMany({
+        where,
         include: this.roomInclude,
         orderBy: [{ number: 'asc' }, { id: 'asc' }],
         ...cursorArgs(filters),
       }),
-      this.prisma.room.count(),
+      this.prisma.room.count({ where }),
     ]);
 
     const page = buildPage(rows, filters);

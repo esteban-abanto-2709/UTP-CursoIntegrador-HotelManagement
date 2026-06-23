@@ -16,6 +16,9 @@ Resumen en ≤2 líneas de lo que se hizo.
 
 ---
 
+## [RM-038] Filtros en el calendario de ocupación (2026-06-23 14:32)
+`GET /rooms` ahora filtra server-side por `type`, `status` y `search` (número de cuarto, `contains` insensitive): `FindRoomsDto` extendido reusando `VALID_ROOM_TYPES`/`VALID_ROOM_STATUSES` y `rooms.service.findAll` construye `where` (aplicado también al `count`), replicando el patrón de `ReservationsService` (RM-020–RM-023). El calendario (`dashboard/calendario/page.tsx`) suma barra de filtros (búsqueda con debounce 300ms + selects de tipo y estado + "Limpiar filtros") que acota las filas del `OccupancyTimeline`; `routes.rooms.list` admite los nuevos params. Reservas se siguen trayendo completas (ventana de 14 días client-side). Builds api/web verdes.
+
 ## [TD-026] Detalle de huésped rompía por relaciones sin aplanar (2026-06-21 13:37)
 `GET /guests/:id` (`guests.service.findOne`) devolvía cada reserva con las relaciones crudas tras la normalización a catálogos (M6): `statusId` en vez de `status` y `room.type` como objeto `{id,name}`. El diálogo de historial en `huespedes/page.tsx` pasaba ese objeto a `getRoomTypeLabel`, que lo retornaba tal cual y React lo renderizaba como hijo → crash "Objects are not valid as a React child" al abrir cualquier fila. Fix: `findOne` ahora incluye `status.name` y `room.type.name` y aplana a string (`status`, `room.type`), replicando el patrón `flattenReservation` del módulo de reservas. Build API verde; verificación en runtime pendiente de reinicio del backend por el usuario.
 

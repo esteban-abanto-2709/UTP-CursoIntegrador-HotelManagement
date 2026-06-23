@@ -52,13 +52,6 @@ Al terminar una tarea se mueve al changelog y se borra de aquí.
 
 ### UX / UI
 
-## [RM-038] Filtros en el calendario de ocupación para escalar con muchas habitaciones
-
-- **Objetivo:** Que el calendario siga siendo usable cuando el número de habitaciones crezca.
-- **Contexto:** `apps/web/src/app/dashboard/calendario/page.tsx` hace `GET /rooms` + `GET /reservations` **sin filtros** y `OccupancyTimeline` pinta **una fila por cada cuarto**; con muchas habitaciones la vista se vuelve inmanejable y la carga, pesada. No hay filtro por tipo/estado/piso ni paginación, ni acotación por rango de fechas en la query.
-- **Hecho cuando:** El calendario permite filtrar/acotar las filas visibles (p. ej. por tipo de habitación, estado o búsqueda) y/o por rango de fechas, manteniendo el rendimiento con un catálogo grande de cuartos. Reusar el patrón de filtros server-side ya existente de reservas (RM-020–RM-023) donde aplique.
-- **Fecha:** 2026-06-19 · **Estado:** Abierto
-
 ## [RM-039] Cambiar el ícono "de personitas" del root (favicon / identidad)
 
 - **Objetivo:** Reemplazar el ícono genérico de la pestaña/raíz por uno acorde a la identidad "Mirador · Hotel Suite".
@@ -75,6 +68,18 @@ Al terminar una tarea se mueve al changelog y se borra de aquí.
 - **Hecho cuando:** El contrato HTTP de Employee (y cualquier otro residuo) está en inglés con DTOs *passthrough* (sin los mapas `TURNO_TO_SHIFT`/`toSpanishShape`), los valores de `position`/turno migrados o traducidos, y la web traduce a español solo en la vista. Quedan cerradas TD-002, TD-003 y TD-004.
 - **Nota:** TD-003 implica migrar datos existentes de `position`; planificar como migración coordinada (front + `CARGO_TO_ROLE`). Mantiene BD 100% normalizada.
 - **Fecha:** 2026-06-19 · **Estado:** Abierto
+
+---
+
+## Infraestructura / Deploy
+
+## [RM-049] Dockerizar `apps/web` para el deploy en Digital Ocean
+
+- **Objetivo:** Que el frontend también corra en contenedor, junto al API y la BD, para desplegar todo el stack en Digital Ocean sin depender de Vercel.
+- **Contexto:** Solo `apps/api` está dockerizado (`apps/api/Dockerfile`, servicio `api` en `apps/docker/docker-compose.yml`); `apps/web` no tiene `Dockerfile` ni servicio en el compose y hoy se publica en Vercel. Next.js 16 admite build standalone (`output: "standalone"`) para imágenes ligeras. `NEXT_PUBLIC_API_URL` se hornea en build time, así que el contenedor web necesita apuntar al API por la URL pública/ruteable del deploy, no a `localhost`.
+- **Hecho cuando:** Existe `apps/web/Dockerfile` (multi-stage, build standalone) + `.dockerignore`, un servicio `web` en `docker-compose.yml` (con `NEXT_PUBLIC_API_URL`, `depends_on` del API y puerto expuesto), y `docker compose up --build` levanta los tres servicios (db + api + web) sirviendo la app end-to-end. El build del contenedor lo corre el usuario.
+- **Nota:** Mantener pnpm 10.x en `apps/web` (Vercel) salvo que se confirme abandonar Vercel; verificar el enfoque del Dockerfile de Next 16 con context7 antes de implementar. El levantado/deploy en Digital Ocean lo hace el usuario; Claude solo prueba el build.
+- **Fecha:** 2026-06-23 · **Estado:** Abierto
 
 ---
 

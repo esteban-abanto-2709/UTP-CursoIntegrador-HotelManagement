@@ -37,10 +37,19 @@ export const routes = {
     },
     rooms: {
       create: () => "/rooms",
-      list: (page?: { cursor?: number; take?: number }) => {
+      list: (filters?: {
+        type?: string;
+        status?: string;
+        search?: string;
+        cursor?: number;
+        take?: number;
+      }) => {
         const q = new URLSearchParams();
-        if (page?.cursor != null) q.set("cursor", String(page.cursor));
-        if (page?.take != null) q.set("take", String(page.take));
+        if (filters?.type) q.set("type", filters.type);
+        if (filters?.status) q.set("status", filters.status);
+        if (filters?.search) q.set("search", filters.search);
+        if (filters?.cursor != null) q.set("cursor", String(filters.cursor));
+        if (filters?.take != null) q.set("take", String(filters.take));
         const qs = q.toString();
         return qs ? `/rooms?${qs}` : "/rooms";
       },
