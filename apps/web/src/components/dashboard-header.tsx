@@ -1,9 +1,9 @@
 "use client";
 
 import { Search, CalendarDays, Bell, Plus } from "lucide-react";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { routes } from "@/lib/routes";
+import { useReservationDialog } from "@/components/reservation-dialog-provider";
 
 const HEADER_FEATURES = {
   search: true,
@@ -79,7 +79,7 @@ function formatToday(): string {
 
 export function DashboardHeader() {
   const pathname = usePathname();
-  const router = useRouter();
+  const { openCreate } = useReservationDialog();
   const [query, setQuery] = useState("");
   const meta = resolveMeta(pathname);
 
@@ -141,7 +141,7 @@ export function DashboardHeader() {
       {HEADER_FEATURES.newReservation && (
         <button
           type="button"
-          onClick={() => router.push(routes.dashboard.reservas())}
+          onClick={openCreate}
           className="flex flex-none items-center gap-[8px] whitespace-nowrap rounded-[11px] bg-primary px-[17px] py-[11px] text-[14px] font-semibold text-primary-foreground shadow-brand transition-colors hover:bg-primary-hover"
         >
           <Plus width={17} height={17} strokeWidth={2.2} />

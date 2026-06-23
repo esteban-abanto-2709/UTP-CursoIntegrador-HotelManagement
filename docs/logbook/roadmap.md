@@ -46,17 +46,6 @@ Al terminar una tarea se mueve al changelog y se borra de aquí.
 
 ---
 
-## Rediseño UI (Mirador)
-
-## [RM-036] Cablear los controles del header de Mirador
-
-- **Objetivo:** Conectar a features reales los controles del `DashboardHeader` que hoy van solo como UI. **Contexto:** el header (cream, estilo Mirador) ya renderiza buscador, pastilla de fecha, notificaciones y botón "Nueva reserva", pero detrás de un objeto `HEADER_FEATURES` en `apps/web/src/components/dashboard-header.tsx`; cada control se oculta poniendo su flag en `false` si no se llega con el feature.
-- **Estado actual de cada control:** buscador (input local sin búsqueda real), fecha (dinámica, ya funciona), notificaciones (botón sin panel ni datos), "Nueva reserva" (navega a `/dashboard/reservas`, sin abrir el diálogo de creación).
-- **Hecho cuando:** buscador filtra/navega a resultados reales, notificaciones muestra eventos reales, y "Nueva reserva" abre el flujo de creación; o bien el flag correspondiente queda en `false` de forma deliberada.
-- **Fecha:** 2026-06-19 · **Estado:** Abierto
-
----
-
 ## Recomendaciones del profesor / curso (revisión de cierre)
 
 > Lote levantado de la retroalimentación del profesor y del curso (2026-06-19). Todas comprometidas. Agrupadas por tema; los códigos no implican orden de ejecución.
@@ -93,4 +82,4 @@ Al terminar una tarea se mueve al changelog y se borra de aquí.
 
 Milestones M1–M7 ya resueltos (ver `changelog.md`). Pendientes independientes: **RM-024** (M5), **RM-031** (M6). Cualquiera es punto de corte válido.
 
-**Recomendaciones del profesor:** **RM-037/RM-040** comparten módulo de agregación (reportería). **RM-041 → RM-042** (el historial reusa el generador de comprobante). **RM-044** cierra TD-002/003/004 y conviene antes de mostrar más textos al usuario. **RM-038/RM-039** (UX/UI) son independientes. El rediseño general (ex-RM-043) se cerró; su sub-pendiente [[RM-036]] sigue abierto.
+**Recomendaciones del profesor:** **RM-037/RM-040** comparten módulo de agregación (reportería). **RM-041 → RM-042** (el historial reusa el generador de comprobante). **RM-044** cierra TD-002/003/004 y conviene antes de mostrar más textos al usuario. **RM-038/RM-039** (UX/UI) son independientes. El rediseño general (ex-RM-043) y su sub-pendiente RM-036 ya se cerraron.

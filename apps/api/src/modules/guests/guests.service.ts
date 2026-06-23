@@ -48,7 +48,12 @@ export class GuestsService {
       where: { id },
       include: {
         reservations: {
-          include: { room: { select: { number: true, type: true } } },
+          include: {
+            room: {
+              select: { number: true, type: { select: { name: true } } },
+            },
+            status: { select: { name: true } },
+          },
           orderBy: { checkIn: 'desc' },
         },
       },
@@ -58,7 +63,17 @@ export class GuestsService {
       throw new NotFoundException(`Huésped ${id} no encontrado`);
     }
 
-    return guest;
+    return {
+      ...guest,
+      reservations: guest.reservations.map((reservation) => ({
+        ...reservation,
+        status: reservation.status?.name ?? null,
+        room: {
+          ...reservation.room,
+          type: reservation.room.type?.name ?? null,
+        },
+      })),
+    };
   }
 
   async create(dto: CreateGuestDto) {

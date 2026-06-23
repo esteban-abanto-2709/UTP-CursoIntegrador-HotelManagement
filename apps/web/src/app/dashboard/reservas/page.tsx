@@ -12,7 +12,6 @@ import { ReservationStatusBadge } from "@/components/reservation-status-badge";
 import { toast } from "sonner";
 import {
   Search,
-  Plus,
   Loader2,
   LogIn,
   LogOut,
@@ -41,9 +40,8 @@ import {
 
 import { PaginationControls } from "@/components/ui/pagination-controls";
 
-import ReservationFormDialog, {
-  ReservationForEdit,
-} from "./ReservationFormDialog";
+import { type ReservationForEdit } from "@/components/reservation-form-dialog";
+import { useReservationDialog } from "@/components/reservation-dialog-provider";
 import ReservationDetailDialog from "./ReservationDetailDialog";
 
 const PAGE_SIZE = 20;
@@ -137,6 +135,7 @@ function getReservationAmount(res: Reservation): {
 }
 
 export default function ReservasPage() {
+  const { openEdit, onSaved } = useReservationDialog();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<"ALL" | ReservationStatus>(
     "ALL",
@@ -153,9 +152,6 @@ export default function ReservasPage() {
   const [nextCursor, setNextCursor] = useState<number | null>(null);
   const [hasNext, setHasNext] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [isFormOpen, setIsFormOpen] = useState(false);
-  const [editingReservation, setEditingReservation] =
-    useState<ReservationForEdit | null>(null);
   const [actioningId, setActioningId] = useState<number | null>(null);
   const [checkoutTarget, setCheckoutTarget] = useState<Reservation | null>(
     null,
@@ -200,6 +196,8 @@ export default function ReservasPage() {
     fetchReservations();
   }, [fetchReservations]);
 
+  useEffect(() => onSaved(() => fetchReservations()), [onSaved, fetchReservations]);
+
   useEffect(() => {
     const t = setTimeout(() => setDebouncedSearch(searchTerm.trim()), 300);
     return () => clearTimeout(t);
@@ -226,11 +224,6 @@ export default function ReservasPage() {
       .catch(() => toast.error("Error al cargar las habitaciones"));
   }, []);
 
-  const handleNew = () => {
-    setEditingReservation(null);
-    setIsFormOpen(true);
-  };
-
   const clearFilters = () => {
     setSearchTerm("");
     setStatusFilter("ALL");
@@ -240,7 +233,7 @@ export default function ReservasPage() {
   };
 
   const handleEdit = (res: Reservation) => {
-    setEditingReservation({
+    openEdit({
       id: res.id,
       guest: res.guest,
       checkIn: res.checkIn,
@@ -248,7 +241,6 @@ export default function ReservasPage() {
       roomId: res.roomId,
       room: res.room,
     });
-    setIsFormOpen(true);
   };
 
   const handleCheckIn = async (id: number) => {
@@ -329,22 +321,6 @@ export default function ReservasPage() {
 
   return (
     <div className="flex flex-col gap-6 w-full animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <div className="flex justify-end">
-        <button
-          onClick={handleNew}
-          className="flex items-center gap-2 bg-primary text-primary-foreground px-5 py-2.5 rounded-xl font-semibold hover:bg-primary-hover transition-all shadow-md active:scale-95"
-        >
-          <Plus className="w-5 h-5" /> Nueva Reserva
-        </button>
-      </div>
-
-      <ReservationFormDialog
-        open={isFormOpen}
-        onOpenChange={setIsFormOpen}
-        onSuccess={fetchReservations}
-        reservation={editingReservation}
-      />
-
       <ReservationDetailDialog
         reservation={detailTarget}
         onOpenChange={(open) => !open && setDetailTarget(null)}
