@@ -1,6 +1,6 @@
 # Mirador Hotel Suite — Frontend
 
-Interfaz web del PMS Mirador Hotel Suite. Dark Theme Premium construido con Next.js 16 App Router, Tailwind CSS v4 y Shadcn UI. Desplegado en Vercel.
+Interfaz web del PMS Mirador Hotel Suite. Dark Theme Premium construido con Next.js 16 App Router, Tailwind CSS v4 y Shadcn UI. Desplegado en Docker (Digital Ocean) detrás de Cloudflare Tunnel.
 
 ## Características
 
@@ -62,17 +62,17 @@ Next las reenvía al backend mediante un rewrite definido en `next.config.ts`.
 Ventaja: el backend no se expone al exterior y no hay que configurar CORS; solo
 se publica la web.
 
-## Deploy en Vercel
+## Deploy en Docker
 
-El proyecto se despliega automáticamente desde la rama `main`. Vercel detecta pnpm por el `pnpm-lock.yaml`.
+La web se construye con el `Dockerfile` multi-stage (build standalone de Next) y
+se levanta como el servicio `web` del `docker-compose.yml` en `apps/docker`, junto
+al `api`, la base de datos y el túnel de Cloudflare que la expone al exterior.
 
-Configurar en el dashboard de Vercel:
+- **Destino del proxy:** `API_INTERNAL_URL` se pasa como build-arg (`http://api:4000`,
+  el DNS interno de la red de Docker). Recuerda que Next congela el destino en build time.
+- Levantar el stack completo: `cd apps/docker && docker compose up --build`.
 
-- **Root Directory:** `apps/web`
-- **Framework Preset:** Next.js
-- **Environment Variables:** `API_INTERNAL_URL` → URL del backend en producción (el proxy de Next la reenvía server-side)
-
-> Usar pnpm **10.x**. pnpm 11.x no es compatible con Vercel actualmente.
+> `apps/web` usa pnpm **10.x** (aún no migrado a 11.x).
 
 ## Estructura Principal
 

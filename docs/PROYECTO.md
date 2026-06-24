@@ -20,7 +20,7 @@ registros manuales en papel o Excel.
 | Frontend | Next.js 16 (App Router), Tailwind v4, Shadcn UI, Zustand, Axios, React Hook Form + Zod |
 | Backend | NestJS 11, Prisma ORM, autenticación JWT + RBAC |
 | Base de datos | PostgreSQL |
-| Infraestructura | Frontend en Vercel · Backend en Render · BD en Supabase |
+| Infraestructura | Docker Compose en Digital Ocean (web + api + Postgres) expuesto vía Cloudflare Tunnel |
 
 Monorepo: `apps/web` (frontend), `apps/api` (backend), `apps/docker` (infra).
 

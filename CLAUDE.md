@@ -38,7 +38,7 @@ pnpm lint       # ESLint validation
 pnpm add <pkg>  # Agregar dependencia
 ```
 
-Vercel detecta pnpm automáticamente por `pnpm-lock.yaml`. Usar pnpm 10.x — Vercel no soporta pnpm 11.x. No usar `npm` en este directorio.
+`apps/web` usa pnpm 10.x (aún no migrado a 11.x como el API). No usar `npm` en este directorio.
 
 ## Environment Setup
 

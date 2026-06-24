@@ -5,13 +5,13 @@ Sistema de gestión hotelera B2B construido como monorepo con NestJS + Next.js.
 ```
 apps/
 ├── api/     ← Backend (NestJS + Prisma + PostgreSQL)
-├── web/     ← Frontend (Next.js + Tailwind + Shadcn) — desplegado en Vercel
-└── docker/  ← Configuración Docker para la API
+├── web/     ← Frontend (Next.js + Tailwind + Shadcn)
+└── docker/  ← Docker Compose (web + api + Postgres + Cloudflare Tunnel)
 ```
 
 ## Documentación
 
-- **Frontend (web):** ver [`apps/web/README.md`](apps/web/README.md) — setup local, variables de entorno y deploy en Vercel.
+- **Frontend (web):** ver [`apps/web/README.md`](apps/web/README.md) — setup local, variables de entorno y deploy en Docker.
 - **Backend (API):** ver [`apps/api/README.md`](apps/api/README.md) — NestJS, Prisma, endpoints REST.
 - **Roadmap:** ver [`docs/logbook/roadmap.md`](docs/logbook/roadmap.md) — tareas pendientes.
 - **Changelog:** ver [`docs/logbook/changelog.md`](docs/logbook/changelog.md) — historial de lo ya resuelto.

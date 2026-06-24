@@ -5,8 +5,9 @@
 El diagrama de componentes representa la arquitectura física del sistema Mirador Hotel Suite
 y la manera en que sus piezas de software se distribuyen y comunican entre sí. La solución
 adopta una arquitectura cliente-servidor de tres capas claramente diferenciadas, cada una
-desplegada en un proveedor de hosting independiente: el **frontend** sobre Vercel, el
-**backend** sobre Render y la **base de datos** sobre Supabase.
+empaquetada en su propio contenedor: el **frontend**, el **backend** y la **base de datos**
+corren como servicios de un mismo `docker-compose` en un droplet de Digital Ocean, y la web
+se publica al exterior mediante un **Cloudflare Tunnel** (sin abrir puertos en el servidor).
 
 La capa de presentación es una aplicación Next.js (App Router) que el personal del hotel
 consume mediante el navegador. Dentro de ella, las páginas del dashboard se apoyan en
@@ -28,9 +29,10 @@ escribiendo en la base de datos. A continuación se presenta el diagrama:
 ```mermaid
 flowchart BT
     user(["👤 Personal del hotel<br/>Owner · Manager · Employee"])
+    cf["☁️ Cloudflare Tunnel"]
 
     %% ---------- FRONTEND ----------
-    subgraph vercel["☁️ Vercel"]
+    subgraph c_web["🐳 Contenedor web"]
         subgraph web["Frontend — Next.js 16 (App Router)"]
             pages["Páginas / Dashboard<br/>login · rooms · staff · reservas<br/>calendario · servicio"]
             ui["Componentes UI<br/>Shadcn + Tailwind v4"]
@@ -46,7 +48,7 @@ flowchart BT
     end
 
     %% ---------- BACKEND ----------
-    subgraph render["☁️ Render"]
+    subgraph c_api["🐳 Contenedor api"]
         subgraph api["Backend — NestJS 11"]
             subgraph sec["Seguridad (transversal)"]
                 jwtguard["JwtAuthGuard"]
@@ -139,12 +141,13 @@ flowchart BT
     end
 
     %% ---------- BASE DE DATOS ----------
-    subgraph supabase["☁️ Supabase"]
+    subgraph c_db["🐳 Contenedor db"]
         db[("PostgreSQL — 16 modelos (normalizado)<br/>Employee · JobPosition · Shift<br/>Room · RoomType · RoomStatus<br/>Guest · Reservation · ReservationStatus<br/>RoomCharge · ExpenseCategory<br/>Payment · PaymentMethod · Discount<br/>AuditLog · AuditAction")]
     end
 
     %% ---------- CONEXIONES ENTRE CAPAS ----------
-    user -->|HTTPS| pages
+    user -->|HTTPS| cf
+    cf -->|http web:3000| pages
 
     http -->|POST /auth/login| authctl
     http -->|/rooms| roomsctl
@@ -162,17 +165,17 @@ flowchart BT
 
 ## Notas
 
-- **Frontend (Vercel):** SPA con Next.js App Router. El token JWT vive en `useAuthStore`
+- **Frontend (contenedor `web`):** SPA con Next.js App Router. El token JWT vive en `useAuthStore`
   (Zustand, persistido en `localStorage`); el interceptor de Axios adjunta
   `Authorization: Bearer <token>` en cada petición y dispara logout ante un `401`.
   Las rutas de la API se centralizan en `lib/routes.ts` y los formularios usan
   React Hook Form + Zod.
-- **Backend (Render):** API REST con NestJS organizada por módulos de dominio. Cada módulo
+- **Backend (contenedor `api`):** API REST con NestJS organizada por módulos de dominio. Cada módulo
   expone un Controller (ruta indicada) y un Service que concentra la lógica. Las rutas
   protegidas pasan por `JwtAuthGuard` + `RolesGuard` (decorador `@Roles()`), y la
   autenticación se valida con `JwtStrategy` de Passport. Todo el acceso a datos se
   centraliza en `PrismaService` (singleton con adaptador `pg`).
-- **Base de datos (Supabase):** PostgreSQL con **16 modelos** totalmente normalizados,
+- **Base de datos (contenedor `db`):** PostgreSQL con **16 modelos** totalmente normalizados,
   incluyendo tablas catálogo (`RoomType`, `RoomStatus`, `ReservationStatus`, `JobPosition`,
   `Shift`, `PaymentMethod`, `ExpenseCategory`, `AuditAction`). Prisma usa `DATABASE_URL`
   (conexión pooled) para la app y `DIRECT_URL` (sin pool) para las migraciones.
