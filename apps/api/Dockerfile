@@ -17,10 +17,13 @@ RUN pnpm install --frozen-lockfile
 COPY . .
 RUN DIRECT_URL="postgresql://dummy:5432/dummy" DATABASE_URL="postgresql://dummy:5432/dummy" pnpm prisma generate
 RUN pnpm run build
+RUN pnpm exec tsc -p prisma/tsconfig.seed-build.json
 
 FROM base AS runner
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc prisma.config.ts tsconfig.json ./
 COPY prisma ./prisma/
+COPY docker-entrypoint.sh ./
 COPY --from=prod-deps /app/node_modules ./node_modules
 COPY --from=build /app/dist ./dist
-CMD ["sh", "-c", "pnpm prisma migrate deploy && pnpm run start:prod"]
+COPY --from=build /app/prisma/dist-seed ./prisma/dist-seed
+CMD ["sh", "/app/docker-entrypoint.sh"]

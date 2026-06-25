@@ -16,6 +16,9 @@ Resumen en ≤2 líneas de lo que se hizo.
 
 ---
 
+## [TD-027] Seeds ejecutables en producción sin `ts-node` (2026-06-25 09:32)
+Los seeds dejaron de depender de `ts-node` en runtime (causaba `spawn ts-node ENOENT` y dejaba la BD migrada pero vacía): nuevo `apps/api/prisma/tsconfig.seed-build.json` los compila a `prisma/dist-seed/*.js` en el stage `build` del Dockerfile y el `runner` los corre con `node` desde `docker-entrypoint.sh` tras `migrate deploy`, según el flag `SEED_MODE` (`none|base|demo`) del `.env` (documentado en `apps/docker/.env.example`). Probado en local: build + migración + seed + login OK. (Código corregido de TD-026 a TD-027 por colisión: TD-026 ya estaba usado en este changelog.)
+
 ## [RM-049] Dockerizar `apps/web` para el deploy en Digital Ocean (2026-06-23 14:27)
 `apps/web` ahora corre en contenedor: nuevo `Dockerfile` multi-stage (base `node:22-alpine` + corepack, etapas deps→build→runner) con build standalone de Next 16 (`output: "standalone"` en `next.config.ts`), copiando `.next/standalone` + `.next/static` + `public` y arrancando con `node server.js` como usuario no-root en el puerto 3000. `NEXT_PUBLIC_API_URL` (se hornea en build) se pasa como build ARG con default `http://localhost:4000`; nuevo servicio `web` en `docker-compose.yml` (build con ese arg, `ports 3000:3000`, `depends_on api`, red `hotel-net`) y `.env.example` documentado. Build local de Next verde (genera `standalone/server.js`); el build/levantado del contenedor y el deploy lo corre el usuario.
 
