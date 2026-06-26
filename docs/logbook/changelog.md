@@ -16,6 +16,9 @@ Resumen en ≤2 líneas de lo que se hizo.
 
 ---
 
+## [RM-051] Rediseñar el dashboard de inicio como panel-resumen (2026-06-26 11:21)
+`dashboard/page.tsx` se reescribió siguiendo la referencia `Mirador PMS.html` del root (bundle de diseño decodificado), adaptado al tema oscuro/tokens existentes: fila de 4 KPIs (ocupación %, reservas de hoy con desglose llegadas/salidas, ingresos del mes, disponibles), fila de gráficos (ocupación mensual con Recharts `BarChart` + donut de estados de habitación con `PieChart`) y fila de actividad (auditoría reciente + llegadas de hoy). Cableado a endpoints reales (`rooms`, `analytics.monthlyRevenue`/`occupancy`, `auditLogs`, `reservations` PENDING/ACTIVE) vía `Promise.allSettled`; "ingresos de hoy" y "ocupación semanal" del mockup se sustituyeron por "ingresos del mes" y "ocupación mensual" (datos honestos disponibles). Build web verde. Reemplaza la grilla de control de habitaciones que vivía en el inicio (ya existe en `/dashboard/rooms`).
+
 ## [RM-050] Exportar consultas a Excel (.xlsx) — solicitud del profesor (2026-06-26 10:12)
 Nuevo módulo backend OWNER-only `reports` (`exceljs` server-side) con 7 endpoints `/reports/*` que devuelven `.xlsx` por streaming: reusa `AnalyticsService` (ahora exportado de su módulo) para las 5 consultas de analytics (ingresos mensual/anual, top habitaciones, ranking de empleados, ocupación) y consulta Prisma para los listados de reservas y huéspedes; cada hoja lleva cabecera estilada y formato de moneda (S/) / fecha. Front: helper `lib/download.ts` (descarga vía blob respetando Content-Disposition) + componente reutilizable `components/ui/export-button.tsx`, rutas `routes.api.reports.*`, y botón "Exportar a Excel" por reporte en finanzas y analíticas, y junto al buscador en reservas/huéspedes (estos solo para OWNER, pues los endpoints lo son). Builds api/web verdes; descarga real pendiente de prueba en runtime por el usuario.
 
