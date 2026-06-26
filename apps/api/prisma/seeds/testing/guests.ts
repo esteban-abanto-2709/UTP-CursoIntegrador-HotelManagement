@@ -6,6 +6,9 @@ const firstNames = [
   'Sofía', 'Luis', 'Mariana', 'Carlos', 'Daniela', 'Fernando', 'Paola',
   'Ricardo', 'Gabriela', 'Miguel', 'Rosa', 'Jorge', 'Patricia', 'Eduardo',
   'Carmen', 'Raúl', 'Elena', 'Sergio', 'Natalia', 'Hugo', 'Verónica', 'Iván',
+  'Renzo', 'Claudia', 'Alonso', 'Fiorella', 'Bruno', 'Milagros', 'Gonzalo',
+  'Alejandra', 'Mateo', 'Ximena', 'Pablo', 'Adriana', 'Joaquín', 'Lorena',
+  'Sebastián', 'Romina', 'Emilio', 'Brenda', 'Nicolás', 'Tatiana',
 ];
 
 const lastNames = [
@@ -13,6 +16,9 @@ const lastNames = [
   'Huamán', 'Vargas', 'Castro', 'Rojas', 'Flores', 'Díaz', 'Ramos', 'Cárdenas',
   'Chávez', 'Espinoza', 'Guerrero', 'León', 'Núñez', 'Ortiz', 'Pacheco',
   'Reyes', 'Soto', 'Ugarte', 'Valdez', 'Zúñiga', 'Bautista', 'Campos', 'Delgado',
+  'Aguirre', 'Benavides', 'Cornejo', 'Dávila', 'Escobar', 'Gamarra', 'Herrera',
+  'Loayza', 'Maldonado', 'Navarro', 'Oviedo', 'Palomino', 'Rivera', 'Sánchez',
+  'Trujillo', 'Velásquez', 'Yataco', 'Zegarra', 'Acuña', 'Bravo',
 ];
 
 function slug(value: string) {

@@ -10,6 +10,10 @@ function atHour(dayOffset: number, hour: number) {
   return d;
 }
 
+function at(year: number, month: number, day: number, hour: number) {
+  return new Date(Date.UTC(year, month - 1, day, hour, 0, 0, 0));
+}
+
 type RoomLite = { id: number; price: unknown; status: { name: string } | null };
 
 type Spec = {
@@ -48,7 +52,51 @@ export async function seedReservations(prisma: PrismaClient) {
     return g.id;
   };
 
+  // Selector de cuarto sesgado: los primeros cuartos aparecen más
+  // (alimenta el top de "Habitaciones más usadas").
+  const weighted: number[] = [];
+  rooms.forEach((_, idx) => {
+    const times = idx < 5 ? 4 : 1;
+    for (let t = 0; t < times; t++) weighted.push(idx);
+  });
+  let roomCursor = 0;
+  const nextRoom = () => rooms[weighted[roomCursor++ % weighted.length]];
+
+  const startDays = [2, 8, 14, 20, 25];
   const specs: Spec[] = [];
+
+  // COMPLETED 2025: año completo (5 por mes) → ingresos y ocupación llenos.
+  for (let month = 1; month <= 12; month++) {
+    startDays.forEach((day, k) => {
+      const nights = 2 + ((month + k) % 3);
+      specs.push({
+        room: nextRoom(),
+        guestId: nextGuestId(),
+        status: 'COMPLETED',
+        checkIn: at(2025, month, day, 15),
+        checkOut: at(2025, month, day + nights, 11),
+        actualCheckIn: at(2025, month, day, 15),
+        actualCheckOut: at(2025, month, day + nights, 10),
+      });
+    });
+  }
+
+  // COMPLETED 2026: Ene–Jun (pasado respecto a TODAY 2026-06-20).
+  for (let month = 1; month <= 6; month++) {
+    const days = month < 6 ? startDays : [2, 8, 14];
+    days.forEach((day, k) => {
+      const nights = 2 + ((month + k) % 3);
+      specs.push({
+        room: nextRoom(),
+        guestId: nextGuestId(),
+        status: 'COMPLETED',
+        checkIn: at(2026, month, day, 15),
+        checkOut: at(2026, month, day + nights, 11),
+        actualCheckIn: at(2026, month, day, 15),
+        actualCheckOut: at(2026, month, day + nights, 10),
+      });
+    });
+  }
 
   // ACTIVE: una reserva en curso por cada cuarto OCCUPIED.
   occupiedRooms.forEach((room, i) => {
@@ -64,53 +112,39 @@ export async function seedReservations(prisma: PrismaClient) {
     });
   });
 
-  // COMPLETED: 12 estadías pasadas (generan pago).
-  for (let i = 0; i < 12; i++) {
-    const room = rooms[i % rooms.length];
-    const start = -60 + i * 4;
-    const nights = 2 + (i % 3);
-    specs.push({
-      room,
-      guestId: nextGuestId(),
-      status: 'COMPLETED',
-      checkIn: atHour(start, 15),
-      checkOut: atHour(start + nights, 11),
-      actualCheckIn: atHour(start, 15),
-      actualCheckOut: atHour(start + nights, 10),
+  // PENDING: futuras Jul–Dic 2026 (llenan la 2da mitad de ocupación).
+  for (let month = 7; month <= 12; month++) {
+    startDays.forEach((day, k) => {
+      const nights = 2 + ((month + k) % 4);
+      specs.push({
+        room: nextRoom(),
+        guestId: nextGuestId(),
+        status: 'PENDING',
+        checkIn: at(2026, month, day, 15),
+        checkOut: at(2026, month, day + nights, 11),
+        actualCheckIn: null,
+        actualCheckOut: null,
+      });
     });
   }
 
-  // PENDING: 12 reservas futuras sin check-in.
-  for (let i = 0; i < 12; i++) {
-    const room = rooms[(i + 5) % rooms.length];
-    const start = 3 + i * 3;
-    const nights = 2 + (i % 4);
-    specs.push({
-      room,
-      guestId: nextGuestId(),
-      status: 'PENDING',
-      checkIn: atHour(start, 15),
-      checkOut: atHour(start + nights, 11),
-      actualCheckIn: null,
-      actualCheckOut: null,
-    });
-  }
-
-  // CANCELLED: 6 reservas anuladas.
-  for (let i = 0; i < 6; i++) {
-    const room = rooms[(i + 11) % rooms.length];
-    const start = 5 + i * 4;
+  // CANCELLED: ruido realista en ambos años (excluidas de analíticas).
+  const cancelled: [number, number][] = [
+    [2025, 3], [2025, 6], [2025, 9], [2025, 11],
+    [2026, 1], [2026, 4], [2026, 5], [2026, 8], [2026, 10], [2026, 12],
+  ];
+  cancelled.forEach(([year, month], i) => {
     const nights = 2 + (i % 3);
     specs.push({
-      room,
+      room: nextRoom(),
       guestId: nextGuestId(),
       status: 'CANCELLED',
-      checkIn: atHour(start, 15),
-      checkOut: atHour(start + nights, 11),
+      checkIn: at(year, month, 16, 15),
+      checkOut: at(year, month, 16 + nights, 11),
       actualCheckIn: null,
       actualCheckOut: null,
     });
-  }
+  });
 
   let created = 0;
   for (const s of specs) {

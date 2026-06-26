@@ -10,11 +10,12 @@ export async function seedPayments(prisma: PrismaClient) {
     return;
   }
 
-  const employee =
-    (await prisma.employee.findFirst({ where: { username: 'recepcion1' } })) ??
-    (await prisma.employee.findFirst({ where: { role: { not: Role.OWNER } } }));
-  if (!employee) {
-    console.warn('Pagos omitidos: no hay empleado para procesar.');
+  const employees = await prisma.employee.findMany({
+    where: { role: { not: Role.OWNER } },
+    orderBy: { id: 'asc' },
+  });
+  if (employees.length === 0) {
+    console.warn('Pagos omitidos: no hay empleados para procesar.');
     return;
   }
 
@@ -64,11 +65,13 @@ export async function seedPayments(prisma: PrismaClient) {
     const discountAmount = Number((subtotal - running).toFixed(2));
     const grandTotal = Number(running.toFixed(2));
     const method = methods[i % methods.length];
+    const employee = employees[i % employees.length];
 
     await prisma.payment.create({
       data: {
         reservationId: reservation.id,
         processedBy: employee.id,
+        processedAt: reservation.actualCheckOut ?? reservation.checkOut,
         paymentMethodId: method.id,
         roomTotal,
         chargesTotal,

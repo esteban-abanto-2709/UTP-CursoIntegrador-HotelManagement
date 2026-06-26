@@ -22,13 +22,24 @@ export async function seedCharges(prisma: PrismaClient) {
     return;
   }
 
-  const employee =
-    (await prisma.employee.findFirst({ where: { username: 'recepcion1' } })) ??
-    (await prisma.employee.findFirst({ where: { role: { not: Role.OWNER } } }));
-  if (!employee) {
-    console.warn('Cargos omitidos: no hay empleado para registrar.');
+  const employees = await prisma.employee.findMany({
+    where: { role: { not: Role.OWNER } },
+    orderBy: { id: 'asc' },
+  });
+  if (employees.length === 0) {
+    console.warn('Cargos omitidos: no hay empleados para registrar.');
     return;
   }
+
+  // Lista ponderada: los primeros empleados registran más cargos
+  // → ranking de "Empleados destacados" con líder claro y cola descendente.
+  const roster: number[] = [];
+  employees.forEach((e, idx) => {
+    const times = Math.max(1, employees.length - idx);
+    for (let t = 0; t < times; t++) roster.push(e.id);
+  });
+  let chargeCursor = 0;
+  const nextEmployee = () => roster[chargeCursor++ % roster.length];
 
   const categories = await prisma.expenseCategory.findMany();
   const categoryId = new Map(categories.map((c) => [c.name, c.id]));
@@ -50,7 +61,7 @@ export async function seedCharges(prisma: PrismaClient) {
         data: {
           reservationId: reservation.id,
           categoryId: catId,
-          registeredBy: employee.id,
+          registeredBy: nextEmployee(),
           description: item.description,
           amount: item.amount,
         },
