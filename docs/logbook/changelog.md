@@ -16,6 +16,9 @@ Resumen en ≤2 líneas de lo que se hizo.
 
 ---
 
+## [RM-050] Exportar consultas a Excel (.xlsx) — solicitud del profesor (2026-06-26 10:12)
+Nuevo módulo backend OWNER-only `reports` (`exceljs` server-side) con 7 endpoints `/reports/*` que devuelven `.xlsx` por streaming: reusa `AnalyticsService` (ahora exportado de su módulo) para las 5 consultas de analytics (ingresos mensual/anual, top habitaciones, ranking de empleados, ocupación) y consulta Prisma para los listados de reservas y huéspedes; cada hoja lleva cabecera estilada y formato de moneda (S/) / fecha. Front: helper `lib/download.ts` (descarga vía blob respetando Content-Disposition) + componente reutilizable `components/ui/export-button.tsx`, rutas `routes.api.reports.*`, y botón "Exportar a Excel" por reporte en finanzas y analíticas, y junto al buscador en reservas/huéspedes (estos solo para OWNER, pues los endpoints lo son). Builds api/web verdes; descarga real pendiente de prueba en runtime por el usuario.
+
 ## [TD-027] Seeds ejecutables en producción sin `ts-node` (2026-06-25 09:32)
 Los seeds dejaron de depender de `ts-node` en runtime (causaba `spawn ts-node ENOENT` y dejaba la BD migrada pero vacía): nuevo `apps/api/prisma/tsconfig.seed-build.json` los compila a `prisma/dist-seed/*.js` en el stage `build` del Dockerfile y el `runner` los corre con `node` desde `docker-entrypoint.sh` tras `migrate deploy`, según el flag `SEED_MODE` (`none|base|demo`) del `.env` (documentado en `apps/docker/.env.example`). Probado en local: build + migración + seed + login OK. (Código corregido de TD-026 a TD-027 por colisión: TD-026 ya estaba usado en este changelog.)
 

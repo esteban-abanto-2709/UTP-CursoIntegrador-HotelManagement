@@ -3,6 +3,8 @@
 import { useState, useEffect, useCallback } from "react";
 import api from "@/lib/axios";
 import { routes } from "@/lib/routes";
+import { useAuthStore } from "@/store/authStore";
+import { ExportButton } from "@/components/ui/export-button";
 import { formatDate } from "@/lib/date";
 import { getRoomTypeLabel } from "@/lib/room";
 import type { ReservationStatus } from "@/lib/reservation";
@@ -53,6 +55,7 @@ interface GuestDetail extends GuestRow {
 }
 
 export default function HuespedesPage() {
+  const isOwner = useAuthStore((state) => state.user?.role === "OWNER");
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [guests, setGuests] = useState<GuestRow[]>([]);
@@ -129,15 +132,23 @@ export default function HuespedesPage() {
     <div className="flex flex-col gap-6 w-full animate-in fade-in slide-in-from-bottom-4 duration-500">
       {/* Buscador */}
       <div className="bg-card p-4 rounded-2xl border border-border/50 shadow-sm">
-        <div className="relative w-full max-w-md">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <input
-            type="text"
-            placeholder="Buscar por nombre o documento..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full h-11 pl-10 pr-4 rounded-xl border border-border/50 bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 focus:bg-muted transition-all font-medium text-foreground"
-          />
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="relative w-full max-w-md">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <input
+              type="text"
+              placeholder="Buscar por nombre o documento..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full h-11 pl-10 pr-4 rounded-xl border border-border/50 bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 focus:bg-muted transition-all font-medium text-foreground"
+            />
+          </div>
+          {isOwner && (
+            <ExportButton
+              url={routes.api.reports.guests()}
+              filename="huespedes.xlsx"
+            />
+          )}
         </div>
       </div>
 

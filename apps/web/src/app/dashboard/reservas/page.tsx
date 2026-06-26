@@ -3,6 +3,8 @@
 import { useState, useEffect, useCallback } from "react";
 import api from "@/lib/axios";
 import { routes } from "@/lib/routes";
+import { useAuthStore } from "@/store/authStore";
+import { ExportButton } from "@/components/ui/export-button";
 import { formatDate } from "@/lib/date";
 import { calcNights } from "@/lib/pricing";
 import { getApiErrorMessage } from "@/lib/api-error";
@@ -135,6 +137,7 @@ function getReservationAmount(res: Reservation): {
 }
 
 export default function ReservasPage() {
+  const isOwner = useAuthStore((state) => state.user?.role === "OWNER");
   const { openEdit, onSaved } = useReservationDialog();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<"ALL" | ReservationStatus>(
@@ -327,15 +330,23 @@ export default function ReservasPage() {
       />
 
       <div className="bg-card p-4 rounded-2xl border border-border/50 shadow-sm flex flex-col gap-4">
-        <div className="relative w-full">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
-          <input
-            type="text"
-            placeholder="Buscar reserva por Documento o Nombre..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full h-11 pl-10 pr-4 rounded-xl border border-border/50 bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 focus:bg-muted transition-all font-medium text-foreground"
-          />
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+          <div className="relative w-full">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+            <input
+              type="text"
+              placeholder="Buscar reserva por Documento o Nombre..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full h-11 pl-10 pr-4 rounded-xl border border-border/50 bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 focus:bg-muted transition-all font-medium text-foreground"
+            />
+          </div>
+          {isOwner && (
+            <ExportButton
+              url={routes.api.reports.reservations()}
+              filename="reservas.xlsx"
+            />
+          )}
         </div>
         <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-3">
           <select

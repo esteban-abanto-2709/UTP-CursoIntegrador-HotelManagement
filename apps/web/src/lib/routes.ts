@@ -141,6 +141,19 @@ export const routes = {
       occupancy: (year?: number) =>
         year ? `/analytics/occupancy?year=${year}` : "/analytics/occupancy",
     },
+    reports: {
+      monthlyRevenue: (year?: number) =>
+        year
+          ? `/reports/revenue/monthly?year=${year}`
+          : "/reports/revenue/monthly",
+      annualRevenue: () => "/reports/revenue/annual",
+      topRooms: () => "/reports/top-rooms",
+      employeeRanking: () => "/reports/employee-ranking",
+      occupancy: (year?: number) =>
+        year ? `/reports/occupancy?year=${year}` : "/reports/occupancy",
+      reservations: () => "/reports/reservations",
+      guests: () => "/reports/guests",
+    },
     auditLogs: {
       list: (filters?: {
         tableName?: string;

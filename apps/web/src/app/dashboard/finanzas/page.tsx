@@ -29,6 +29,7 @@ import {
   KpiCard,
   ChartFrame,
 } from "@/lib/analytics-ui";
+import { ExportButton } from "@/components/ui/export-button";
 
 interface RevenuePoint {
   grossRevenue: number;
@@ -216,15 +217,23 @@ export default function FinanzasPage() {
 
         {/* Ingreso mensual */}
         <div className="bg-card rounded-2xl border border-border shadow-sm p-5">
-          <h3
-            className="text-lg font-semibold text-foreground"
-            style={{ fontFamily: BRICOLAGE }}
-          >
-            Ingreso bruto mensual · {selectedYear}
-          </h3>
-          <p className="text-sm text-muted-foreground mt-1 mb-4">
-            Suma de los pagos cobrados en cada mes.
-          </p>
+          <div className="flex items-start justify-between gap-3 mb-4">
+            <div>
+              <h3
+                className="text-lg font-semibold text-foreground"
+                style={{ fontFamily: BRICOLAGE }}
+              >
+                Ingreso bruto mensual · {selectedYear}
+              </h3>
+              <p className="text-sm text-muted-foreground mt-1">
+                Suma de los pagos cobrados en cada mes.
+              </p>
+            </div>
+            <ExportButton
+              url={routes.api.reports.monthlyRevenue(selectedYear)}
+              filename={`ingresos-mensuales-${selectedYear}.xlsx`}
+            />
+          </div>
           <ChartFrame loading={isLoadingMonthly}>
             <BarChart data={monthlyChartData}>
               <CartesianGrid strokeDasharray="3 3" stroke={GRID} />
@@ -249,15 +258,23 @@ export default function FinanzasPage() {
 
         {/* Ingreso anual */}
         <div className="bg-card rounded-2xl border border-border shadow-sm p-5 mb-8">
-          <h3
-            className="text-lg font-semibold text-foreground"
-            style={{ fontFamily: BRICOLAGE }}
-          >
-            Ingreso bruto anual
-          </h3>
-          <p className="text-sm text-muted-foreground mt-1 mb-4">
-            Evolución del ingreso bruto por año.
-          </p>
+          <div className="flex items-start justify-between gap-3 mb-4">
+            <div>
+              <h3
+                className="text-lg font-semibold text-foreground"
+                style={{ fontFamily: BRICOLAGE }}
+              >
+                Ingreso bruto anual
+              </h3>
+              <p className="text-sm text-muted-foreground mt-1">
+                Evolución del ingreso bruto por año.
+              </p>
+            </div>
+            <ExportButton
+              url={routes.api.reports.annualRevenue()}
+              filename="ingresos-anuales.xlsx"
+            />
+          </div>
           <ChartFrame
             loading={isLoadingAnnual}
             empty={annualChartData.length === 0}

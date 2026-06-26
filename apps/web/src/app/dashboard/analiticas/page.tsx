@@ -41,6 +41,7 @@ import {
   getApiErrorMessage,
   ChartFrame,
 } from "@/lib/analytics-ui";
+import { ExportButton } from "@/components/ui/export-button";
 
 const LOGS_PAGE_SIZE = 20;
 
@@ -389,16 +390,25 @@ export default function AnaliticasPage() {
 
         {/* Ocupación mensual */}
         <div className="bg-card rounded-2xl border border-border shadow-sm p-5">
-          <h3
-            className="text-lg font-semibold text-foreground flex items-center gap-2"
-            style={{ fontFamily: BRICOLAGE }}
-          >
-            <CalendarRange className="h-5 w-5 text-primary" />
-            Ocupación mensual · {selectedYear}
-          </h3>
-          <p className="text-sm text-muted-foreground mt-1 mb-4">
-            Reservas que ocupan habitaciones en cada mes (excluye canceladas).
-          </p>
+          <div className="flex items-start justify-between gap-3 mb-4">
+            <div>
+              <h3
+                className="text-lg font-semibold text-foreground flex items-center gap-2"
+                style={{ fontFamily: BRICOLAGE }}
+              >
+                <CalendarRange className="h-5 w-5 text-primary" />
+                Ocupación mensual · {selectedYear}
+              </h3>
+              <p className="text-sm text-muted-foreground mt-1">
+                Reservas que ocupan habitaciones en cada mes (excluye
+                canceladas).
+              </p>
+            </div>
+            <ExportButton
+              url={routes.api.reports.occupancy(selectedYear)}
+              filename={`ocupacion-${selectedYear}.xlsx`}
+            />
+          </div>
           <ChartFrame
             loading={isLoadingOccupancy}
             empty={occupancyChartData.every((m) => m.reservas === 0)}
@@ -427,16 +437,24 @@ export default function AnaliticasPage() {
 
         {/* Top habitaciones */}
         <div className="bg-card rounded-2xl border border-border shadow-sm p-5">
-          <h3
-            className="text-lg font-semibold text-foreground flex items-center gap-2"
-            style={{ fontFamily: BRICOLAGE }}
-          >
-            <BedDouble className="h-5 w-5 text-primary" />
-            Habitaciones más usadas
-          </h3>
-          <p className="text-sm text-muted-foreground mt-1 mb-4">
-            Top 10 por número de reservas (excluye canceladas).
-          </p>
+          <div className="flex items-start justify-between gap-3 mb-4">
+            <div>
+              <h3
+                className="text-lg font-semibold text-foreground flex items-center gap-2"
+                style={{ fontFamily: BRICOLAGE }}
+              >
+                <BedDouble className="h-5 w-5 text-primary" />
+                Habitaciones más usadas
+              </h3>
+              <p className="text-sm text-muted-foreground mt-1">
+                Top 10 por número de reservas (excluye canceladas).
+              </p>
+            </div>
+            <ExportButton
+              url={routes.api.reports.topRooms()}
+              filename="habitaciones-mas-usadas.xlsx"
+            />
+          </div>
           <ChartFrame
             loading={isLoadingTopRooms}
             empty={topRoomsChartData.length === 0}
@@ -469,17 +487,25 @@ export default function AnaliticasPage() {
 
         {/* Ranking de empleados */}
         <div className="bg-card rounded-2xl border border-border shadow-sm p-5">
-          <h3
-            className="text-lg font-semibold text-foreground flex items-center gap-2"
-            style={{ fontFamily: BRICOLAGE }}
-          >
-            <Users className="h-5 w-5 text-primary" />
-            Empleados destacados
-          </h3>
-          <p className="text-sm text-muted-foreground mt-1 mb-4">
-            Top 10 por monto de consumos registrados a huéspedes. Mide consumos
-            registrados, no cobros procesados.
-          </p>
+          <div className="flex items-start justify-between gap-3 mb-4">
+            <div>
+              <h3
+                className="text-lg font-semibold text-foreground flex items-center gap-2"
+                style={{ fontFamily: BRICOLAGE }}
+              >
+                <Users className="h-5 w-5 text-primary" />
+                Empleados destacados
+              </h3>
+              <p className="text-sm text-muted-foreground mt-1">
+                Top 10 por monto de consumos registrados a huéspedes. Mide
+                consumos registrados, no cobros procesados.
+              </p>
+            </div>
+            <ExportButton
+              url={routes.api.reports.employeeRanking()}
+              filename="empleados-destacados.xlsx"
+            />
+          </div>
           <ChartFrame
             loading={isLoadingRanking}
             empty={rankingChartData.length === 0}
