@@ -1,6 +1,6 @@
 # Mirador Hotel Suite — Frontend
 
-Interfaz web del PMS Mirador Hotel Suite. Dark Theme Premium construido con Next.js 16 App Router, Tailwind CSS v4 y Shadcn UI. Desplegado en Docker (Digital Ocean) detrás de Cloudflare Tunnel.
+Interfaz web del PMS Mirador Hotel Suite. Dark Theme Premium construido con Next.js 16 App Router, Tailwind CSS v4 y Shadcn UI.
 
 ## Características
 
@@ -57,20 +57,9 @@ Next las reenvía al backend mediante un rewrite definido en `next.config.ts`.
 | Entorno                | `API_INTERNAL_URL`              | Cuándo / quién lo define                         |
 | ---------------------- | ------------------------------- | ------------------------------------------------ |
 | Dev local (`pnpm dev`) | `http://localhost:4000` (default) | nada que configurar; `next dev` re-evalúa en vivo |
-| Docker                 | `http://api:4000` (DNS interno) | build-arg en `Dockerfile` / `docker-compose.yml`  |
 
 Ventaja: el backend no se expone al exterior y no hay que configurar CORS; solo
 se publica la web.
-
-## Deploy en Docker
-
-La web se construye con el `Dockerfile` multi-stage (build standalone de Next) y
-se levanta como el servicio `web` del `docker-compose.yml` en `apps/docker`, junto
-al `api`, la base de datos y el túnel de Cloudflare que la expone al exterior.
-
-- **Destino del proxy:** `API_INTERNAL_URL` se pasa como build-arg (`http://api:4000`,
-  el DNS interno de la red de Docker). Recuerda que Next congela el destino en build time.
-- Levantar el stack completo: `cd apps/docker && docker compose up --build`.
 
 > `apps/web` usa pnpm **10.x** (aún no migrado a 11.x).
 

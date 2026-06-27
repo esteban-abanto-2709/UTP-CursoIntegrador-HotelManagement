@@ -29,6 +29,7 @@ Al terminar una tarea se mueve al changelog y se borra de aquí.
 
 - **Objetivo:** Cerrar la condición de carrera de overbooking a nivel de BD (hoy solo cubierta por validación en código).
 - **Hecho cuando:** Existe `btree_gist` + `EXCLUDE USING gist` sobre `(roomId, tsrange("checkIn","checkOut",'[)'))` y dos reservas solapadas concurrentes no pueden coexistir.
+- **Prioridad:** Opcional / baja. La carrera solo importa bajo concurrencia real (que un proyecto académico no verá) y el guard en código ya cubre el flujo normal. Vale más como pieza de portfolio (`EXCLUDE` + `btree_gist`) que por necesidad operativa.
 - **Estado:** Abierto
 
 ---
@@ -67,12 +68,15 @@ Al terminar una tarea se mueve al changelog y se borra de aquí.
 - **Contexto:** La BD/Prisma ya está en inglés, pero el contrato HTTP de `Employee` sigue en español (`nombres`, `apellidoPaterno`, `cargo`, `turno` con valores `MAÑANA/TARDE/NOCHE`), sostenido por una capa de mapeo temporal en el service ([[TD-002]]), datos en español persistidos en `position` ([[TD-003]]) y un frontend que aún habla español en el contrato ([[TD-004]]). El español debe vivir en una **capa de presentación** (labels/i18n) del front, no en el API.
 - **Hecho cuando:** El contrato HTTP de Employee (y cualquier otro residuo) está en inglés con DTOs *passthrough* (sin los mapas `TURNO_TO_SHIFT`/`toSpanishShape`), los valores de `position`/turno migrados o traducidos, y la web traduce a español solo en la vista. Quedan cerradas TD-002, TD-003 y TD-004.
 - **Nota:** TD-003 implica migrar datos existentes de `position`; planificar como migración coordinada (front + `CARGO_TO_ROLE`). Mantiene BD 100% normalizada.
+- **Prioridad:** Opcional / baja. Mucho esfuerzo (migra datos + front + API), riesgo bajo (TD-002/003/004 son 2-3) y la capa de mapeo actual funciona. Hacer solo si se sigue puliendo.
 - **Fecha:** 2026-06-19 · **Estado:** Abierto
 
 ---
 
 ## Dependencias
 
-Milestones M1–M7 ya resueltos (ver `changelog.md`). Pendientes independientes: **RM-024** (M5), **RM-031** (M6). Cualquiera es punto de corte válido.
+Milestones M1–M7 ya resueltos (ver `changelog.md`). Pendientes:
 
-**Recomendaciones del profesor:** **RM-037/RM-040** comparten módulo de agregación (reportería). **RM-041 → RM-042** (el historial reusa el generador de comprobante). **RM-044** cierra TD-002/003/004 y conviene antes de mostrar más textos al usuario. **RM-038/RM-039** (UX/UI) son independientes. El rediseño general (ex-RM-043) y su sub-pendiente RM-036 ya se cerraron.
+- **RM-024** (M5) y **RM-031** (M6) son independientes; cualquiera es punto de corte válido.
+- **RM-044** cierra TD-002/003/004 y conviene antes de mostrar más textos al usuario.
+- **RM-039** (UX/UI) es independiente.

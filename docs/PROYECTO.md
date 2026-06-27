@@ -47,11 +47,34 @@ guards (`JwtAuthGuard`, `RolesGuard`) y el decorador `@Roles()`.
 
 ## Modelo de dominio (resumen)
 
-- **User** — `id`, `username`, `password` (bcrypt), `role`.
-- **Room** — `id`, `number`, `type`, `status`, `pricePerNight`.
-- **Reservation** — `id`, `roomId`, `checkIn`, `checkOut`, `actualCheckIn`, `actualCheckOut`,
-  `status` (PENDING / ACTIVE / COMPLETED / CANCELLED), datos del huésped y snapshot de precio/pago.
-- **Employee** — datos del personal (rol, cargo, turno).
+La BD está **100 % normalizada**: cada atributo que antes era un `enum` o un valor
+repetido vive en su propia tabla-catálogo referenciada por FK.
+
+**Entidades principales**
+
+- **Employee** — el personal del hotel y, a la vez, las credenciales de acceso
+  (`username`, `password` bcrypt, `role` ∈ OWNER / MANAGER / EMPLOYEE). Suma datos
+  personales (DNI, nombres, contacto) y FK a `JobPosition` (cargo) y `Shift` (turno).
+  No hay tabla `User` aparte: la autenticación vive aquí.
+- **Room** — habitación física: `number`, `price` por noche y FK a `RoomType` y `RoomStatus`.
+- **Guest** — huésped como entidad propia, identificado por `nationalId` (DNI) y reusable
+  entre reservas.
+- **Reservation** — `checkIn`/`checkOut` (previstos) y `actualCheckIn`/`actualCheckOut`
+  (reales), `rateSnapshot` (tarifa pactada) y FK a `Room`, `Guest` y `ReservationStatus`
+  (PENDING / ACTIVE / COMPLETED / CANCELLED).
+- **RoomCharge** — consumo extra de una reserva (room service, minibar, daños…), con FK a
+  `ExpenseCategory` y al `Employee` que lo registró.
+- **Payment** — cobro del check-out (1:1 con la reserva): desglose `roomTotal`,
+  `chargesTotal`, `subtotal`, `discountAmount`, `grandTotal`, el `Employee` que lo procesó y
+  FK a `PaymentMethod`.
+- **Discount** — descuento aplicable (`percentage`, `isActive`) clasificado por `DiscountType`;
+  se enlaza a cada pago vía la tabla puente `PaymentDiscount` (varios descuentos por cobro,
+  aplicados en cascada).
+- **AuditLog** — quién hizo qué: FK a `Employee` y `AuditAction` + tabla/registro afectado y
+  valores antes/después.
+
+**Catálogos** (tablas referenciadas por FK): `JobPosition`, `Shift`, `RoomType`, `RoomStatus`,
+`ReservationStatus`, `ExpenseCategory`, `PaymentMethod`, `DiscountType`, `AuditAction`.
 
 > El estado físico de la habitación (`Room.status`) sirve solo para la operación del *presente*
 > (housekeeping, autorizar check-in). La decisión de **si se puede reservar** depende exclusivamente

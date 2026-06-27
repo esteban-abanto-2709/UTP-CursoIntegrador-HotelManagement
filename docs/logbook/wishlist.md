@@ -7,9 +7,6 @@ Si una idea se promueve, se borra de aquí y nace un `RM` nuevo.
 
 ---
 
-## [WL-001] Descuentos acumulables en el check-out
-Aplicar varios descuentos a la vez en el check-out, de forma acumulativa. Hoy `Payment` guarda un único `discountId` y el diálogo solo permite elegir uno (pasar de 1-a-1 a varios por pago).
-
 ## [WL-002] Tabla de huéspedes hospedados actualmente
 En `/dashboard/huespedes`, una tabla superior con los huéspedes hospedados ahora mismo (reservas `ACTIVE`), manteniendo debajo el historial completo, para ver de un vistazo quién está en el hotel.
 
@@ -18,3 +15,6 @@ Que las tablas del frontend (reservas, habitaciones, staff, huéspedes) se orden
 
 ## [WL-004] Flujo de limpieza con empleado asignado
 Tras el check-out, que un empleado "tome" el trabajo de housekeeping del cuarto (quede asignado a él) y sea ese mismo quien lo libere a `AVAILABLE`, dando trazabilidad a la limpieza.
+
+## [WL-005] Utilidad neta real en la reportería (no solo ingreso bruto)
+La reportería hoy muestra solo ingreso bruto (de `Payment`). Para utilidad neta hay que modelar primero una fuente de egresos (planilla con sueldos y/o costos operativos fijos), conectarla a la agregación y reetiquetar la página. Es una feature, no un fix (la BD no tiene egresos). *(Antes registrado como deuda TD-019; reclasificado a deseo por estar bloqueado en una feature.)*
