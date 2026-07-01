@@ -13,9 +13,10 @@ import { PaymentsModule } from './modules/payments/payments.module';
 import { AuditModule } from './modules/audit/audit.module';
 import { AnalyticsModule } from './modules/analytics/analytics.module';
 import { ReportsModule } from './modules/reports/reports.module';
+import { MailModule } from './modules/mail/mail.module';
 
 @Module({
-  imports: [PrismaModule, EmployeesModule, AuthModule, RoomsModule, ReservationsModule, GuestsModule, RoomChargesModule, DiscountsModule, PaymentsModule, AuditModule, AnalyticsModule, ReportsModule],
+  imports: [PrismaModule, EmployeesModule, AuthModule, RoomsModule, ReservationsModule, GuestsModule, RoomChargesModule, DiscountsModule, PaymentsModule, AuditModule, AnalyticsModule, ReportsModule, MailModule],
   controllers: [AppController],
   providers: [AppService],
 })

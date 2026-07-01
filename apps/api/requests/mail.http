@@ -1,0 +1,7 @@
+### Prueba de correo (paso 1) — genera PDF y lo envía al sandbox de Mailtrap
+POST http://localhost:4000/mail/test
+Content-Type: application/json
+
+{
+  "to": "isaac.ortega.1106@gmail.com"
+}
