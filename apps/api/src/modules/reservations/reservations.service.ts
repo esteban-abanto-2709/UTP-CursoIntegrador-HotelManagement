@@ -15,12 +15,8 @@ import { GuestsService } from '../guests/guests.service';
 import { AuditService } from '../audit/audit.service';
 import { PaymentsService } from '../payments/payments.service';
 import { RoomChargesService } from '../room-charges/room-charges.service';
-import { PdfService } from '../pdf/pdf.service';
-import {
-  buildComprobanteHtml,
-  type ComprobanteData,
-} from '../pdf/templates/comprobante.template';
-import { EMPRESA } from '../pdf/templates/format';
+import { buildComprobantePdf, type ComprobanteData } from '../pdf/comprobante-pdf';
+import { EMPRESA } from '../pdf/format';
 import { cursorArgs, buildPage } from '@/common/pagination/paginate';
 
 @Injectable()
@@ -31,7 +27,6 @@ export class ReservationsService {
     private audit: AuditService,
     private payments: PaymentsService,
     private roomCharges: RoomChargesService,
-    private pdf: PdfService,
   ) {}
 
   private readonly reservationInclude = {
@@ -560,7 +555,7 @@ export class ReservationsService {
       })),
     };
 
-    const buffer = await this.pdf.render(buildComprobanteHtml(data));
+    const buffer = await buildComprobantePdf(data);
     const folio = `${EMPRESA.serie}-${String(payment.id).padStart(7, '0')}`;
     const filename = `Comprobante ${folio} - ${reservation.guest.fullName}.pdf`;
     return { filename, buffer };

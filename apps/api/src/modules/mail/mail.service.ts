@@ -1,8 +1,7 @@
 import 'dotenv/config';
 import { Injectable, Logger } from '@nestjs/common';
 import { createTransport, type Transporter } from 'nodemailer';
-import { PdfService } from '../pdf/pdf.service';
-import { buildVoucherHtml, type VoucherData } from '../pdf/templates/voucher.template';
+import { buildVoucherPdf, type VoucherData } from '../pdf/voucher-pdf';
 
 export interface SendVoucherOptions {
   to: string;
@@ -18,7 +17,7 @@ export class MailService {
   private readonly transporter: Transporter;
   private readonly from = process.env.MAIL_FROM ?? 'Mirador <no-reply@mirador.test>';
 
-  constructor(private readonly pdf: PdfService) {
+  constructor() {
     this.transporter = createTransport({
       host: process.env.MAIL_HOST,
       port: Number(process.env.MAIL_PORT ?? 2525),
@@ -30,7 +29,7 @@ export class MailService {
   }
 
   async sendVoucher(opts: SendVoucherOptions): Promise<void> {
-    const pdf = await this.pdf.render(buildVoucherHtml(opts.voucher));
+    const pdf = await buildVoucherPdf(opts.voucher);
     await this.transporter.sendMail({
       from: this.from,
       to: opts.to,

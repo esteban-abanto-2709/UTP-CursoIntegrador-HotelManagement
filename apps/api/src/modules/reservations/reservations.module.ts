@@ -4,10 +4,9 @@ import { ReservationsController } from './reservations.controller';
 import { GuestsModule } from '../guests/guests.module';
 import { PaymentsModule } from '../payments/payments.module';
 import { RoomChargesModule } from '../room-charges/room-charges.module';
-import { PdfModule } from '../pdf/pdf.module';
 
 @Module({
-  imports: [GuestsModule, PaymentsModule, RoomChargesModule, PdfModule],
+  imports: [GuestsModule, PaymentsModule, RoomChargesModule],
   providers: [ReservationsService],
   controllers: [ReservationsController],
 })

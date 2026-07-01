@@ -37,19 +37,6 @@ export function igvBreakdown(grandTotal: number): { base: number; igv: number } 
   return { base, igv };
 }
 
-export const esc = (value: string) =>
-  String(value).replace(
-    /[&<>"']/g,
-    (c) =>
-      ({
-        '&': '&amp;',
-        '<': '&lt;',
-        '>': '&gt;',
-        '"': '&quot;',
-        "'": '&#39;',
-      })[c] ?? c,
-  );
-
 export const money = (value: number) => `S/ ${value.toFixed(2)}`;
 
 export function formatDate(value: string | Date): string {
