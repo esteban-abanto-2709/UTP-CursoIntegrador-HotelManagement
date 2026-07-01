@@ -106,6 +106,7 @@ export const routes = {
       checkIn: (id: number) => `/reservations/${id}/checkin`,
       checkOut: (id: number) => `/reservations/${id}/checkout`,
       charges: (id: number) => `/reservations/${id}/charges`,
+      comprobante: (id: number) => `/reservations/${id}/comprobante.pdf`,
     },
     expenseCategories: {
       list: () => "/expense-categories",

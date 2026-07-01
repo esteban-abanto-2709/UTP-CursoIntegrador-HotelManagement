@@ -1,4 +1,5 @@
-import { Controller, Post, Get, Patch, Body, Param, Query, ParseIntPipe, UseGuards } from '@nestjs/common';
+import { Controller, Post, Get, Patch, Body, Param, Query, ParseIntPipe, UseGuards, Res } from '@nestjs/common';
+import type { Response } from 'express';
 import { ReservationsService } from './reservations.service';
 import { CreateReservationDto } from './dto/create-reservation.dto';
 import { UpdateReservationStatusDto } from './dto/update-reservation-status.dto';
@@ -33,6 +34,20 @@ export class ReservationsController {
   @Get(':id')
   findOne(@Param('id', ParseIntPipe) id: number) {
     return this.reservationsService.findOne(id);
+  }
+
+  @Get(':id/comprobante.pdf')
+  async comprobante(
+    @Param('id', ParseIntPipe) id: number,
+    @Res() res: Response,
+  ) {
+    const { filename, buffer } = await this.reservationsService.comprobantePdf(id);
+    res.set({
+      'Content-Type': 'application/pdf',
+      'Content-Disposition': `attachment; filename="${filename}"`,
+      'Content-Length': buffer.length,
+    });
+    res.send(buffer);
   }
 
   @Patch(':id')

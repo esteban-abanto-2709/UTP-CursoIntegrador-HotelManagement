@@ -13,6 +13,14 @@ import { FilterReservationsDto } from './dto/filter-reservations.dto';
 import { CheckoutReservationDto } from './dto/checkout-reservation.dto';
 import { GuestsService } from '../guests/guests.service';
 import { AuditService } from '../audit/audit.service';
+import { PaymentsService } from '../payments/payments.service';
+import { RoomChargesService } from '../room-charges/room-charges.service';
+import { PdfService } from '../pdf/pdf.service';
+import {
+  buildComprobanteHtml,
+  type ComprobanteData,
+} from '../pdf/templates/comprobante.template';
+import { EMPRESA } from '../pdf/templates/format';
 import { cursorArgs, buildPage } from '@/common/pagination/paginate';
 
 @Injectable()
@@ -21,6 +29,9 @@ export class ReservationsService {
     private prisma: PrismaService,
     private guests: GuestsService,
     private audit: AuditService,
+    private payments: PaymentsService,
+    private roomCharges: RoomChargesService,
+    private pdf: PdfService,
   ) {}
 
   private readonly reservationInclude = {
@@ -514,5 +525,44 @@ export class ReservationsService {
       reservation: this.flattenReservation(updated),
       payment,
     };
+  }
+
+  async comprobantePdf(id: number): Promise<{ filename: string; buffer: Buffer }> {
+    const reservation = await this.findOne(id);
+    const payment = await this.payments.findByReservation(id);
+    const charges = await this.roomCharges.findByReservation(id);
+
+    const data: ComprobanteData = {
+      paymentId: payment.id,
+      processedAt: payment.processedAt,
+      paymentMethod: reservation.payment?.paymentMethod ?? '',
+      guest: reservation.guest,
+      checkIn: reservation.checkIn,
+      checkOut: reservation.checkOut,
+      room: { number: reservation.room.number, type: reservation.room.type ?? '' },
+      rateSnapshot: Number(reservation.rateSnapshot ?? 0),
+      roomTotal: Number(payment.roomTotal),
+      subtotal: Number(payment.subtotal),
+      grandTotal: Number(payment.grandTotal),
+      employee: {
+        firstName: payment.employee.firstName ?? '',
+        lastName: payment.employee.lastName ?? '',
+      },
+      discounts: payment.discounts.map((d) => ({
+        name: d.name,
+        percentage: Number(d.percentage),
+        amount: Number(d.amount),
+      })),
+      charges: charges.map((c) => ({
+        description: c.description,
+        amount: Number(c.amount),
+        category: c.category.name,
+      })),
+    };
+
+    const buffer = await this.pdf.render(buildComprobanteHtml(data));
+    const folio = `${EMPRESA.serie}-${String(payment.id).padStart(7, '0')}`;
+    const filename = `Comprobante ${folio} - ${reservation.guest.fullName}.pdf`;
+    return { filename, buffer };
   }
 }

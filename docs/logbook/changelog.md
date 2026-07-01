@@ -16,6 +16,9 @@ Resumen en ≤2 líneas de lo que se hizo.
 
 ---
 
+## [RM-052] Mover la generación de PDF del frontend al backend (2026-07-01 10:14)
+Se centralizó la generación de PDF en el API con Puppeteer (HTML→PDF, instancia única perezosa en `modules/pdf`): la boleta/comprobante y el voucher de reserva ahora se renderizan server-side desde plantillas HTML (`comprobante.template.ts`, `voucher.template.ts`) reusando la plantilla que vivía en el front. Nuevo endpoint `GET /reservations/:id/comprobante.pdf`; el front (`printComprobante.ts`) solo descarga esos bytes. Se eliminó el generador pdfkit del voucher y los helpers huérfanos del front (`comprobante.ts`, `numeroALetras.ts`). Habilita adjuntar el mismo PDF por correo (paso 2). Deja abierta [[TD-029]].
+
 ## [RM-051] Rediseñar el dashboard de inicio como panel-resumen (2026-06-26 11:21)
 `dashboard/page.tsx` se reescribió siguiendo la referencia `Mirador PMS.html` del root (bundle de diseño decodificado), adaptado al tema oscuro/tokens existentes: fila de 4 KPIs (ocupación %, reservas de hoy con desglose llegadas/salidas, ingresos del mes, disponibles), fila de gráficos (ocupación mensual con Recharts `BarChart` + donut de estados de habitación con `PieChart`) y fila de actividad (auditoría reciente + llegadas de hoy). Cableado a endpoints reales (`rooms`, `analytics.monthlyRevenue`/`occupancy`, `auditLogs`, `reservations` PENDING/ACTIVE) vía `Promise.allSettled`; "ingresos de hoy" y "ocupación semanal" del mockup se sustituyeron por "ingresos del mes" y "ocupación mensual" (datos honestos disponibles). Build web verde. Reemplaza la grilla de control de habitaciones que vivía en el inicio (ya existe en `/dashboard/rooms`).
 
