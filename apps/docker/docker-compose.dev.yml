@@ -1,0 +1,7 @@
+# Override de desarrollo: publica el puerto de Postgres al host para
+# poder usar Prisma Studio u otros clientes locales.
+# Se activa con COMPOSE_FILE en el .env (ver .env.example).
+services:
+  db:
+    ports:
+      - "127.0.0.1:${POSTGRES_PORT}:5432"
