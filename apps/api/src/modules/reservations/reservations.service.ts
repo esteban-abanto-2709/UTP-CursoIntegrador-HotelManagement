@@ -1,5 +1,6 @@
 import {
   Injectable,
+  Logger,
   BadRequestException,
   ConflictException,
   NotFoundException,
@@ -15,18 +16,22 @@ import { GuestsService } from '../guests/guests.service';
 import { AuditService } from '../audit/audit.service';
 import { PaymentsService } from '../payments/payments.service';
 import { RoomChargesService } from '../room-charges/room-charges.service';
+import { MailService } from '../mail/mail.service';
 import { buildComprobantePdf, type ComprobanteData } from '../pdf/comprobante-pdf';
 import { EMPRESA } from '../pdf/format';
 import { cursorArgs, buildPage } from '@/common/pagination/paginate';
 
 @Injectable()
 export class ReservationsService {
+  private readonly logger = new Logger(ReservationsService.name);
+
   constructor(
     private prisma: PrismaService,
     private guests: GuestsService,
     private audit: AuditService,
     private payments: PaymentsService,
     private roomCharges: RoomChargesService,
+    private mail: MailService,
   ) {}
 
   private readonly reservationInclude = {
@@ -515,11 +520,36 @@ export class ReservationsService {
 
     await this.audit.log(employeeId, 'CHECKOUT', 'Reservation', id);
 
+    await this.sendComprobanteEmail(id, updated.guest);
+
     return {
       message: 'Check-out realizado',
       reservation: this.flattenReservation(updated),
       payment,
     };
+  }
+
+  // El correo es best-effort: si el huésped no tiene email o el SMTP falla,
+  // el check-out ya está confirmado y no debe romperse por esto.
+  private async sendComprobanteEmail(
+    reservationId: number,
+    guest: { email: string | null; fullName: string },
+  ) {
+    if (!guest.email) return;
+    try {
+      const { filename, buffer } = await this.comprobantePdf(reservationId);
+      await this.mail.sendReceipt({
+        to: guest.email,
+        guestName: guest.fullName,
+        filename,
+        pdf: buffer,
+      });
+    } catch (err) {
+      this.logger.error(
+        `No se pudo enviar el comprobante de la reserva ${reservationId}`,
+        err instanceof Error ? err.stack : String(err),
+      );
+    }
   }
 
   async comprobantePdf(id: number): Promise<{ filename: string; buffer: Buffer }> {
