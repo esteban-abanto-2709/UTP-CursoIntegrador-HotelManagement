@@ -21,6 +21,20 @@ const lastNames = [
   'Trujillo', 'Velásquez', 'Yataco', 'Zegarra', 'Acuña', 'Bravo',
 ];
 
+const domains = ['gmail.com', 'hotmail.com', 'outlook.com', 'yahoo.es'];
+
+// ponytail: PRNG determinista (mulberry32) con semilla fija → datos "aleatorios"
+// pero estables entre corridas, para que la demo se vea igual en cada review.
+function rng(seed: number) {
+  let s = seed >>> 0;
+  return () => {
+    s = (s + 0x6d2b79f5) | 0;
+    let t = Math.imul(s ^ (s >>> 15), 1 | s);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
 function slug(value: string) {
   return value
     .normalize('NFD')
@@ -29,13 +43,30 @@ function slug(value: string) {
 }
 
 function buildGuests() {
+  const rand = rng(70120026);
+  const randInt = (min: number, max: number) =>
+    min + Math.floor(rand() * (max - min + 1));
+  const pick = <T>(arr: T[]) => arr[Math.floor(rand() * arr.length)];
+
+  const usedDni = new Set<string>();
+  const uniqueDni = () => {
+    let dni: string;
+    do {
+      dni = String(randInt(10000000, 76999999));
+    } while (usedDni.has(dni));
+    usedDni.add(dni);
+    return dni;
+  };
+
   return firstNames.map((firstName, i) => {
     const lastName = lastNames[i];
+    const sep = pick(['.', '_', '']);
+    const suffix = rand() < 0.4 ? String(randInt(71, 99)) : '';
     return {
-      nationalId: String(70100001 + i),
+      nationalId: uniqueDni(),
       fullName: `${firstName} ${lastName}`,
-      email: `${slug(firstName)}.${slug(lastName)}@example.com`,
-      phone: `9${String(87000000 + i)}`,
+      email: `${slug(firstName)}${sep}${slug(lastName)}${suffix}@${pick(domains)}`,
+      phone: `9${randInt(10000000, 99999999)}`,
     };
   });
 }
