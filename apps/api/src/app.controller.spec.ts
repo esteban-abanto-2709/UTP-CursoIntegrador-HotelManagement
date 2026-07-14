@@ -15,8 +15,17 @@ describe('AppController', () => {
   });
 
   describe('root', () => {
-    it('should return "Hello World!"', () => {
-      expect(appController.getHello()).toBe('Hello World!');
+    it('devuelve nombre y versión de la API', () => {
+      expect(appController.getInfo()).toEqual({
+        name: 'Mirador Hotel Suite API',
+        version: '0.0.1',
+      });
+    });
+  });
+
+  describe('health', () => {
+    it('reporta status ok', () => {
+      expect(appController.getHealth().status).toBe('ok');
     });
   });
 });
